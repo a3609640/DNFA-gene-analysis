@@ -1,0 +1,80 @@
+## bsub -q big-multi -n 4 -R 'rusage[mem=40000]'<2passbamtest1.lsf
+
+## Perform a STAR alignment of multiple files, each in turn.
+
+## environment (output dir, STAR location, etc.)
+STAR=~/bin/star  # the version of STAR must be the same as the one used for ref. genome
+output_dir=~/Analysis/Testrun/STAR/2passbam2/test1
+read_files_base=~/Testrun/NextseqTest-32743727/test1-40222594
+star_index_root=~/star/STARIndex
+
+# set up the execution environment (verbosely, for debugging)
+echo "contents of star_index_root (${star_index_root}):"
+find $star_index_root
+
+mkdir -m 755 -p $output_dir -v
+
+# test/debug
+echo "star:"
+ls -l /PHShome/sw542/bin/star
+
+echo "zcat:"
+which zcat
+ls -l `which zcat`
+
+
+# iterate over a list of files that differ by only prefixes ("data tags")
+
+data_tags="\
+test1_S2_L001 \
+test1_S2_L002 \
+test1_S2_L003 \
+test1_S2_L004 \
+"
+
+for tag in $data_tags; do
+  # construct the command to be executed
+  cmd="${STAR} \
+   --genomeDir ${star_index_root} \
+   --sjdbGTFfile ${star_index_root}/Homo_sapiens.GRCh38.86.gtf \
+   --runThreadN 24 \
+   --outFileNamePrefix ${output_dir}/${tag} \
+   --readFilesIn $read_files_base/${tag}_R1_001.fastq.gz \
+                 $read_files_base/${tag}_R2_001.fastq.gz \
+   --readFilesCommand zcat \
+   --twopassMode Basic"
+
+    # tell the user what command was constructed	
+	echo "executing $cmd"
+  echo "---"	
+	# execute the command
+	$cmd
+	echo "command completed with code $?"
+	echo "---"
+done
+
+
+module load samtools/1.1
+
+## sort sam file by name -n
+
+samtools sort -n -O sam -T sample.sort -o ~/HTSeq/test1-1.sort.sam ${output_dir}/test1-1Aligned.out.sam
+
+samtools sort -n -O sam -T sample.sort -o ~/HTSeq/test1-2.sort.sam ${output_dir}/test1-2Aligned.out.sam
+
+samtools sort -n -O sam -T sample.sort -o ~/HTSeq/test1-3.sort.sam ${output_dir}/test1-3Aligned.out.sam
+
+samtools sort -n -O sam -T sample.sort -o ~/HTSeq/test1-4.sort.sam ${output_dir}/test1-4Aligned.out.sam
+
+## count the reads from Sam files
+## use position sorted sam file to perform DEXSeq_count!! -p yes: pair-end read
+# python ~/R/x86_64-redhat-linux-gnu-library/3.2/DEXSeq/python_scripts/dexseq_count.py Homo_sapiens.GRCh38.86.DEXSeq.chr.gff test1-1.sort.sam test1-1.sort.text
+
+python ~/R/x86_64-redhat-linux-gnu-library/3.2/DEXSeq/python_scripts/dexseq_count.py -p yes -r name Homo_sapiens.GRCh38.86.DEXSeq.noan.gff test1-1.sort.sam test1-1.text
+
+python ~/R/x86_64-redhat-linux-gnu-library/3.2/DEXSeq/python_scripts/dexseq_count.py -p yes -r name Homo_sapiens.GRCh38.86.DEXSeq.noan.gff test1-2.sort.sam test1-2.text
+
+python ~/R/x86_64-redhat-linux-gnu-library/3.2/DEXSeq/python_scripts/dexseq_count.py -p yes -r name Homo_sapiens.GRCh38.86.DEXSeq.noan.gff test1-3.sort.sam test1-3.text
+
+python ~/R/x86_64-redhat-linux-gnu-library/3.2/DEXSeq/python_scripts/dexseq_count.py -p yes -r name Homo_sapiens.GRCh38.86.DEXSeq.noan.gff test1-4.sort.sam test1-4.text
+
