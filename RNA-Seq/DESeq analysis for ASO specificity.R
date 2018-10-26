@@ -133,7 +133,7 @@ pheatmap(sampleDistMatrix,
          col=colors)
 
 #####################################
-## 6. Principal Component analysis ##
+## 6. Principal component analysis ##
 #####################################
 ## number of top genes to use for principal components, selected by highest row variance, 500 by default
 data <- plotPCA(rld, intgroup = c( "condition"), returnData=TRUE)
@@ -221,7 +221,6 @@ res$name =   mapIds(org.Hs.eg.db,
 summary(res)
 head(res, 10)
 
-
 ######################################################
 ## 8. Find the genes enriched in each PCA component ##
 ######################################################
@@ -275,11 +274,10 @@ barplot(eigen[, 2], names.arg=1:nrow(eigen),
         xlab = "Principal Components",
         ylab = "Percentage of variances",
         col ="steelblue")
-
 lines(x = 1:nrow(eigen), eigen[, 2], 
       type="b", pch=19, col = "red")
 
-# plot biplot PCA graph with the top six contributors for PC1 and PC2
+# plot biplot graph with the top six contributing genes to PCA from RNA-Seq
 fviz_pca_biplot(res.pca, 
                 select.var = list(contrib = 6),
                 #select.var = list(contrib = 0.6), 
@@ -328,9 +326,7 @@ fviz_cluster(res.hcpc,
              main = "Factor map"
             )
 
-
 #Hierarchical Clustering
-
 #compute dissimilarity matrix for all data
 eu.d <- dist(data, method = "euclidean")
 # Hierarchical clustering using Ward's method
@@ -341,19 +337,22 @@ grp <- cutree(res.hc, k = 2)
 plot(res.hc, cex = 0.6) # plot tree
 rect.hclust(res.hc, k = 2, border = c("yellow","blue")) # add rectangle
 
+#################################################################
+## 10. Find out top contributing gene variables to PC1 and PC2 ##
+#################################################################
 ## Contributions of variables to PCs
 head(res.pca$var$contrib,10)
 head(res.pca$var$cos2, 10)
 var <- get_pca_var(res.pca)
 var
-library("corrplot")
-corrplot(var$contrib, is.corr=FALSE)   
-# Contributions of variables to PC1
+#library("corrplot")
+#corrplot(var$contrib, is.corr=FALSE)   
+# Contributions of gene variables to PC1
 fviz_contrib(res.pca, choice="var", axes = 1,top = 10, 
              fill = "lightgray", color = "black") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle=45))
-# Contributions of variables to PC2
+# Contributions of gene variables to PC2
 fviz_contrib(res.pca, choice="var", axes = 2,top = 10, 
              fill = "lightgray", color = "black") +
              theme_minimal() +
@@ -383,6 +382,10 @@ dim1$name =   mapIds(org.Hs.eg.db,
                      multiVals="first")
 summary(dim1)
 head(dim1,10)
+quanti.correlation.dim1 = dim1$quanti.correlation 
+names(quanti.correlation.dim1) = dim1$entrez
+head(quanti.correlation.dim1)
+
 
 res.desc$Dim.2
 dim2 <-data.frame(res.desc$Dim.2)
@@ -405,41 +408,8 @@ dim2$name =   mapIds(org.Hs.eg.db,
 summary(dim2)
 head(dim2,10)
 
-quanti.correlation.dim1 = dim1$quanti.correlation 
-names(quanti.correlation.dim1) = dim1$entrez
-head(quanti.correlation.dim1)
-
-keggres.1 = gage(quanti.correlation.dim1, gsets=kegg.sets.hs, same.dir=TRUE)
-keggres.sigmet.1 = gage(quanti.correlation.dim1, gsets=kegg.sets.hs.sigmet, same.dir=TRUE)
-gores.1 = gage(quanti.correlation.dim1, gsets=go.gs, same.dir=TRUE)
-cartares.1 = gage(quanti.correlation.dim1, gsets=carta.gs, same.dir=TRUE)
-
-# Look at both up (greater), down (less), and statatistics.
-lapply(keggres.1, head,10)
-lapply(keggres.sigmet.1, head,10)
-lapply(gores.1, head,10)
-lapply(cartares.1, head,10)
-
-
-
-quanti.correlation.dim2 = dim2$quanti.correlation 
-names(quanti.correlation.dim2) = dim2$entrez
-head(quanti.correlation.dim2)
-
-keggres.2 = gage(quanti.correlation.dim2, gsets=kegg.sets.hs, same.dir=TRUE)
-keggres.sigmet.2 = gage(quanti.correlation.dim2, gsets=kegg.sets.hs.sigmet, same.dir=TRUE)
-gores.2 = gage(quanti.correlation.dim2, gsets=go.gs, same.dir=TRUE)
-cartares.2 = gage(quanti.correlation.dim2, gsets=carta.gs, same.dir=TRUE)
-
-# Look at both up (greater), down (less), and statatistics.
-lapply(keggres.2, head,10)
-lapply(keggres.sigmet.2, head,10)
-lapply(gores.2, head,10)
-lapply(cartares.2, head,10)
-
-
 ##################################################################
-## 10. Plot of normalized counts for a single gene on log scale ##
+## 11. Plot of normalized counts for a single gene on log scale ##
 ##################################################################
 # plotcount: "normalized" whether the counts should be normalized by size factor (default is TRUE)
 # plotcount: "transform" whether to present log2 counts (TRUE) or to present the counts on the log scale (FALSE, default)
@@ -641,7 +611,7 @@ ggplot(SPIRE1, aes(x=condition, y=log2(count), fill=condition)) +
         panel.background = element_blank())+
   labs(title = "SPIRE1",x=" ", y= "log2(read counts)")
 ## *************************************************************
-ENSG00000124486
+
 ## *************************************************************
 USP9X <- plotCounts(dds, gene="ENSG00000124486", 
                      intgroup="condition", 
@@ -780,6 +750,7 @@ ggplot(MITF, aes(x=condition, y=log2(count), fill=condition)) +
         panel.border = element_rect(colour = "black",size=1),
         panel.background = element_blank())+
   labs(title = "MITF",x=" ", y= "log2(read counts)")
+## *************************************************************
 
 ## *************************************************************
 SREBF2 <- plotCounts(dds, gene="ENSG00000198911", 
