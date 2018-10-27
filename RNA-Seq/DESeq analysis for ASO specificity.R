@@ -64,7 +64,7 @@ library(plotly)
 # obtain the count table of the experiment directly from a pre-saved file: testseq.csv. 
 # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
 # read processed RNA-seq read data from file testseq.csv.
-testseqCSV <- "./Test run/Analysis/STAR/results/testseq.csv"
+testseqCSV <- "./Analysis/STAR/results/testseq.csv"
 testseq <- read.csv(testseqCSV)
 # Use the column one (Ensemble names) as columnn names. 
 testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
