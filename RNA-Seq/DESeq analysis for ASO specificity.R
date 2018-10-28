@@ -1,4 +1,4 @@
-dataRoot <- ".."
+dataRoot <- file.path("..", data)
 
 #####################
 ## 1. Preparations ##
@@ -66,7 +66,7 @@ library(plotly)
 # obtain the count table of the experiment directly from a pre-saved file: testseq.csv. 
 # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
 # read processed RNA-seq read data from file testseq.csv.
-testseqCSV <- file.path(dataRoot, "data", "gene-counts.csv")
+testseqCSV <- file.path(dataRoot, "gene-counts.csv")
 testseq <- read.csv(testseqCSV)
 # Use the column one (Ensemble names) as columnn names. 
 testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
