@@ -63,7 +63,7 @@ library(plotly)
 #################################
 ## 2. Preparing count matrices ##
 #################################
-# obtain the count table of the experiment directly from a pre-saved file: testseq.csv. 
+# obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
 # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
 # read processed RNA-seq read data from file testseq.csv.
 testseqCSV <- file.path(dataRoot, "gene-counts.csv")
