@@ -39,12 +39,12 @@ referenceGenomeDir="${generatedDataRoot}/referenceGenome"
 mkdir -p ${referenceGenomeDir}
 pushd ${referenceGenomeDir}
 # fetch genome data, but not if it's already present locally (-nc for "no clobber" of local files)
-ensemblBaseUrl="ftp://ftp.ensembl.org/pub/release-94/fasta/homo_sapiens"
-wget -nc ${ensemblBaseUrl}/Homo_sapiens.GRCh38.94.gtf.gz
+ensemblBaseUrl="ftp://ftp.ensembl.org/pub/release-94/"
+wget -nc ${ensemblBaseUrl}/gtf/homo_sapiens/Homo_sapiens.GRCh38.94.gtf.gz
 gunzip Homo_sapiens.GRCh38.94.gtf.gz
 
 # download corresponding GRCh38 FASTA files
-wget -nc ${ensemblBaseUrl}/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+wget -nc ${ensemblBaseUrl}/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 gunzip Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 popd
 
