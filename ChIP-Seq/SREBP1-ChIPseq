@@ -38,7 +38,6 @@ md5sum A549-SREBP1-1.bam A549-SREBP1-2.bam A549-Input-1.bam A549-Input-2.bam
 # 2c8a0d8e2ffc7ca65ade9f8fe9f0dfe1  A549-Input-2.bam
 
 ################################################################################
-
 samtools sort A549-SREBP1-1.bam -o A549-SREBP1-1.sorted.bam
 samtools sort A549-SREBP1-2.bam -o A549-SREBP1-2.sorted.bam
 samtools sort A549-Input-1.bam -o A549-Input-1.sorted.bam
