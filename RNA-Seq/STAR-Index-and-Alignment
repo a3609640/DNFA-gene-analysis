@@ -8,19 +8,19 @@ if [ ! -d ${dataRoot} ]; then
   exit 1;
 fi
 
-echo "ensuring that generated data directory exists at: ${generatedDataRoot}"
-mkdir -m 755 -p ${generatedDataRoot}
+echo "ensuring that generated data directory exists at: ${DNFA_generatedDataRoot}"
+mkdir -m 755 -p ${DNFA_generatedDataRoot}
 
-echo "ensuring that STAR directory exists at: ${starRoot}"
-mkdir -m 755 -p ${starRoot}
+echo "ensuring that STAR directory exists at: ${DNFA_starRoot}"
+mkdir -m 755 -p ${DNFA_starRoot}
 
 ################################################################################
 #### download the lastes version of STAR aligner ####
 ################################################################################
 
 ## Fetch and build latest STAR source from releases, in a "STAR" directory
-echo "ensuring that STAR is installed in ${starRoot}"
-pushd ${starRoot}
+echo "ensuring that STAR is installed in ${DNFA_starRoot}"
+pushd ${DNFA_starRoot}
 wget -nc https://github.com/alexdobin/STAR/archive/2.6.0a.tar.gz
 tar -xzf 2.6.0a.tar.gz
 cd STAR-2.6.0a/source
@@ -32,7 +32,7 @@ popd
 ################################################################################
 # download the annotation GTF file of a recent version of GRCh38: release 94
 
-referenceGenomeDir="${generatedDataRoot}/referenceGenome"
+referenceGenomeDir="${DNFA_generatedDataRoot}/referenceGenome"
 mkdir -m 755 -p ${referenceGenomeDir}
 pushd ${referenceGenomeDir}
 # fetch genome data, but not if it's already present locally (-nc for "no clobber" of local files)
@@ -45,12 +45,12 @@ gunzip -k Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
 popd
 
 
-mkdir -m 755 -p ${generatedDataRoot}/STARIndex
-pushd ${generatedDataRoot}/STARIndex
+mkdir -m 755 -p ${DNFA_generatedDataRoot}/STARIndex
+pushd ${DNFA_generatedDataRoot}/STARIndex
 
 # Run STAR to generate genome indices specifying correct path to the genome FASTA
 # and annotations GTF file: suggested code from current protocol of bioinformatics
-STAR_BIN=${starRoot}/STAR-2.6.0a/bin/Linux_x86_64/STAR
+STAR_BIN=${DNFA_starRoot}/STAR-2.6.0a/bin/Linux_x86_64/STAR
 if [ ! -f SA ]; then
   ${STAR_BIN} \
   --runThreadN 12 \
@@ -72,10 +72,10 @@ popd
 ## looping for sample test1 ##
 ################################################################################
 
-mkdir -m 755 -p ${generatedDataRoot}/Analysis
-output_dir=${generatedDataRoot}/Analysis/2-pass/test1
-read_files_base=${raw_data_basedir}/test1
-star_index_root=${generatedDataRoot}/STARIndex
+mkdir -m 755 -p ${DNFA_generatedDataRoot}/Analysis
+output_dir=${DNFA_generatedDataRoot}/Analysis/2-pass/test1
+read_files_base=${DNFA_raw_data_basedir}/test1
+star_index_root=${DNFA_generatedDataRoot}/STARIndex
 
 mkdir -m 755 -p ${output_dir}
 
@@ -105,9 +105,9 @@ fi
 ## with looping for sample test2 ##
 ################################################################################
 
-output_dir=${generatedDataRoot}/Analysis/2-pass/test2
-read_files_base=${raw_data_basedir}/test2
-star_index_root=${generatedDataRoot}/STARIndex
+output_dir=${DNFA_generatedDataRoot}/Analysis/2-pass/test2
+read_files_base=${DNFA_raw_data_basedir}/test2
+star_index_root=${DNFA_generatedDataRoot}/STARIndex
 
 # iterate over a list of files that differ by only prefixes ("data tags")
 data_tags="test2_S3_L001 test2_S3_L002 test2_S3_L003 test2_S3_L004"
@@ -140,8 +140,8 @@ fi
 ## samtools sort [-l level] [-m maxMem] [-o out.bam] [-O format] [-n] [-t tag] [-T tmpprefix] [-@ threads] [in.sam|in.bam|in.cram]
 ## use test1_S2_L001Aligned.out.sam file for sorting
 echo "Perform samtool on the STAR-aligned sequence files"
-samfile=${generatedDataRoot}/Analysis/2-pass/test?/*.sam
-Samsort=${generatedDataRoot}/Analysis/Samsort
+samfile=${DNFA_generatedDataRoot}/Analysis/2-pass/test?/*.sam
+Samsort=${DNFA_generatedDataRoot}/Analysis/Samsort
 ## For the sam files from STAR output folder for samtool sorting,
 ## use filename=$(basename ${f%%.*}) to extract the base name from
 ## e.g. "test1_S2_L001Aligned.out.sam" as "test1_S2_L001Aligned"; and
