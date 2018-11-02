@@ -1,0 +1,126 @@
+cd ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Bam
+
+################################################################################
+# Download SREBF1 ChIPseq data in A549 cell line from Encode
+# download SREBP1-A549-1.bam file
+wget -c https://www.encodeproject.org/files/ENCFF224BFU/@@download/ENCFF224BFU.bam
+# use md5sum for quality check after file download
+md5sum A549-SREBP1-1.bam
+# 963f1d263ab581902c394ccfebd1c293  A549-SREBP1-1.bam
+ln -s ENCFF224BFU.bam A549-SREBP1-1.bam
+
+wget -c https://www.encodeproject.org/files/ENCFF788IFN/@@download/ENCFF788IFN.bam
+# quality check
+md5sum ENCFF788IFN.bam
+# 8c8124d093d66edcc9c319cd2defc9bb  ENCFF788IFN.bam
+ln -s ENCFF788IFN.bam A549-SREBP1-2.bam
+
+################################################################################
+# Download ChIPSeq input data as control in A549 cell line from Encode
+wget -c https://www.encodeproject.org/files/ENCFF189KJV/@@download/ENCFF189KJV.bam
+# quality check
+md5sum ENCFF189KJV.bam
+64ac01c84b90eb1838ef558e5e504dbc  ENCFF189KJV.bam
+ln -s ENCFF189KJV.bam A549-Input-1.bam
+
+wget -c https://www.encodeproject.org/files/ENCFF419UIG/@@download/ENCFF419UIG.bam
+md5sum ENCFF419UIG.bam
+2c8a0d8e2ffc7ca65ade9f8fe9f0dfe1  ENCFF419UIG.bam
+ln -s ENCFF419UIG.bam A549-Input-2.bam
+# some error with this file when sorted: 'Input-A549-2.sorted.0015.bam' is truncated.
+
+#  check the original file intergrity
+md5sum A549-SREBP1-1.bam A549-SREBP1-2.bam A549-Input-1.bam A549-Input-2.bam
+
+# 963f1d263ab581902c394ccfebd1c293  A549-SREBP1-1.bam
+# 8c8124d093d66edcc9c319cd2defc9bb  A549-SREBP1-2.bam
+# 64ac01c84b90eb1838ef558e5e504dbc  A549-Input-1.bam
+# 2c8a0d8e2ffc7ca65ade9f8fe9f0dfe1  A549-Input-2.bam
+
+################################################################################
+samtools sort A549-SREBP1-1.bam -o A549-SREBP1-1.sorted.bam
+samtools sort A549-SREBP1-2.bam -o A549-SREBP1-2.sorted.bam
+samtools sort A549-Input-1.bam -o A549-Input-1.sorted.bam
+samtools sort A549-Input-2.bam -o A549-Input-2.sorted.bam
+
+samtools index A549-SREBP1-1.sorted.bam
+samtools index A549-SREBP1-2.sorted.bam
+samtools index A549-Input-1.sorted.bam
+samtools index A549-Input-2.sorted.bam
+# some error with this file when sorted: 'Input-A549-2.sorted.0015.bam' is truncated.
+
+# merge bams file and add @RG and @CO
+# Using samtools view -H <bamfile>, get @RG information for each of two bams.
+samtools merge [-nr] [-h inh.sam] <out.bam> <in1.bam> <in2.bam> [...]
+
+# merge replicate bam files for SREBP1 ChIP-Seq and Input respectively
+samtools merge A549-merged-SREBP1.sorted.bam A549-SREBP1-1.sorted.bam A549-SREBP1-2.sorted.bam
+samtools merge A549-merged-Input.sorted.bam A549-Input-1.sorted.bam A549-Input-2.sorted.bam
+
+################################################################################
+## install macs on linux machine
+sudo apt-get install macs
+# peak calling on SREBP1 sample 1 and control sample 1
+
+macs2 callpeak -t ./Bam/A549-SREBP1-1.sorted.bam \
+               -c ./Bam/A549-Input-1.sorted.bam \
+               -f BAM \
+               -g hs \
+               -n A549-SREBP1-1-Input-1 \
+               --outdir MACS \
+               -q 0.01 &> MACS/A549-SREBP1-1-Input-1.log
+
+macs2 callpeak -t ./Bam/A549-SREBP1-2.sorted.bam \
+               -c ./Bam/A549-Input-1.sorted.bam \
+               -f BAM \
+               -g hs \
+               -n A549-SREBP1-2-Input-1 \
+               --outdir MACS \
+               -q 0.01 &> MACS/A549-SREBP1-2-Input-1.log
+
+# peak calling on merged bam files from merged SREBP1 sample and control sample
+macs2 callpeak -t ./Bam/A549-merged-SREBP1.sorted.bam \
+               -c ./Bam/A549-merged-Input.sorted.bam \
+               -f BAM \
+               -g hs \
+               -n A549-merged-SREBP1-Input \
+               --outdir MACS \
+               -q 0.01 &> MACS/A549-merged-SREBP1-Input.log
+
+
+################################################################################
+## installation of bedtools
+################################################################################
+sudo apt-get install bedtools
+
+cd /home/suwu/stripes/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Bam
+
+bedtools bamtobed -i A549-SREBP1-1.bam > ../Bed/A549-SREBP1-1.bed
+bedtools bamtobed -i A549-SREBP1-2.bam > ../Bed/A549-SREBP1-2.bed
+
+bedtools bamtobed -i A549-Input-1.bam > ../Bed/A549-Input-1.bed
+bedtools bamtobed -i A549-Input-2.bam > ../Bed/A549-Input-2.bed
+
+cd ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Bed
+
+################################################################################
+# install Homer
+perl /home/suwu/Documents/Bioinformatics\ tools/Homer/configureHomer.pl -install homer
+# Add the homer/bin directory to the executable path.  edit  ~/.bashrc file to include the line:
+export PATH=$PATH:/home/suwu/Documents/Bioinformatics\ tools/Homer/bin/
+# source /home/suwu/.bashrc
+
+# To get a list of available packages:
+perl /home/suwu/Documents/Bioinformatics\ tools/Homer/configureHomer.pl -list
+perl /home/suwu/Documents/Bioinformatics\ tools/Homer/configureHomer.pl -update
+# Creating a "Tag Directory" with makeTagDirectory
+makeTagDirectory ../Homer/TagDirectory/A549-SREBP1 A549-SREBP1-1.bed A549-SREBP1-2.bed -format bed
+makeTagDirectory ../Homer/TagDirectory/A549-Input A549-Input-1.bed A549-Input-2.bed  -format bed
+annotatePeaks.pl A549-merged-SREBP1-Input_peaks.narrowPeak hg38 > A549-SREBP1.txt
+
+################################################################################
+# Analyzing a ChIP-Seq experiment with one command
+cd ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Bed
+analyzeChIP-Seq.pl ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Homer/TagDirectory/A549-SREBP1/ hg38 -i ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Homer/TagDirectory/A549-Input -focus -A A549-SREBP1-1.bed A549-SREBP1-2.bed
+
+sudo apt-get install PeakAnalyzer
