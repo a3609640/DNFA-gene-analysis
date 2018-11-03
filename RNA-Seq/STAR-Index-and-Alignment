@@ -20,12 +20,7 @@ mkdir -m 755 -p ${DNFA_starRoot}
 
 ## Fetch and build latest STAR source from releases, in a "STAR" directory
 echo "ensuring that STAR is installed in ${DNFA_starRoot}"
-pushd ${DNFA_starRoot}
-wget -nc https://github.com/alexdobin/STAR/archive/2.6.0a.tar.gz
-tar -xzf 2.6.0a.tar.gz
-cd STAR-2.6.0a/source
-make STAR
-popd
+pushd ${projectRoot} && make && popd
 
 ################################################################################
 ## download the GRCh38 version of the human genome
@@ -83,11 +78,9 @@ mkdir -m 755 -p ${output_dir}
 data_tags="test1_S2_L001 test1_S2_L002 test1_S2_L003 test1_S2_L004"
 
 if [ ! -f "${output_dir}/test1_S2_L004SJ.out.tab" ]; then
-  # test the varibles in looping first
-  for tag in $data_tags; do ls $read_files_base/"$tag"_R1_001.fastq.gz; done
-
   ## run STAR with sequencing data
   for tag in $data_tags; do
+  echo ${tag}
   ${STAR_BIN} \
      --genomeDir $star_index_root \
      --sjdbGTFfile ${referenceGenomeDir}/Homo_sapiens.GRCh38.94.gtf \
@@ -115,11 +108,9 @@ data_tags="test2_S3_L001 test2_S3_L002 test2_S3_L003 test2_S3_L004"
 mkdir -m 755 -p ${output_dir}
 
 if [ ! -f "${output_dir}/test2_S3_L004SJ.out.tab" ]; then
-  # test loop: print the files on which to operate
-  for tag in $data_tags; do ls $read_files_base/"$tag"_R1_001.fastq.gz; done
-
   ## run STAR with sequencing data
   for tag in $data_tags; do
+  echo ${tag}
   ${STAR_BIN} \
      --genomeDir $star_index_root \
      --sjdbGTFfile ${referenceGenomeDir}/Homo_sapiens.GRCh38.94.gtf \
