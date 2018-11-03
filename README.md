@@ -1,5 +1,35 @@
 # Using this Package
 
+## System Requirements
+This project makes use of the STAR aligner by Alex Dobin to sequence human
+genome data.  STAR requires more than 30G of RAM for this purpose.  In general
+genome sequencing carries relatively high demands for compute, RAM, and
+disk I/O resources (but not for graphics resources, at least not with the
+software used in this project).
+
+This project also makes use of various resource-intensive R packages.
+
+The following systems were used during development of this work:
+
+1. System76 "Serval" mobile workstation
+    * Intel i7-8700k CPU
+    * 64GB RAM (DDR4-3000, non-ECC)
+    * Samsung NVMe Pro SSD
+    * Pop!_OS 18.04
+2. PowerSpec G460 desktop computer
+    * Intel i7-8700k CPU
+    * 48GB RAM (DDR4-3200, non-ECC)
+    * Intel M.2 SATA SSD
+    * Windows 10 Pro ; Windows Subsystem for Linux, "WLinux" flavor
+
+Note that WSL is still evolving and rough around the edges.  For example,
+the "atom" editor has some bugs that prevent plug-in installation under WSL.
+
+In Q4 2018, Apple announced a new Mac Mini lineup.  A fully upgraded Mini
+would appear to have comparable specs and in theory should be suitable, but
+no attempt has been made to evaluate this.
+
+
 ## Installing Prerequisite Software Packages
 This software assumes that various tools are already available in your
 environment.  If you have not done so already, it will be useful for you to do
