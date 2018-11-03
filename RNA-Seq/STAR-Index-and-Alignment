@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # dataRoot -- for data that is part of the github repository
-dataRoot="${projectRoot}/data"
+dataRoot="${DNFA_projectRoot}/data"
 
 if [ ! -d ${dataRoot} ]; then
   echo "dataRoot does not exist at ${dataRoot}; did you 'source configuration'?";
@@ -14,13 +14,13 @@ mkdir -m 755 -p ${DNFA_generatedDataRoot}
 echo "ensuring that STAR directory exists at: ${DNFA_starRoot}"
 mkdir -m 755 -p ${DNFA_starRoot}
 
-################################################################################
-#### download the lastes version of STAR aligner ####
-################################################################################
-
-## Fetch and build latest STAR source from releases, in a "STAR" directory
+## Fetch and build STAR source from releases
 echo "ensuring that STAR is installed in ${DNFA_starRoot}"
-pushd ${projectRoot} && make && popd
+STAR_BIN=${DNFA_starRoot}/STAR-2.6.0a/bin/Linux_x86_64/STAR
+pushd ${projectRoot}
+echo "make ${STAR_BIN}"
+make ${STAR_BIN}
+popd
 
 ################################################################################
 ## download the GRCh38 version of the human genome
@@ -45,7 +45,6 @@ pushd ${DNFA_generatedDataRoot}/STARIndex
 
 # Run STAR to generate genome indices specifying correct path to the genome FASTA
 # and annotations GTF file: suggested code from current protocol of bioinformatics
-STAR_BIN=${DNFA_starRoot}/STAR-2.6.0a/bin/Linux_x86_64/STAR
 if [ ! -f SA ]; then
   ${STAR_BIN} \
   --runThreadN 12 \
