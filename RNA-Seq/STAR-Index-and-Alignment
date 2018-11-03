@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # dataRoot -- for data that is part of the github repository
-dataRoot="${projectRoot}/data"
+dataRoot="${DNFA_projectRoot}/data"
 
 if [ ! -d ${dataRoot} ]; then
   echo "dataRoot does not exist at ${dataRoot}; did you 'source configuration'?";
@@ -14,17 +14,12 @@ mkdir -m 755 -p ${DNFA_generatedDataRoot}
 echo "ensuring that STAR directory exists at: ${DNFA_starRoot}"
 mkdir -m 755 -p ${DNFA_starRoot}
 
-################################################################################
-#### download the lastes version of STAR aligner ####
-################################################################################
-
-## Fetch and build latest STAR source from releases, in a "STAR" directory
+## Fetch and build STAR source from releases
 echo "ensuring that STAR is installed in ${DNFA_starRoot}"
-pushd ${DNFA_starRoot}
-wget -nc https://github.com/alexdobin/STAR/archive/2.6.0a.tar.gz
-tar -xzf 2.6.0a.tar.gz
-cd STAR-2.6.0a/source
-make STAR
+STAR_BIN=${DNFA_starRoot}/STAR-2.6.0a/bin/Linux_x86_64/STAR
+pushd ${projectRoot}
+echo "make ${STAR_BIN}"
+make ${STAR_BIN}
 popd
 
 ################################################################################
@@ -50,7 +45,6 @@ pushd ${DNFA_generatedDataRoot}/STARIndex
 
 # Run STAR to generate genome indices specifying correct path to the genome FASTA
 # and annotations GTF file: suggested code from current protocol of bioinformatics
-STAR_BIN=${DNFA_starRoot}/STAR-2.6.0a/bin/Linux_x86_64/STAR
 if [ ! -f SA ]; then
   ${STAR_BIN} \
   --runThreadN 12 \
@@ -83,11 +77,9 @@ mkdir -m 755 -p ${output_dir}
 data_tags="test1_S2_L001 test1_S2_L002 test1_S2_L003 test1_S2_L004"
 
 if [ ! -f "${output_dir}/test1_S2_L004SJ.out.tab" ]; then
-  # test the varibles in looping first
-  for tag in $data_tags; do ls $read_files_base/"$tag"_R1_001.fastq.gz; done
-
   ## run STAR with sequencing data
   for tag in $data_tags; do
+  echo ${tag}
   ${STAR_BIN} \
      --genomeDir $star_index_root \
      --sjdbGTFfile ${referenceGenomeDir}/Homo_sapiens.GRCh38.94.gtf \
@@ -115,11 +107,9 @@ data_tags="test2_S3_L001 test2_S3_L002 test2_S3_L003 test2_S3_L004"
 mkdir -m 755 -p ${output_dir}
 
 if [ ! -f "${output_dir}/test2_S3_L004SJ.out.tab" ]; then
-  # test loop: print the files on which to operate
-  for tag in $data_tags; do ls $read_files_base/"$tag"_R1_001.fastq.gz; done
-
   ## run STAR with sequencing data
   for tag in $data_tags; do
+  echo ${tag}
   ${STAR_BIN} \
      --genomeDir $star_index_root \
      --sjdbGTFfile ${referenceGenomeDir}/Homo_sapiens.GRCh38.94.gtf \
