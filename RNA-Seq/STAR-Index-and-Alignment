@@ -8,59 +8,28 @@ if [ ! -d ${dataRoot} ]; then
   exit 1;
 fi
 
-echo "ensuring that generated data directory exists at: ${DNFA_generatedDataRoot}"
-mkdir -m 755 -p ${DNFA_generatedDataRoot}
-
-echo "ensuring that STAR directory exists at: ${DNFA_starRoot}"
-mkdir -m 755 -p ${DNFA_starRoot}
-
-## Fetch and build STAR source from releases
-echo "ensuring that STAR is installed in ${DNFA_starRoot}"
-STAR_BIN=${DNFA_starRoot}/STAR-2.6.0a/bin/Linux_x86_64/STAR
-pushd ${projectRoot}
-echo "make ${STAR_BIN}"
-make ${STAR_BIN}
-popd
-
-################################################################################
-## download the GRCh38 version of the human genome
-################################################################################
-# download the annotation GTF file of a recent version of GRCh38: release 94
-
-referenceGenomeDir="${DNFA_generatedDataRoot}/referenceGenome"
-mkdir -m 755 -p ${referenceGenomeDir}
-pushd ${referenceGenomeDir}
-# fetch genome data, but not if it's already present locally (-nc for "no clobber" of local files)
-ensemblBaseUrl="ftp://ftp.ensembl.org/pub/release-94/"
-wget -nc ${ensemblBaseUrl}/gtf/homo_sapiens/Homo_sapiens.GRCh38.94.gtf.gz
-wget -nc ${ensemblBaseUrl}/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
-# use -k to keep .gz files when unzipping, so re-execution won't re-download
-gunzip -k Homo_sapiens.GRCh38.94.gtf.gz
-gunzip -k Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
-popd
-
-
-mkdir -m 755 -p ${DNFA_generatedDataRoot}/STARIndex
-pushd ${DNFA_generatedDataRoot}/STARIndex
-
-# Run STAR to generate genome indices specifying correct path to the genome FASTA
-# and annotations GTF file: suggested code from current protocol of bioinformatics
-if [ ! -f SA ]; then
-  ${STAR_BIN} \
-  --runThreadN 12 \
-  --runMode genomeGenerate \
-  --genomeDir ./ \
-  --genomeFastaFiles ${referenceGenomeDir}/Homo_sapiens.GRCh38.dna.primary_assembly.fa \
-  --sjdbGTFfile ${referenceGenomeDir}/Homo_sapiens.GRCh38.94.gtf \
-  --sjdbOverhang 75
+if [ ! -d ${DNFA_generatedDataroot} ]; then
+  echo "The generated data directory does not exist at ${DNFA_generatedDataRoot}."
+  echo "Please create it before proceeding."
+  exit 1;
 fi
 
+
+## Fetch and build STAR source from releases
+echo "ensuring that STAR is installed in ${DNFA_starRoot}, and reference genome exists"
+pushd ${projectRoot}
+echo "make reference_genome"
+make reference_genome
 popd
+
 
 ################################################################################
 ## STAR alignment: 2-pass mapping protocol
 ################################################################################
 
+STAR_BIN=${DNFA_starRoot}/STAR-2.6.0a/bin/Linux_x86_64/STAR
+referenceGenomeDir=${DNFA_generatedDataRoot}/referenceGenome
+star_index_root=${DNFA_generatedDataRoot}/STARIndex
 
 ################################################################################
 ## looping for sample test1 ##
@@ -69,7 +38,6 @@ popd
 mkdir -m 755 -p ${DNFA_generatedDataRoot}/Analysis
 output_dir=${DNFA_generatedDataRoot}/Analysis/2-pass/test1
 read_files_base=${DNFA_raw_data_basedir}/test1
-star_index_root=${DNFA_generatedDataRoot}/STARIndex
 
 mkdir -m 755 -p ${output_dir}
 

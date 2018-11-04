@@ -54,9 +54,9 @@ $(fa).gz:
 	cd $(@D) && wget -nc $(ensemblBase)/fasta/homo_sapiens/dna/$(@F)
 
 # 'SA' is one of many alignment output files, but used as a proxy for the whole alignment step
-reference_genome: ${DNFA_starRoot}/STARIndex/SA 
+reference_genome: ${DNFA_generatedDataRoot}/STARIndex/SA 
 
-${DNFA_starRoot}/STARIndex/SA: $(starBinDir)/STAR $(fa) $(gtf) 
+${DNFA_generatedDataRoot}/STARIndex/SA: $(starBinDir)/STAR $(fa) $(gtf) 
 	$(MKDIR) $(@D)
 	cd $(@D) && $(starBinDir)/STAR \
 	  --runThreadN 12 \
