@@ -58,7 +58,7 @@ reference_genome: ${DNFA_generatedDataRoot}/STARIndex/SA
 
 ${DNFA_generatedDataRoot}/STARIndex/SA: $(starBinDir)/STAR $(fa) $(gtf) 
 	$(MKDIR) $(@D)
-	cd $(@D) && $(starBinDir)/STAR \
+	cd $(@D) && $< \
 	  --runThreadN 12 \
 	  --runMode genomeGenerate \
 	  --genomeDir $(@D) \
@@ -66,10 +66,13 @@ ${DNFA_generatedDataRoot}/STARIndex/SA: $(starBinDir)/STAR $(fa) $(gtf)
 	  --sjdbGTFfile $(word 3, $^) \
 	  --sjdbOverhang 75
 
-clean: clean_star clean_refgenome
+clean: clean_star clean_starindex clean_refgenome
 
 clean_star:
 	rm -rf ${DNFA_starRoot}
+
+clean_starindex:
+	rm -rf ${DNFA_generatedDataRoot}/STARIndex
 
 clean_refgenome:
 	rm -rf ${DNFA_generatedDataRoot}/referenceGenome
