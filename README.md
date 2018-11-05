@@ -15,7 +15,7 @@ The following systems were used during development of this work:
     * Intel i7-8700k CPU
     * 64GB RAM (DDR4-3000, non-ECC)
     * Samsung NVMe Pro SSD
-    * Pop!_OS 18.04
+    * Pop!_OS 17.10
 2. PowerSpec G460 desktop computer
     * Intel i7-8700k CPU
     * 48GB RAM (DDR4-3200, non-ECC)
