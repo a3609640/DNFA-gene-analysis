@@ -85,7 +85,7 @@ $(bamDir)/%.sorted.bam : $(samDir)/test1/%.out.sam | $$(@D)
 $(bamDir)/%.sorted.bam : $(samDir)/test2/%.out.sam | $$(@D)
 	 $(sam2bam)
 
-define sam2bam:
+define sam2bam =
 	 rm -f $@.tmp.* && samtools sort $< -o $@
 endef
 
