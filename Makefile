@@ -38,14 +38,11 @@ $(starSrcDir): ${DNFA_starRoot}/2.6.0a.tar.gz
 ${DNFA_starRoot}/2.6.0a.tar.gz: | $$(@D)
 	cd $(@D) && wget -nc https://github.com/alexdobin/STAR/archive/$(@F)
 
-$(gtf): $$@.gz
+$(fa) $(gtf): $$@.gz
 	cd $(@D) && $(GUNZIP) $<
 
 $(gtf).gz: | $$(@D)
 	cd $(@D) && wget -nc $(ensemblBase)/gtf/homo_sapiens/$(@F)
-
-$(fa): $$@.gz
-	cd $(@D) && $(GUNZIP) $<
 
 $(fa).gz: | $$(@D)
 	cd $(@D) && wget -nc $(ensemblBase)/fasta/homo_sapiens/dna/$(@F)
@@ -67,14 +64,22 @@ samDir=${DNFA_generatedDataRoot}/Analysis/2-pass
 bamDir=${DNFA_generatedDataRoot}/Analysis/Samsort
 testIDs1 = 1_S2_L001 1_S2_L002 1_S2_L003 1_S2_L004
 testIDs2 = 2_S3_L001 2_S3_L002 2_S3_L003 2_S3_L004
-testIDs = $(testIDs1) $(testIDs2)
+testIDs3 = 3_S4_L001 3_S4_L002 3_S4_L003 3_S4_L004
+testIDs4 = 4_S6_L001 4_S6_L002 4_S6_L003 4_S6_L004
+testIDs5 = 5_S5_L001 5_S5_L002 5_S5_L003 5_S5_L004
+testIDs6 = 6_S1_L001 6_S1_L002 6_S1_L003 6_S1_L004
+testIDs = $(testIDs1) $(testIDs2) $(testIDs3) $(testIDs4) $(testIDs5) $(testIDs6)
 
 # The 'bamfiles' target depends on a list of files with names
 # like 'test1_S2_L003Aligned.sorted.bam'.
 bamfiles: $(foreach id, $(testIDs), $(bamDir)/test$(id)Aligned.sorted.bam)
-samfiles: samfiles1 samfiles2
-samfiles1: $(foreach id, $(testIDs1), $(samDir)/test1/test$(id)Aligned.out.sam)
-samfiles2: $(foreach id, $(testIDs2), $(samDir)/test2/test$(id)Aligned.out.sam)
+samfiles: \
+ $(foreach id, $(testIDs1), $(samDir)/test1/test$(id)Aligned.out.sam) \
+ $(foreach id, $(testIDs2), $(samDir)/test2/test$(id)Aligned.out.sam) \
+ $(foreach id, $(testIDs3), $(samDir)/test3-40218815/test$(id)Aligned.out.sam) \
+ $(foreach id, $(testIDs4), $(samDir)/test4-40218817/test$(id)Aligned.out.sam) \
+ $(foreach id, $(testIDs5), $(samDir)/test5-40233238/test$(id)Aligned.out.sam) \
+ $(foreach id, $(testIDs6), $(samDir)/test6-40220753/test$(id)Aligned.out.sam)
 
 # For each .bam file we might want to build, locate a similarly-named
 # .sam file and execute 'samtools' on it.
@@ -85,32 +90,42 @@ $(bamDir)/%.sorted.bam : $(samDir)/test1/%.out.sam | $$(@D)
 $(bamDir)/%.sorted.bam : $(samDir)/test2/%.out.sam | $$(@D)
 	 $(sam2bam)
 
+$(bamDir)/%.sorted.bam : $(samDir)/test3-40218815/%.out.sam | $$(@D)
+	 $(sam2bam)
+
+$(bamDir)/%.sorted.bam : $(samDir)/test4-40218817/%.out.sam | $$(@D)
+	 $(sam2bam)
+
+$(bamDir)/%.sorted.bam : $(samDir)/test5-40233238/%.out.sam | $$(@D)
+	 $(sam2bam)
+
+$(bamDir)/%.sorted.bam : $(samDir)/test6-40220753/%.out.sam | $$(@D)
+	 $(sam2bam)
+
 define sam2bam =
 	 rm -f $@.tmp.* && samtools sort $< -o $@
 endef
 
-$(samDir)/test1/%Aligned.out.sam : $(starBinDir)/STAR \
-                                   ${DNFA_raw_data_basedir}/test1/%_R1_001.fastq.gz \
-                                   ${DNFA_raw_data_basedir}/test1/%_R2_001.fastq.gz \
-                                   | $(gtf) reference_genome $$(@D)
-	$(alignTestData)
-
-$(samDir)/test2/%Aligned.out.sam : $(starBinDir)/STAR \
-                                   ${DNFA_raw_data_basedir}/test2/%_R1_001.fastq.gz \
-                                   ${DNFA_raw_data_basedir}/test2/%_R2_001.fastq.gz \
-                                   | $(gtf) reference_genome $$(@D)
-	$(alignTestData)
-
-define alignTestData =
+$(samDir)/%Aligned.out.sam : $(starBinDir)/STAR \
+                             $(gtf) \
+                             ${DNFA_raw_data_basedir}/%_R1_001.fastq.gz \
+                             ${DNFA_raw_data_basedir}/%_R2_001.fastq.gz \
+                             | reference_genome $$(@D)
 	$< \
      --genomeDir ${DNFA_generatedDataRoot}/STARIndex \
-     --sjdbGTFfile $(word 1, $|) \
+     --sjdbGTFfile $(word 2, $^) \
      --runThreadN 12 \
      --outFileNamePrefix $(@D)/$(*F) \
-     --readFilesIn $(word 2, $^) $(word 3, $^) \
+     --readFilesIn $(word 3, $^) $(word 4, $^) \
      --readFilesCommand zcat \
      --twopassMode Basic
-endef
+
+# Extract individual .fastq.gz files from parent .tar file, as needed.
+${DNFA_raw_data_basedir}/%.fastq.gz:
+	tar xvf ${DNFA_raw_data_tarfile} \
+	  -C ${DNFA_raw_data_basedir} \
+	  --transform="s/Testrun\/Nextseq\ Test-32743727\///;" \
+	  Testrun/Nextseq\ Test-32743727/$(*D)/$(*F).fastq.gz
 
 ${DNFA_starRoot}:
 	$(MKDIR) $@
@@ -118,13 +133,19 @@ ${DNFA_starRoot}:
 ${DNFA_generatedDataRoot}/referenceGenome ${DNFA_generatedDataRoot}/STARIndex:
 	$(MKDIR) $@
 
-$(samDir)/test1 $(samDir)/test2 $(bamDir):
+$(samDir)/test1 $(samDir)/test2 $(samDir)/test3-40218815:
+	$(MKDIR) $@
+
+$(samDir)/test4-40218817 $(samDir)/test5-40233238 $(samDir)/test6-40220753:
+	$(MKDIR) $@
+
+$(bamDir):
 	$(MKDIR) $@
 
 # Use "make clean" to remove all generated output.
 # Use sub-targets (e.g. "make clean_star") to remove selected
 # generated output.
-clean: clean_star clean_starindex clean_refgenome clean_bamfiles
+clean: clean_star clean_starindex clean_refgenome clean_samfiles clean_bamfiles
 
 clean_star:
 	rm -rf ${DNFA_starRoot}
@@ -135,7 +156,13 @@ clean_starindex:
 clean_refgenome:
 	rm -rf ${DNFA_generatedDataRoot}/referenceGenome
 
+clean_samfiles:
+	rm -rf $(samDir)
+
 clean_bamfiles:
 	rm -rf $(bamDir)
 
-.PHONY: all clean clean_star clean_starindex clean_refgenome clean_bamfiles samfiles bamfiles
+.PHONY: all \
+        clean clean_star clean_starindex clean_refgenome \
+        clean_samfiles clean_bamfiles \
+        reference_genome samfiles bamfiles
