@@ -1,4 +1,4 @@
-dataRoot <- file.path("data")
+dataRoot <- file.path("project-data")
 
 ####################
 ## 1 Preparations ##
