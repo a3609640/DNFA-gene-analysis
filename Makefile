@@ -11,8 +11,8 @@
 .SECONDEXPANSION:  # to allow use of $@ in prequisite lists (escaped as $$@)
 
 # output directories where STAR sources and binaries will be genereated
-starSrcDir=$(DNFA_starRoot)/STAR-2.6.0a/source
-starBinDir=$(DNFA_starRoot)/STAR-2.6.0a/bin/Linux_x86_64
+starSrcDir=$(DNFA_starRoot)/STAR-2.6.1a/source
+starBinDir=$(DNFA_starRoot)/STAR-2.6.1a/bin/Linux_x86_64
 
 # FTP root for fetching human genome data from ENSEMBL
 ensemblBase=ftp://ftp.ensembl.org/pub/release-94
@@ -32,10 +32,10 @@ all: reference_genome
 $(starBinDir)/STAR: | $(starSrcDir)
 	cd $(word 1, $|) && $(MAKE)
 
-$(starSrcDir): ${DNFA_starRoot}/2.6.0a.tar.gz
+$(starSrcDir): ${DNFA_starRoot}/2.6.1a.tar.gz
 	cd $(<D) && tar -xzf $<
 
-${DNFA_starRoot}/2.6.0a.tar.gz: | $$(@D)
+${DNFA_starRoot}/%.tar.gz: | $$(@D)
 	cd $(@D) && wget -nc https://github.com/alexdobin/STAR/archive/$(@F)
 
 $(fa) $(gtf): $$@.gz
@@ -49,7 +49,7 @@ $(fa).gz: | $$(@D)
 
 # 'SA' (containing a suffix array) is one of many alignment output files,
 # but used as a proxy for the whole alignment step
-reference_genome: ${DNFA_generatedDataRoot}/STARIndex/SA 
+reference_genome: ${DNFA_generatedDataRoot}/STARIndex/SA
 
 ${DNFA_generatedDataRoot}/STARIndex/SA: $(starBinDir)/STAR $(fa) $(gtf) | $$(@D)
 	cd $(@D) && $< \
