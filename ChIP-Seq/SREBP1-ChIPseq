@@ -1,6 +1,5 @@
-cd ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Bam
-
 ################################################################################
+cd ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Bam
 # Download SREBF1 ChIPseq data in A549 cell line from Encode
 # download SREBP1-A549-1.bam file
 wget -c https://www.encodeproject.org/files/ENCFF224BFU/@@download/ENCFF224BFU.bam
@@ -29,7 +28,7 @@ md5sum ENCFF419UIG.bam
 ln -s ENCFF419UIG.bam A549-Input-2.bam
 # some error with this file when sorted: 'Input-A549-2.sorted.0015.bam' is truncated.
 
-#  check the original file intergrity
+#  check the original file integrity
 md5sum A549-SREBP1-1.bam A549-SREBP1-2.bam A549-Input-1.bam A549-Input-2.bam
 
 # 963f1d263ab581902c394ccfebd1c293  A549-SREBP1-1.bam
@@ -38,15 +37,59 @@ md5sum A549-SREBP1-1.bam A549-SREBP1-2.bam A549-Input-1.bam A549-Input-2.bam
 # 2c8a0d8e2ffc7ca65ade9f8fe9f0dfe1  A549-Input-2.bam
 
 ################################################################################
+cd ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/MCF7-SREBP1/Bam
+# Download SREBF1 chipseq data in MCF7 cell line from Encode (J. Michael Cherry, Stanford)
+# download MCF7-SREBP1-1.bam file
+wget -c https://www.encodeproject.org/files/ENCFF774XPS/@@download/ENCFF774XPS.bam
+# quality check
+md5sum ENCFF774XPS.bam
+e97bde1230c59824fad36d80e8ed9adc  ENCFF774XPS.bam
+ln -s ENCFF774XPS.bam MCF7-SREBP1-1.bam
+
+wget -c https://www.encodeproject.org/files/ENCFF008QCI/@@download/ENCFF008QCI.bam
+# quality check
+md5sum ENCFF008QCI.bam
+6c2e59e7531eb2f6cf2855010f3cb22f ENCFF008QCI.bam
+ln -s ENCFF008QCI.bam MCF7-SREBP1-2.bam
+
+################################################################################
+# Control Input pulldown file (J. Michael Cherry, Stanford)
+wget -c https://www.encodeproject.org/files/ENCFF426RDP/@@download/ENCFF426RDP.bam
+# quality check
+md5sum ENCFF426RDP.bam
+b7b5004c4d1de084e602fdd2166f420d
+ln -s ENCFF426RDP.bam MCF7-Input-1.bam
+
+wget -c https://www.encodeproject.org/files/ENCFF291AFY/@@download/ENCFF291AFY.bam
+# quality check
+md5sum ENCFF291AFY.bam
+84a7385de97ebc87cf22d1745fe03425
+ln -s ENCFF291AFY.bam MCF7-Input-2.bam
+
+md5sum MCF7-SREBP1-1.bam MCF7-SREBP1-2.bam MCF7-HCF-1.bam MCF7-HCF-2.bam MCF7-Input-2.bam
+
+
+################################################################################
+################################################################################
 samtools sort A549-SREBP1-1.bam -o A549-SREBP1-1.sorted.bam
 samtools sort A549-SREBP1-2.bam -o A549-SREBP1-2.sorted.bam
 samtools sort A549-Input-1.bam -o A549-Input-1.sorted.bam
 samtools sort A549-Input-2.bam -o A549-Input-2.sorted.bam
 
+samtools sort MCF7-SREBP1-1.bam -o MCF7-SREBP1-1.sorted.bam
+samtools sort MCF7-SREBP1-2.bam -o MCF7-SREBP1-2.sorted.bam
+samtools sort MCF7-Input-1.bam -o MCF7-Input-1.sorted.bam
+samtools sort MCF7-Input-2.bam -o MCF7-Input-2.sorted.bam
+
 samtools index A549-SREBP1-1.sorted.bam
 samtools index A549-SREBP1-2.sorted.bam
 samtools index A549-Input-1.sorted.bam
 samtools index A549-Input-2.sorted.bam
+
+samtools index MCF7-SREBP1-1.sorted.bam
+samtools index MCF7-SREBP1-2.sorted.bam
+samtools index MCF7-Input-1.sorted.bam
+samtools index MCF7-Input-2.sorted.bam
 # some error with this file when sorted: 'Input-A549-2.sorted.0015.bam' is truncated.
 
 # merge bams file and add @RG and @CO
@@ -54,8 +97,21 @@ samtools index A549-Input-2.sorted.bam
 samtools merge [-nr] [-h inh.sam] <out.bam> <in1.bam> <in2.bam> [...]
 
 # merge replicate bam files for SREBP1 ChIP-Seq and Input respectively
-samtools merge A549-merged-SREBP1.sorted.bam A549-SREBP1-1.sorted.bam A549-SREBP1-2.sorted.bam
-samtools merge A549-merged-Input.sorted.bam A549-Input-1.sorted.bam A549-Input-2.sorted.bam
+samtools merge A549-merged-SREBP1.sorted.bam \
+          A549-SREBP1-1.sorted.bam \
+          A549-SREBP1-2.sorted.bam
+samtools merge A549-merged-Input.sorted.bam \
+          A549-Input-1.sorted.bam \
+          A549-Input-2.sorted.bam
+
+samtools merge MCF7-merged-SREBP1.sorted.bam \
+          MCF7-SREBP1-1.sorted.bam \
+          MCF7-SREBP1-2.sorted.bam
+samtools merge MCF7-merged-Input.sorted.bam \
+          MCF7-Input-1.sorted.bam \
+          MCF7-Input-2.sorted.bam
+
+
 
 ################################################################################
 ## install macs on linux machine
@@ -87,6 +143,13 @@ macs2 callpeak -t ./Bam/A549-merged-SREBP1.sorted.bam \
                --outdir MACS \
                -q 0.01 &> MACS/A549-merged-SREBP1-Input.log
 
+macs2 callpeak -t ./Bam/MCF7-merged-SREBP1.sorted.bam \
+               -c ./Bam/MCF7-merged-Input.sorted.bam \
+               -f BAM \
+               -g hs \
+               -n MCF7-merged-SREBP1-Input \
+               --outdir MACS \
+               -q 0.01 &> MACS/MCF7-merged-SREBP1-Input.log
 
 ################################################################################
 ## installation of bedtools
@@ -103,6 +166,18 @@ bedtools bamtobed -i A549-Input-2.bam > ../Bed/A549-Input-2.bed
 
 cd ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Bed
 
+bedtools bamtobed -i MCF7-SREBP1-1.bam > ../Bed/MCF7-SREBP1-1.bed
+bedtools bamtobed -i MCF7-SREBP1-2.bam > ../Bed/MCF7-SREBP1-2.bed
+
+bedtools bamtobed -i MCF7-Input-1.bam > ../Bed/MCF7-Input-1.bed
+bedtools bamtobed -i MCF7-Input-2.bam > ../Bed/MCF7-Input-2.bed
+
+# parallel < bamtobed.txt
+
+
+
+
+
 ################################################################################
 # install Homer
 perl /home/suwu/Documents/Bioinformatics\ tools/Homer/configureHomer.pl -install homer
@@ -118,9 +193,18 @@ makeTagDirectory ../Homer/TagDirectory/A549-SREBP1 A549-SREBP1-1.bed A549-SREBP1
 makeTagDirectory ../Homer/TagDirectory/A549-Input A549-Input-1.bed A549-Input-2.bed  -format bed
 annotatePeaks.pl A549-merged-SREBP1-Input_peaks.narrowPeak hg38 > A549-SREBP1.txt
 
+
 ################################################################################
 # Analyzing a ChIP-Seq experiment with one command
 cd ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Bed
 analyzeChIP-Seq.pl ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Homer/TagDirectory/A549-SREBP1/ hg38 -i ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Homer/TagDirectory/A549-Input -focus -A A549-SREBP1-1.bed A549-SREBP1-2.bed
 
 sudo apt-get install PeakAnalyzer
+
+################################################################################
+cd ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/MCF7-SREBP1/MACS
+
+makeTagDirectory ../Homer/TagDirectory/MCF7-Input MCF7-Input-1.bed MCF7-Input-2.bed  -format bed
+
+
+analyzeChIP-Seq.pl ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/MCF7-SREBP1/Homer/TagDirectory/MCF7-SREBP1/ hg38 -i ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/MCF7-SREBP1/Homer/TagDirectory/MCF7-Input -focus -A MCF7-SREBP1-1.bed MCF7-SREBP1-2.bed
