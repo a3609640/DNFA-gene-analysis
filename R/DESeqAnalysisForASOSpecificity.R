@@ -223,9 +223,9 @@ res$name =   mapIds(org.Hs.eg.db,
 summary(res)
 head(res, 10)
 
-######################################################
-## 8. Find the genes enriched in each PCA component ##
-######################################################
+##################################################################
+######## 8. Annotate genes enriched in each PCA component ########
+##################################################################
 ## scale.unit : a logical value. If TRUE, the data are scaled to unit variance before the analysis. 
 ## This standardization to the same scale avoids some variables to become dominant just because of their large measurement units.
 ## We used FAlSE for scale.unit because rld has been run with DESEQ function before. 
@@ -261,9 +261,9 @@ rownames(assayrld) = con
 ## # Compute PCA with ncp = 3, to keep only the first three principal components
 res.pca <- PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2,graph = TRUE)
 
-##################################################################
-######## 8. Extract variances in each principal component ######## 
-##################################################################
+####################################################################
+######### 9. Extract variances in each principal component ######### 
+####################################################################
 ## Eigenvalues correspond to the amount of the variation explained by each principal component (PC). 
 ## Eigenvalues are large for the first PC and small for the subsequent PCs.
 eigenvalues <- res.pca$eig
@@ -307,9 +307,9 @@ fviz_pca_biplot(res.pca,
   xlab(paste0("PC1: ", percentVar[1], "% variance")) +
   ylab(paste0("PC2: ", percentVar[2], "% variance")) 
 
-######################################################################
-######### 9. Hierarchical Clustering on Principal Components ######### 
-######################################################################
+#########################################################################
+########## 10. Hierarchical Clustering on Principal Components ########## 
+#########################################################################
 ## Compute hierarchical clustering: Hierarchical clustering is performed using the Ward’s criterion on the selected principal components. 
 ## Ward criterion is used in the hierarchical clustering because it is based on the multidimensional variance like principal component analysis.
 res.hcpc <- HCPC(res.pca, graph = FALSE)
@@ -339,9 +339,9 @@ grp <- cutree(res.hc, k = 2)
 plot(res.hc, cex = 0.6) # plot tree
 rect.hclust(res.hc, k = 2, border = c("yellow","blue")) # add rectangle
 
-########################################################################
-########## 10. Top contributing gene variables to PC1 and PC2 ##########
-########################################################################
+##########################################################################
+########### 11. Top contributing gene variables to PC1 and PC2 ###########
+##########################################################################
 ## Contributions of variables to PCs
 head(res.pca$var$contrib,10)
 head(res.pca$var$cos2, 10)
@@ -410,9 +410,9 @@ dim2$name =   mapIds(org.Hs.eg.db,
 summary(dim2)
 head(dim2,10)
 
-########################################################################
-########### 11. Plot of normalized counts for a single gene  ###########
-########################################################################
+##########################################################################
+############ 12. Plot of normalized counts for a single gene  ############
+##########################################################################
 # plotcount: "normalized" whether the counts should be normalized by size factor (default is TRUE)
 # plotcount: "transform" whether to present log2 counts (TRUE) or to present the counts on the log scale (FALSE, default)
 # re-arrange x-ase according to the following order: "Mock","siNeg","siBF1","ASO-neg","ASO-1","ASO-4"
