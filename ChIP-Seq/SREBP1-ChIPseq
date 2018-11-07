@@ -1,3 +1,4 @@
+## Download all the SREBP1 ChIPSeq data
 ################################################################################
 cd ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Bam
 # Download SREBF1 ChIPseq data in A549 cell line from Encode
