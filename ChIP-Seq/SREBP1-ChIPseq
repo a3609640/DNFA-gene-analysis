@@ -176,9 +176,6 @@ bedtools bamtobed -i MCF7-Input-2.bam > ../Bed/MCF7-Input-2.bed
 # parallel < bamtobed.txt
 
 
-
-
-
 ################################################################################
 # install Homer
 perl /home/suwu/Documents/Bioinformatics\ tools/Homer/configureHomer.pl -install homer
