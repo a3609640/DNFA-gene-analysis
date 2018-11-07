@@ -1,8 +1,8 @@
-dataRoot <- file.path("data")
+dataRoot <- file.path("project-data")
 
-#####################
-## 1. Preparations ##
-#####################
+##################################################
+# 1. Preparation: install the following packages #
+##################################################
 # set global chunk options and load the neccessary packages
 source("http://bioconductor.org/biocLite.R")
 biocLite("genefilter")
@@ -60,9 +60,9 @@ library(GenomicRanges)
 library(SummarizedExperiment)
 library(plotly)
 
-#################################
-## 2. Preparing count matrices ##
-#################################
+##########################################################
+## 2. Preparing count matrices from the RNA-seq results ##
+##########################################################
 # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
 # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
 # read processed RNA-seq read data from file testseq.csv.
@@ -72,20 +72,20 @@ testseq <- read.csv(testseqCSV)
 testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
 # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
 testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
-
-##########################################
-## 3. Quality control of the count data ##
-##########################################
-## check the read distribution of RNA-Seq results
+## check the distribution of RNA-Seq reads
 par(mar=c(3,12,2,1))
 boxplot(testseq, outline=FALSE, horizontal=TRUE, las=1)
 ## Remove rows in which there are no reads or nearly no reads
 guideData <- testseq[rowSums(testseq)>1,]
 head(guideData)
 dim(guideData)
-## check how the data looks in a box plot after removing rows with no read
+## check how the data distribution with boxplot after removing rows with no read
 par(mar=c(3,12,2,1))
 boxplot(guideData, outline=FALSE, horizontal=TRUE, las=1)
+
+#######################################################
+### 3. Construct DESeqDataSet from the count matrix ###
+#######################################################
 ## create a design for our "modelling" 
 ## each sample contains four techinical replicates
 condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
@@ -98,9 +98,9 @@ dds <- DESeqDataSetFromMatrix(countData = guideData,colData = guideDesign,design
 dds
 head(assay(dds))
 
-##########################
-## 4. Standard analysis ##
-##########################
+######################################################
+#### 4. Standard differential expression analysis ####
+######################################################
 # DESeq function performs a default analysis through the steps:
 # (1) estimation of size factor: estimateSizeFactors
 # (2) estimation of dispersion: estimateDispersions
@@ -110,9 +110,9 @@ ddsres <- results(ddsDE)
 summary(ddsres)
 res <- data.frame(ddsres)
 
-######################################################
-## 5. Regularized log transformation for clustering ##
-######################################################
+########################################################
+##### 5. Count data transformations for clustering #####
+########################################################
 ## The regularized log transform can be obtained using the rlog() function. 
 ## Regularized log transform is to stabilize the variance of the data and to make its distribution roughly symmetric
 ## The default “blinds” the normalization to the design. 
@@ -134,9 +134,9 @@ pheatmap(sampleDistMatrix,
          clustering_distance_cols=dists,
          col=colors)
 
-#####################################
-## 6. Principal component analysis ##
-#####################################
+#############################################
+###### 6. Principal component analysis ######
+#############################################
 ## number of top genes to use for principal components, selected by highest row variance, 500 by default
 data <- plotPCA(rld, intgroup = c( "condition"), returnData=TRUE)
 percentVar <- round(100 * attr(data, "percentVar"))
@@ -201,9 +201,9 @@ plotPCA3D <- function (object, intgroup = "condition", ntop = 5000, returnData =
 
 plotPCA3D(rld, intgroup = "condition", ntop = 5000, returnData = FALSE)
 
-##########################################################
-## 7. Add Entrez IDs, gene symbols, and full gene names ##
-##########################################################
+####################################################################
+####### 7. Add Entrez IDs, gene symbols, and full gene names #######
+####################################################################
 columns(org.Hs.eg.db)
 res$symbol = mapIds(org.Hs.eg.db,
                     keys=row.names(res), 
@@ -261,9 +261,9 @@ rownames(assayrld) = con
 ## # Compute PCA with ncp = 3, to keep only the first three principal components
 res.pca <- PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2,graph = TRUE)
 
-#################################################################################
-## 8. Extract the proportion of variances retained by the principal components ## 
-#################################################################################
+##################################################################
+######## 8. Extract variances in each principal component ######## 
+##################################################################
 ## Eigenvalues correspond to the amount of the variation explained by each principal component (PC). 
 ## Eigenvalues are large for the first PC and small for the subsequent PCs.
 eigenvalues <- res.pca$eig
@@ -307,9 +307,9 @@ fviz_pca_biplot(res.pca,
   xlab(paste0("PC1: ", percentVar[1], "% variance")) +
   ylab(paste0("PC2: ", percentVar[2], "% variance")) 
 
-########################################################
-## 9. Hierarchical Clustering on Principal Components ## 
-########################################################
+######################################################################
+######### 9. Hierarchical Clustering on Principal Components ######### 
+######################################################################
 ## Compute hierarchical clustering: Hierarchical clustering is performed using the Ward’s criterion on the selected principal components. 
 ## Ward criterion is used in the hierarchical clustering because it is based on the multidimensional variance like principal component analysis.
 res.hcpc <- HCPC(res.pca, graph = FALSE)
@@ -339,9 +339,9 @@ grp <- cutree(res.hc, k = 2)
 plot(res.hc, cex = 0.6) # plot tree
 rect.hclust(res.hc, k = 2, border = c("yellow","blue")) # add rectangle
 
-#################################################################
-## 10. Find out top contributing gene variables to PC1 and PC2 ##
-#################################################################
+########################################################################
+########## 10. Top contributing gene variables to PC1 and PC2 ##########
+########################################################################
 ## Contributions of variables to PCs
 head(res.pca$var$contrib,10)
 head(res.pca$var$cos2, 10)
@@ -410,9 +410,9 @@ dim2$name =   mapIds(org.Hs.eg.db,
 summary(dim2)
 head(dim2,10)
 
-##################################################################
-## 11. Plot of normalized counts for a single gene on log scale ##
-##################################################################
+########################################################################
+########### 11. Plot of normalized counts for a single gene  ###########
+########################################################################
 # plotcount: "normalized" whether the counts should be normalized by size factor (default is TRUE)
 # plotcount: "transform" whether to present log2 counts (TRUE) or to present the counts on the log scale (FALSE, default)
 # re-arrange x-ase according to the following order: "Mock","siNeg","siBF1","ASO-neg","ASO-1","ASO-4"
