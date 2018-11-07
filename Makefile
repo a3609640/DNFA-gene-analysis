@@ -12,7 +12,7 @@
 
 # output directories where STAR sources and binaries will be genereated
 starSrcDir=$(DNFA_starRoot)/STAR-2.6.1a/source
-starBinDir=$(DNFA_starRoot)/STAR-2.6.1a/bin/Linux_x86_64
+starBinDir=$(DNFA_starRoot)/STAR-2.6.1a/bin
 
 # FTP root for fetching human genome data from ENSEMBL
 ensemblBase=ftp://ftp.ensembl.org/pub/release-94
@@ -30,12 +30,12 @@ MKDIR=mkdir -m 755 -p
 all: reference_genome
 
 $(starBinDir)/STAR: | $(starSrcDir)
-	cd $(word 1, $|) && $(MAKE)
+	cd $(word 1, $|) && $(MAKE) STAR STARlong install
 
-$(starSrcDir): ${DNFA_starRoot}/2.6.1a.tar.gz
+$(starSrcDir): | ${DNFA_starRoot}/2.6.1a.tar.gz
 	cd $(<D) && tar -xzf $<
 
-${DNFA_starRoot}/%.tar.gz: | $$(@D)
+${DNFA_starRoot}/2.6.1a.tar.gz: | $$(@D)
 	cd $(@D) && wget -nc https://github.com/alexdobin/STAR/archive/$(@F)
 
 $(fa) $(gtf): $$@.gz
