@@ -11,8 +11,8 @@
 .SECONDEXPANSION:  # to allow use of $@ in prequisite lists (escaped as $$@)
 
 # output directories where STAR sources and binaries will be genereated
-starSrcDir=$(DNFA_starRoot)/STAR-2.6.1a/source
-starBinDir=$(DNFA_starRoot)/STAR-2.6.1a/bin
+starSrcDir=${DNFA_starRoot}/STAR-2.6.1a/source
+starBinDir=${DNFA_starRoot}/STAR-2.6.1a/bin
 
 # FTP root for fetching human reference genome data from ENSEMBL
 ensemblBase=ftp://ftp.ensembl.org/pub/release-94
@@ -28,12 +28,12 @@ GUNZIP=gunzip -k
 MKDIR=mkdir -m 755 -p
 
 # in accord with usual conventions, the first target is named 'all'
-all: reference_genome
+all: bamfiles
 
 $(starBinDir)/STAR: | $(starSrcDir)
 	cd $(word 1, $|) && $(MAKE) STAR STARlong install
 
-$(starSrcDir): | ${DNFA_starRoot}/2.6.1a.tar.gz
+$(starSrcDir): ${DNFA_starRoot}/2.6.1a.tar.gz
 	cd $(<D) && tar -xzf $<
 
 ${DNFA_starRoot}/2.6.1a.tar.gz: | $$(@D)
@@ -70,6 +70,10 @@ testIDs4 = 4_S6_L001 4_S6_L002 4_S6_L003 4_S6_L004
 testIDs5 = 5_S5_L001 5_S5_L002 5_S5_L003 5_S5_L004
 testIDs6 = 6_S1_L001 6_S1_L002 6_S1_L003 6_S1_L004
 testIDs = $(testIDs1) $(testIDs2) $(testIDs3) $(testIDs4) $(testIDs5) $(testIDs6)
+
+# TODO(dlroxe): probably, 'test1' and 'test2' should be respectively renamed
+# to 'test1-40222594' and 'test2-40220751 .  That way they will match the
+# unaltered contents of Testrun-pristine.tar.
 
 # The 'bamfiles' target depends on a list of files with names
 # like 'test1_S2_L003Aligned.sorted.bam'.
