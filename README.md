@@ -50,12 +50,14 @@ This software assumes that various tools are already available in your
 environment.  If you have not done so already, it will be useful for you to do
 the following (for Debian-based environments):
 
-* `sudo apt-get install libssl-dev  # needed by various R packages`
-* `sudo apt-get install git-lfs  # needed for large .fastq raw data files`
-* `sudo apt-get install samtools`
-* `sudo apt-get install bamtools`
-* `sudo apt-get install python-pip  # (note, use python 2.7)`
-* `sudo apt-get install r-base r-recommended`
+* `sudo apt-get install bamtools`                                                                      
+* `sudo apt-get install bedtools`                                                                     
+* `sudo apt-get install git-lfs  # needed for large .fastq raw data files`                            
+* `sudo apt-get install libssl-dev  # needed by various R packages`                                   
+* `sudo apt-get install python-pip  # (note, use python 2.7)`                                          
+* `sudo apt-get install r-base`                                                                       
+* `sudo apt-get install r-recommended`                                                                
+* `sudo apt-get install samtools`                           
 
 ## Cloning this Package from Github
 
@@ -77,25 +79,27 @@ where generated files will be stored, and the like), and execute the commmand
 ensure that necessary shell environment variables are set.
 
 ## First Steps
-(Note: References in this section to STAR-Index-and-Alignment may soon be
-replaced by instructions to `make bamfiles`.)
 
-From the top-level directory of your Git project clone, the first script to
-invoke, after `source configuration`, is `RNA-Seq/STAR-Index-and-Alignment`.
+From the top-level directory of your Git project clone, the first command to
+invoke, after `source configuration`, is `make bamfiles`.
 That script will download the sources for a specific version of STAR, and
 compile them on your machine.  Then it will download and sequence a reference
 human genome.  Then it will process various project-specific files against That
-reference genome.
+reference genome, ultimately converting them from .fastq.gz to .bam format.
 
-The STAR-index-and-Alignment script attempts to Do The Right Thing if it is
-invoked multiple times.  It creates output directories with sensible permissions
-if they are absent.  If STAR is already built and installed it does not repeat
-the download and compilation.  If human genome files are already downloaded it
-does not download them again.  If a reference genome has already been sequenced,
-it is reused.  Etc.  Thus, it should be safe to re-invoke the script if it was
-interrupted.  However note that the detection of previously-completed work is not
-foolproof.  If in doubt, it is best to rm -rf ${generatedDataRoot}/* and then
-re-execute.
+On System (2) above, this step takes about three hours.
+
+The Makefile attempts to Do The Right Thing if it is invoked multiple times.
+It creates output directories with sensible permissions if they are absent.
+If STAR is already built and installed it does not repeat the download and
+compilation.  If human genome files are already downloaded it does not
+download them again.  If a reference genome has already been sequenced,
+it is reused.  Etc.  
+
+However note that the detection of previously-completed work is not
+foolproof.  If in doubt, it is best to `make clean` and re-execute.
+Note that there are also more fine-grained 'clean' targets, to permit
+isolated re-exeuctions of portions of thr processing pipeline.
 
 # Software Engineering Discussion for Biologists
 
@@ -171,4 +175,35 @@ too, but to your surprise it will work, and to your even greater surprise
 you will understand it. (Well, that's not a promise, on either count.  YMMV.)
 
 ### Features Provided by This Project's Makefile
-.... <This section in progress> ...
+
+This Makefile permits fine-grained control over the full processing pipeline.
+The only required input is a .tar file with that contains all the raw .fastq.gz
+data.  Everything else can be generated from scratch, given that file and an
+internet connection.
+
+Useful targets include:
+
+* `make all`, `make bamfiles` -- This will build everything, from soup to nuts.
+    The generated .bam files (and their output directory) may be removed with
+    `make clean_bamfiles`.
+
+* `make samfiles` -- Build everything but stop short of the 'samtools sort'
+    step.  The generated .sam files (and their output directory) may be removed
+    with `make clean_samfiles`.
+
+* `make reference_genome` -- Build STAR, then download human genome data and
+    create a reference genome.  Do not attempt to process any .fastq.gz data
+    from the project-specific .tar data file.  The reference genome *data*
+    (and its output directory) may be removed with `make clean_refgenome`.
+    The reference genome *alignment* (and its output directory) may be
+    removed with `make clean_starindex`.
+
+* `make ${DNFA_starRoot}/STAR-2.6.1a/bin/STAR` -- Download STAR sources
+    (if needed), compile them, and install them in
+    ${DNFA_starRoot}/STAR-2.6.1a/bin.  STAR may be removed with
+    `make clean_star`.
+
+* In addition, generally, individual .sam, .bam, and .fastq.gz files may
+    be generated with `make [filename]`, provided that the full filename
+    in the generated data directories specified in 'configuration' is
+    known.
