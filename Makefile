@@ -14,10 +14,11 @@
 starSrcDir=$(DNFA_starRoot)/STAR-2.6.1a/source
 starBinDir=$(DNFA_starRoot)/STAR-2.6.1a/bin
 
-# FTP root for fetching human genome data from ENSEMBL
+# FTP root for fetching human reference genome data from ENSEMBL
 ensemblBase=ftp://ftp.ensembl.org/pub/release-94
 
-# local output files where human genome GTF and FA files from ENSEMBL will be stored
+# local output files where human gene annotation file (.gtf) and 
+# human reference genome file (.fa)  from ENSEMBL will be stored
 gtf=${DNFA_generatedDataRoot}/referenceGenome/Homo_sapiens.GRCh38.94.gtf
 fa=${DNFA_generatedDataRoot}/referenceGenome/Homo_sapiens.GRCh38.dna.primary_assembly.fa
 

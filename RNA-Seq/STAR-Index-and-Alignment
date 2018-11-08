@@ -28,11 +28,11 @@ popd
 
 
 #####################################################
-#### Use HTSeq to count the reads from Sam files ####
+#### Use HTSeq to count the reads from Bam files ####
 #####################################################
 ## install HTSeq on Linux
 pip install HTSeq
-## Once HTSeq is installed, will use the  Python scripts dexseq_count.py that come
+## Once HTSeq is installed, will use the  Python scripts dexseq_count.py that comes
 ## with the DEXSeq package (needs to be pre-installed)
 python_scripts="~/R/x86_64-redhat-linux-gnu-library/3.4/DEXSeq/python_scripts"
 if [ ! -d ${python_scripts}/DEXSeq ]; then
