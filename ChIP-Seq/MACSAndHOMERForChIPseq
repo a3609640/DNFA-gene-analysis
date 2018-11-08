@@ -1,5 +1,6 @@
-## Download all the SREBP1 ChIPSeq data
-################################################################################
+##############################################
+## Download SREBP1 ChIPSeq data from Encode ##
+##############################################
 cd ~/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Bam
 # Download SREBF1 ChIPseq data in A549 cell line from Encode
 # download SREBP1-A549-1.bam file
@@ -54,7 +55,7 @@ md5sum ENCFF008QCI.bam
 ln -s ENCFF008QCI.bam MCF7-SREBP1-2.bam
 
 ################################################################################
-# Control Input pulldown file (J. Michael Cherry, Stanford)
+## Control Input pulldown file from the same cell line
 wget -c https://www.encodeproject.org/files/ENCFF426RDP/@@download/ENCFF426RDP.bam
 # quality check
 md5sum ENCFF426RDP.bam
@@ -70,8 +71,9 @@ ln -s ENCFF291AFY.bam MCF7-Input-2.bam
 md5sum MCF7-SREBP1-1.bam MCF7-SREBP1-2.bam MCF7-HCF-1.bam MCF7-HCF-2.bam MCF7-Input-2.bam
 
 
-################################################################################
-################################################################################
+###############################################
+## use samtools to sort downloaded bam files ##
+###############################################
 samtools sort A549-SREBP1-1.bam -o A549-SREBP1-1.sorted.bam
 samtools sort A549-SREBP1-2.bam -o A549-SREBP1-2.sorted.bam
 samtools sort A549-Input-1.bam -o A549-Input-1.sorted.bam
@@ -113,8 +115,10 @@ samtools merge MCF7-merged-Input.sorted.bam \
           MCF7-Input-2.sorted.bam
 
 
+#########################################################
+## MACS to call the peaks in SREBP1 ChIP-seq bam files ##
+#########################################################
 
-################################################################################
 ## install macs on linux machine
 sudo apt-get install macs
 # peak calling on SREBP1 sample 1 and control sample 1
@@ -151,10 +155,12 @@ macs2 callpeak -t ./Bam/MCF7-merged-SREBP1.sorted.bam \
                -n MCF7-merged-SREBP1-Input \
                --outdir MACS \
                -q 0.01 &> MACS/MCF7-merged-SREBP1-Input.log
+## the output files will be used for peak annotations with a R package
 
-################################################################################
+###################################################################
+## generate bed files from ChIP-seq bam files for Motif analysis ##
+###################################################################
 ## installation of bedtools
-################################################################################
 sudo apt-get install bedtools
 
 cd /home/suwu/stripes/Documents/Bioinformatics\ analysis/ChIP\ analysis/A549-SREBP1/Bam
@@ -175,8 +181,9 @@ bedtools bamtobed -i MCF7-Input-2.bam > ../Bed/MCF7-Input-2.bed
 
 # parallel < bamtobed.txt
 
-
-################################################################################
+##############################################################
+## use homer to analyze the motifs in ChIP-seq files (.bed) ##
+##############################################################
 # install Homer
 perl /home/suwu/Documents/Bioinformatics\ tools/Homer/configureHomer.pl -install homer
 # Add the homer/bin directory to the executable path.  edit  ~/.bashrc file to include the line:
