@@ -15,103 +15,16 @@ if [ ! -d ${DNFA_generatedDataroot} ]; then
 fi
 
 
-## Fetch and build STAR source from releases
+## Fetch and build STAR source from releases, make reference genome, align all test
+## data and process it into .bam format.
 echo "ensuring that STAR is installed in ${DNFA_starRoot}, and reference genome exists"
 pushd ${projectRoot}
 echo "make reference_genome"
-make reference_genome
+make bamfiles
 popd
 
 
-################################################################################
-## STAR alignment: 2-pass mapping protocol
-################################################################################
 
-STAR_BIN=${DNFA_starRoot}/STAR-2.6.0a/bin/Linux_x86_64/STAR
-referenceGenomeDir=${DNFA_generatedDataRoot}/referenceGenome
-star_index_root=${DNFA_generatedDataRoot}/STARIndex
-
-################################################################################
-## looping for sample test1 ##
-################################################################################
-
-mkdir -m 755 -p ${DNFA_generatedDataRoot}/Analysis
-output_dir=${DNFA_generatedDataRoot}/Analysis/2-pass/test1
-read_files_base=${DNFA_raw_data_basedir}/test1
-
-mkdir -m 755 -p ${output_dir}
-
-# iterate over a list of files that differ by only prefixes ("data tags")
-data_tags="test1_S2_L001 test1_S2_L002 test1_S2_L003 test1_S2_L004"
-
-if [ ! -f "${output_dir}/test1_S2_L004SJ.out.tab" ]; then
-  ## run STAR with sequencing data
-  for tag in $data_tags; do
-  echo ${tag}
-  ${STAR_BIN} \
-     --genomeDir $star_index_root \
-     --sjdbGTFfile ${referenceGenomeDir}/Homo_sapiens.GRCh38.94.gtf \
-     --runThreadN 12 \
-     --outFileNamePrefix $output_dir/"$tag" \
-     --readFilesIn $read_files_base/"$tag"_R1_001.fastq.gz \
-                   $read_files_base/"$tag"_R2_001.fastq.gz \
-     --readFilesCommand zcat \
-     --twopassMode Basic
-  done;
-fi
-
-
-################################################################################
-## with looping for sample test2 ##
-################################################################################
-
-output_dir=${DNFA_generatedDataRoot}/Analysis/2-pass/test2
-read_files_base=${DNFA_raw_data_basedir}/test2
-star_index_root=${DNFA_generatedDataRoot}/STARIndex
-
-# iterate over a list of files that differ by only prefixes ("data tags")
-data_tags="test2_S3_L001 test2_S3_L002 test2_S3_L003 test2_S3_L004"
-
-mkdir -m 755 -p ${output_dir}
-
-if [ ! -f "${output_dir}/test2_S3_L004SJ.out.tab" ]; then
-  ## run STAR with sequencing data
-  for tag in $data_tags; do
-  echo ${tag}
-  ${STAR_BIN} \
-     --genomeDir $star_index_root \
-     --sjdbGTFfile ${referenceGenomeDir}/Homo_sapiens.GRCh38.94.gtf \
-     --runThreadN 12 \
-     --outFileNamePrefix $output_dir/"$tag" \
-     --readFilesIn $read_files_base/"$tag"_R1_001.fastq.gz \
-                   $read_files_base/"$tag"_R2_001.fastq.gz \
-     --readFilesCommand zcat \
-     --twopassMode Basic
-  done;
-fi
-
-
-################################################################################
-####   Perform samtool on the STAR-aligned sequence files  ####
-################################################################################
-## basic samtool command
-## samtools sort [-l level] [-m maxMem] [-o out.bam] [-O format] [-n] [-t tag] [-T tmpprefix] [-@ threads] [in.sam|in.bam|in.cram]
-## use test1_S2_L001Aligned.out.sam file for sorting
-echo "Perform samtool on the STAR-aligned sequence files"
-samfile=${DNFA_generatedDataRoot}/Analysis/2-pass/test?/*.sam
-Samsort=${DNFA_generatedDataRoot}/Analysis/Samsort
-## For the sam files from STAR output folder for samtool sorting,
-## use filename=$(basename ${f%%.*}) to extract the base name from
-## e.g. "test1_S2_L001Aligned.out.sam" as "test1_S2_L001Aligned"; and
-## use it for sort output file name like "test1_S2_L001Aligned.sorted.bam".
-mkdir -m 755 -p ${Samsort}
-for f in $samfile; do
-  filename=$(basename ${f%%.*})
-  echo $filename
-  if [ ! -f $Samsort/$filename.sorted.bam ]; then
-    samtools sort $f -o $Samsort/$filename.sorted.bam
-  fi
-done
 
 
 #####################################################
