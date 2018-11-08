@@ -1,3 +1,4 @@
+## This R script uses ChIPseeker package to analyze the SREBP1 ChIP-seq data from A549 and MCF7 cell lines
 ##load packages and get annotations
 source("https://bioconductor.org/biocLite.R")
 # biocLite("openssl")
@@ -7,8 +8,7 @@ biocLite("TxDb.Hsapiens.UCSC.hg38.knownGene")
 biocLite("clusterProfiler")
 biocLite("org.Hs.eg.db")
 biocLite("ReactomePA")
-# library(openssl)
-# library(GenomicFeatures)
+
 library(ChIPseeker)
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
@@ -20,80 +20,37 @@ tx19 <- TxDb.Hsapiens.UCSC.hg19.knownGene
 tx38 <- TxDb.Hsapiens.UCSC.hg38.knownGene
 promoter <- getPromoters(TxDb=tx38, upstream=3000, downstream=3000)
 
-setwd("~/Documents/Bioinformatics analysis/ChIP analysis/MCF7-SREBP1/MACS")
+setwd("~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS")
 
-files <- list(A549.SREBP1.rep1 = "~/Documents/Bioinformatics analysis/ChIP analysis/A549-SREBP1/MACS/A549-SREBP1-1-Input-1_peaks.narrowPeak",
-              A549.SREBP1.rep2 = "~/Documents/Bioinformatics analysis/ChIP analysis/A549-SREBP1/MACS/A549-SREBP1-2-Input-1_peaks.narrowPeak",
-              MCF7.SREBP1.rep1 = "~/Documents/Bioinformatics analysis/ChIP analysis/MCF7-SREBP1/MACS/MCF7-SREBP1-1-Input-1_peaks.narrowPeak",
-              MCF7.SREBP1.rep2 = "~/Documents/Bioinformatics analysis/ChIP analysis/MCF7-SREBP1/MACS/MCF7-SREBP1-2-Input-1_peaks.narrowPeak",
-              K562.SREBP1.rep1 = "~/Documents/Bioinformatics analysis/ChIP analysis/K562-SREBP1/MACS/K562-SREBP1-1-Input-1_peaks.narrowPeak",
-              K562.SREBP1.rep2 = "~/Documents/Bioinformatics analysis/ChIP analysis/K562-SREBP1/MACS/K562-SREBP1-2-Input-1_peaks.narrowPeak",
-              GM12878.SREBP1.rep1 = "~/Documents/Bioinformatics analysis/ChIP analysis/GM12878-SREBP1/MACS/GM12878-SREBP1-1-Input-1_peaks.narrowPeak",
-              GM12878.SREBP1.rep2 = "~/Documents/Bioinformatics analysis/ChIP analysis/GM12878-SREBP1/MACS/GM12878-SREBP1-2-Input-1_peaks.narrowPeak")
-              HepG2.SREBP1.rep1 = "~/Documents/Bioinformatics analysis/ChIP analysis/HepG2-SREBP1/MACS/HepG2-SREBP1-1-Input-1_peaks.narrowPeak",
-              HepG2.SREBP1.rep2 = "~/Documents/Bioinformatics analysis/ChIP analysis/HepG2-SREBP1/MACS/HepG2-SREBP1-2-Input-1_peaks.narrowPeak",
-              HepG2.SREBP1.rep3 = "~/Documents/Bioinformatics analysis/ChIP analysis/HepG2-SREBP1/MACS/HepG2-SREBP1-3-Input-1_peaks.narrowPeak")
-              
-files <- list(A549.SREBP1.rep1 = "~/Documents/Bioinformatics analysis/ChIP analysis/A549-SREBP1/MACS/A549-SREBP1-1-Input-1_peaks.narrowPeak",
-              A549.SREBP1.rep2 = "~/Documents/Bioinformatics analysis/ChIP analysis/A549-SREBP1/MACS/A549-SREBP1-2-Input-1_peaks.narrowPeak")
+files <- list(A549.SREBP1.rep1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/A549-SREBP1/MACS/A549-SREBP1-1-Input-1_peaks.narrowPeak",
+              A549.SREBP1.rep2 = "~/Documents/Bioinformatics_analysis/ChIP analysis/A549-SREBP1/MACS/A549-SREBP1-2-Input-1_peaks.narrowPeak",
+              MCF7.SREBP1.rep1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS/MCF7-SREBP1-1-Input-1_peaks.narrowPeak",
+              MCF7.SREBP1.rep2 = "~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS/MCF7-SREBP1-2-Input-1_peaks.narrowPeak")
+ 
 print(files)
 
 
 files <- list(A549.SREBP1 = "~/Documents/Bioinformatics analysis/ChIP analysis/A549-SREBP1/MACS/A549-merged-SREBP1-Input_peaks.narrowPeak",
-              MCF7.SREBP1 = "~/Documents/Bioinformatics analysis/ChIP analysis/MCF7-SREBP1/MACS/MCF7-merged-SREBP1-Input_peaks.narrowPeak",
-              K562.SREBP1 = "~/Documents/Bioinformatics analysis/ChIP analysis/K562-SREBP1/MACS/K562-merged-SREBP1-Input_peaks.narrowPeak")
-#              GM12878.SREBP1 = "~/Documents/Bioinformatics analysis/ChIP analysis/GM12878-SREBP1/MACS/GM12878-merged-SREBP1-Input_peaks.narrowPeak")
+              MCF7.SREBP1 = "~/Documents/Bioinformatics analysis/ChIP analysis/MCF7-SREBP1/MACS/MCF7-merged-SREBP1-Input_peaks.narrowPeak")
 
-
-# use readPeakFile function to load the peak and store in GRanges object
-peak1 <- readPeakFile(files[["A549.SREBP1.rep2"]])
-# peak1 <- "MCF7-SREBP1-1-Input-2_peaks.narrowPeak" # SREBP1-1 peak file name
-peak1
-# create tagmatrix
-peak1.tagMatrix <- getTagMatrix(peak1, windows=promoter)
-# peak1.tagMatrix <- tagMatrixList[[1]]
-tagHeatmap(peak1.tagMatrix, xlim=c(-3000, 3000), color="red")
-covplot(peak1)
-covplot(peak1, chrs=c("chr17", "chr18"))
-peakHeatmap(peak1, TxDb=tx38, upstream=3000, downstream=3000, color="red")
-plotAvgProf(peak1.tagMatrix, xlim=c(-3000, 3000),
-            xlab="Genomic Region (5'->3')", ylab = "Read Count Frequency")
-plotAvgProf(peak1.tagMatrix, xlim=c(-3000, 3000), conf = 0.95, resample = 1000)
-peakAnno <- annotatePeak(peak1, tssRegion=c(-3000, 3000),
-                         TxDb=tx38, annoDb="org.Hs.eg.db")
-plotAnnoPie(peakAnno)
-vennpie(peakAnno)
-upsetplot(peakAnno)
-upsetplot(peakAnno, vennpie=TRUE)
-plotDistToTSS(peakAnno,
-              title="Distribution of transcription factor-binding loci\nrelative to TSS")
-pathway1 <- enrichPathway(as.data.frame(peakAnno)$geneId, pvalueCutoff=10)
-#pathway1<-as.data.frame(pathway1)
-head(pathway1, 2)
-dotplot(pathway1)
-barplot(pathway1, showCategory=30)
-gene <- seq2gene(peak1, tssRegion = c(-3000, 3000), flankDistance = 3000, TxDb=tx38)
-pathway2 <- enrichPathway(gene, pvalueCutoff=0.1)
-head(pathway2, 2)
-dotplot(pathway2)
-barplot(pathway2, showCategory=30)
-enrichMap(pathway1, layout=igraph::layout.kamada.kawai, vertex.label.cex = 1)
-cnetplot(pathway1, categorySize="pvalue", foldChange=geneList)
-
-setwd("~/Documents/Bioinformatics analysis/ChIP analysis/MCF7-SREBP1/Homer/TagDirectory/MCF7-SREBP1/GOanalysis")
-
-############################################################################
-# files <- getSampleFiles()
-
-p <- covplot(peak)
-print(p)
+#############################################################
+#####  Profile of ChIP peaks binding to TSS regions  ########
+#############################################################
 tagMatrixList <- lapply(files, getTagMatrix, windows=promoter)
 plotAvgProf(tagMatrixList, xlim=c(-3000, 3000))
 tagHeatmap(tagMatrixList, xlim=c(-3000, 3000), color=NULL)
+
+###########################################
+#### ChIP peak annotation comparision #####
+###########################################
 peakAnnoList <- lapply(files, annotatePeak, TxDb=tx38,
                        tssRegion=c(-3000, 3000), verbose=FALSE)
 plotAnnoBar(peakAnnoList)
 plotDistToTSS(peakAnnoList)
+
+###########################################
+##### Functional profiles comparison ######
+###########################################
 genes = lapply(peakAnnoList, function(i) as.data.frame(i)$geneId)
 names(genes) = sub("_", "\n", names(genes))
 compREA <- compareCluster(geneCluster   = genes,
