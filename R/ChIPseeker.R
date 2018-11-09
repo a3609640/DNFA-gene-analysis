@@ -22,16 +22,10 @@ promoter <- getPromoters(TxDb=tx38, upstream=3000, downstream=3000)
 
 setwd("~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS")
 
-files <- list(A549.SREBP1.rep1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/A549-SREBP1/MACS/A549-SREBP1-1-Input-1_peaks.narrowPeak",
-              A549.SREBP1.rep2 = "~/Documents/Bioinformatics_analysis/ChIP analysis/A549-SREBP1/MACS/A549-SREBP1-2-Input-1_peaks.narrowPeak",
-              MCF7.SREBP1.rep1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS/MCF7-SREBP1-1-Input-1_peaks.narrowPeak",
-              MCF7.SREBP1.rep2 = "~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS/MCF7-SREBP1-2-Input-1_peaks.narrowPeak")
- 
+files <- list(A549.SREBP1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/A549-SREBP1/MACS/A549-merged-SREBP1-Input_peaks.narrowPeak",
+              MCF7.SREBP1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS/MCF7-merged-SREBP1-Input_peaks.narrowPeak",
+              K562.SREBP1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS/K562-merged-SREBP1-Input_peaks.narrowPeak")
 print(files)
-
-
-files <- list(A549.SREBP1 = "~/Documents/Bioinformatics analysis/ChIP analysis/A549-SREBP1/MACS/A549-merged-SREBP1-Input_peaks.narrowPeak",
-              MCF7.SREBP1 = "~/Documents/Bioinformatics analysis/ChIP analysis/MCF7-SREBP1/MACS/MCF7-merged-SREBP1-Input_peaks.narrowPeak")
 
 #############################################################
 #####  Profile of ChIP peaks binding to TSS regions  ########
