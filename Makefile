@@ -122,7 +122,7 @@ samfiles: \
 
 # Likewise, the full list of .fastq.gz files is generated here.  This also
 # permits all the .fastq.gz files to be extracted from the archive file with
-# 'make fastqfiles, and furthermore makes them explicit targets.  If these were
+# 'make fastqfiles', and furthermore makes them explicit targets.  If these were
 # only intermediate targets, 'make' might delete them after completing work
 # on the .sam files that need them.
 fastqfiles: \

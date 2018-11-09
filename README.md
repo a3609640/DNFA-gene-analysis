@@ -183,9 +183,9 @@ internet connection.
 
 Useful targets include:
 
-* `make all`, `make bamfiles` -- This will build everything, from soup to nuts.
-    The generated .bam files (and their output directory) may be removed with
-    `make clean_bamfiles`.
+* `make` or `make all` or `make bamfiles` -- This will build everything, from
+    soup to nuts.  The generated .bam files (and their output directory) may
+    be removed with `make clean_bamfiles`.
 
 * `make samfiles` -- Build everything but stop short of the 'samtools sort'
     step.  The generated .sam files (and their output directory) may be removed

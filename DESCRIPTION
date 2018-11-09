@@ -27,7 +27,7 @@ Imports: AnnotationDbi, Biobase, BiocGenerics,
 License: Apache-2.0
 Maintainer: Su Wu <SWU16@mgh.harvard.edu>
 Package: DNFAGeneAnalysis
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 Suggests: knitr, rmarkdown, roxygen2, testthat
 Title: DNFA gene analysis
 Type: Package
