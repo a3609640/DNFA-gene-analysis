@@ -37,8 +37,6 @@
 # ENSG00000278267 ... MIR6859-1
 # ...
 
-# source("http://bioconductor.org/biocLite.R")
-# biocLite("org.Hs.eg.db") # for converting Ensembl IDs to gene symbols
 library("org.Hs.eg.db")
 
 # Reframe a data file with desired row and column names.
