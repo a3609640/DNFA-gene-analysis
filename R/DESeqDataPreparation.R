@@ -114,4 +114,4 @@ getFile <- function(stem) {
 
 inputFiles <- lapply(stems, getFile)
 test <- mergeFiles(inputFiles)
-write.csv(carSpeeds, file = 'data/gene-counts.csv')
+write.csv(test, file = 'data/gene-counts.csv')
