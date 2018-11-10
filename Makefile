@@ -8,6 +8,8 @@
 # https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html#Automatic-Variables
 #
 
+include configuration  # automatically grab environment variables for local env
+
 .SECONDEXPANSION:  # to allow use of $@ in prequisite lists (escaped as $$@)
 
 # output directories where STAR sources and binaries will be genereated
@@ -22,9 +24,13 @@ ensemblBase=ftp://ftp.ensembl.org/pub/release-94
 gtf=${DNFA_generatedDataRoot}/referenceGenome/Homo_sapiens.GRCh38.94.gtf
 fa=${DNFA_generatedDataRoot}/referenceGenome/Homo_sapiens.GRCh38.dna.primary_assembly.fa
 
-# R project external data directory (we will dump .sam and .bam files here)
-extDataDir=inst/extData
+# Stuff we might put under inst/extdata, but that is in general too
+# big for RStudio to handle efficiently.  We'll make symlinks to this
+# location instead.
+extDataDir=${DNFA_generatedDataRoot}/r-extdata
 
+# R project external data directory 
+projectExtDataDir=inst/extdata
 
 # convenience definitions for commands with options (e.g. if permissions other than 755
 # seem useful for 'mkdir' later on, it only needs to be changed in this one place)
@@ -32,7 +38,7 @@ GUNZIP=gunzip -k
 MKDIR=mkdir -m 755 -p
 
 # in accord with usual conventions, the first target is named 'all'
-all: bamfiles
+all: bamfiles projectreadfiles
 
 # 'make ${DNFA_starRoot}/STAR-2.6.1a/bin/STAR' needs the source dir to exist
 # (the '|' means it will not check the time at which the dir was modified)
@@ -113,7 +119,8 @@ testIDs = $(testIDs1) $(testIDs2) $(testIDs3) $(testIDs4) $(testIDs5) $(testIDs6
 
 bamfiles: $(foreach id, $(testIDs), $(extDataDir)/test$(id)Aligned.sorted.bam)
 samfiles: $(foreach id, $(testIDs), $(extDataDir)/test$(id)Aligned.out.sam)
-
+readfiles: $(foreach id, $(testIDs), $(extDataDir)/test$(id)ReadsPerGene.out.tab)
+projectreadfiles: $(foreach id, $(testIDs), $(projectExtDataDir)/test$(id)ReadsPerGene.out.tab)
 
 # Likewise, the full list of .fastq.gz files is generated here.  This also
 # permits all the .fastq.gz files to be extracted from the archive file with
@@ -156,7 +163,7 @@ $(extDataDir)/%.sorted.bam : $(extDataDir)/%.out.sam | $$(@D)
 # matcher "%" will end up matching a string (for both .sam and .fastq.gz)
 # like "test3_S4_L002"
 
-$(extDataDir)/%Aligned.out.sam : $(starBinDir)/STAR \
+$(extDataDir)/%ReadsPerGene.out.tab $(extDataDir)/%Aligned.out.sam : $(starBinDir)/STAR \
                              $(gtf) \
                              ${DNFA_raw_data_basedir}/*/%_R1_001.fastq.gz \
                              ${DNFA_raw_data_basedir}/*/%_R2_001.fastq.gz \
@@ -170,6 +177,9 @@ $(extDataDir)/%Aligned.out.sam : $(starBinDir)/STAR \
      --readFilesIn $(word 3, $^) $(word 4, $^) \
      --readFilesCommand zcat \
      --twopassMode Basic
+
+$(projectExtDataDir)/%ReadsPerGene.out.tab : $(extDataDir)/%ReadsPerGene.out.tab
+	ln -s $< $@ 
 
 # To make a given .fastq.gz file, first we need the .tar file that contains
 # it, and a directory in which to put it.  Given that, we can execute a tar
@@ -206,10 +216,7 @@ ${DNFA_raw_data_basedir}:
 ${DNFA_generatedDataRoot}/referenceGenome ${DNFA_generatedDataRoot}/STARIndex:
 	$(MKDIR) $@
 
-$(samDir)/test1-40222594 $(samDir)/test2-40220751 $(samDir)/test3-40218815:
-	$(MKDIR) $@
-
-$(samDir)/test4-40218817 $(samDir)/test5-40233238 $(samDir)/test6-40220753:
+$(extDataDir):
 	$(MKDIR) $@
 
 # Use "make clean" to remove all generated output.
