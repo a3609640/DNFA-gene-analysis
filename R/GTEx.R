@@ -1,10 +1,6 @@
 library(data.table)
 library(ggplot2)
 
-gene <- fread("GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.csv",showProgress = T)
-Annotations <- fread("GTEx_Data_V6_Annotations_SampleAttributesDS.txt",showProgress = T)
-Annotations <-Annotations[,c(1,7)]
-## showProgress = T is necessary, otherwise "Error: isLOGICAL(showProgress) is not TRUE"
 
 ######################################################################################################
 plotGene <- function(goi) {
@@ -38,6 +34,12 @@ plotGene <- function(goi) {
           legend.justification=c(1,1))+ guides(fill=guide_legend(title=NULL))
 }
 
+doAll5 <- function() {
+gene <- fread("GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.csv",showProgress = T)
+Annotations <- fread("GTEx_Data_V6_Annotations_SampleAttributesDS.txt",showProgress = T)
+Annotations <-Annotations[,c(1,7)]
+## showProgress = T is necessary, otherwise "Error: isLOGICAL(showProgress) is not TRUE"
+
 plotGene(goi="FASN")
 plotGene(goi="SCD")
 plotGene(goi="SREBF1")
@@ -45,7 +47,4 @@ plotGene(goi="HMGCR")
 plotGene(goi="HMGCS1")
 plotGene(goi="SREBF2")
 plotGene(goi="MITF")
-
-
-
-
+}  

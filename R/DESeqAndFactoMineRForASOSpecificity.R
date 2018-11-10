@@ -4,19 +4,19 @@ dataRoot <- file.path("project-data")
 # 1. Preparation: install the following packages #
 ##################################################
 # set global chunk options and load the neccessary packages
-BiocManager::install("genefilter")
-BiocManager::install("BiocStyle")
-BiocManager::install("rmarkdown")
-BiocManager::install("DESeq2")
-BiocManager::install("pathview")
-BiocManager::install("gage")
-BiocManager::install("gageData")
-BiocManager::install("RcppArmadillo")
-BiocManager::install("plotly")
-BiocManager::install("FactoMineR")
-BiocManager::install("factoextra")
-install.packages("https://cran.r-project.org/src/contrib/Archive/RcppArmadillo/RcppArmadillo_0.6.100.0.0.tar.gz", 
-                 repos=NULL, type="source")
+#BiocManager::install("genefilter")
+#BiocManager::install("BiocStyle")
+#BiocManager::install("rmarkdown")
+#BiocManager::install("DESeq2")
+#BiocManager::install("pathview")
+#BiocManager::install("gage")
+#BiocManager::install("gageData")
+#BiocManager::install("RcppArmadillo")
+#BiocManager::install("plotly")
+#BiocManager::install("FactoMineR")
+#BiocManager::install("factoextra")
+#install.packages("https://cran.r-project.org/src/contrib/Archive/RcppArmadillo/RcppArmadillo_0.6.100.0.0.tar.gz", 
+#                 repos=NULL, type="source")
 
 library(FactoMineR)
 library(factoextra)
@@ -59,6 +59,7 @@ library(GenomicRanges)
 library(SummarizedExperiment)
 library(plotly)
 
+doAll1 <- function() {
 ##########################################################
 ## 2. Preparing count matrices from the RNA-seq results ##
 ##########################################################
@@ -836,5 +837,4 @@ ggplot(NRAS, aes(x=condition, y=log2(count), fill=condition)) +
         panel.background = element_blank())+
   labs(title = "NRAS",x=" ", y= "log2(read counts)")
 ## *************************************************************
-
-
+}
