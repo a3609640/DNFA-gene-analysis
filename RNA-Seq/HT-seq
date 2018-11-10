@@ -1,0 +1,34 @@
+source("http://bioconductor.org/biocLite.R")
+biocLite("DEXSeq")
+pip install HTSeq
+
+samtools sort -O sam \
+-T sample.sort \
+-o /usr/local/DNFA-genfiles/data/Analysis/Samsort/test6-1.sorted.sam \ /usr/local/DNFA-genfiles/data/Analysis/2-pass/test6/test6-1Aligned.out.sam
+
+## check the path to two python scripts from DEXSeq R package
+ls R/x86_64-pc-linux-gnu-library/3.4/DEXSeq/python_scripts/
+# > dexseq_count.py  dexseq_prepare_annotation.py
+
+## reference genome files are stored under the following folder.
+ls /usr/local/DNFA-genfiles/data/referenceGenome
+> Homo_sapiens.GRCh38.94.gtf     Homo_sapiens.GRCh38.dna.primary_assembly.fa
+> Homo_sapiens.GRCh38.94.gtf.gz  Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz
+
+
+## then run the python scripts from DEXSeq to generate reference genome file .gff
+
+python ~/R/x86_64-pc-linux-gnu-library/3.4/DEXSeq/python_scripts/dexseq_prepare_annotation.py \
+/usr/local/DNFA-genfiles/data/referenceGenome/Homo_sapiens.GRCh38.94.gtf \
+/usr/local/DNFA-genfiles/data/Analysis/HT-seq/Homo_sapiens.GRCh38.94.DEXSeq.chr.gff
+
+
+## count the reads from Sam files
+## use position sorted sam file to perform DEXSeq_count!! -p yes: pair-end read
+
+python ~/R/x86_64-pc-linux-gnu-library/3.4/DEXSeq/python_scripts/dexseq_count.py \
+-r name \
+-f bam \
+Homo_sapiens.GRCh38.94.DEXSeq.chr.gff \
+/usr/local/DNFA-genfiles/data/Analysis/Samsort/test1-1.sorted.sam \
+/usr/local/DNFA-genfiles/data/Analysis/HT-seq/test1-1.sort.text
