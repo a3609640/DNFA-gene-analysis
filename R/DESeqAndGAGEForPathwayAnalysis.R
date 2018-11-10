@@ -6,19 +6,19 @@ dataRoot <- file.path("project-data")
 # set global chunk options and load the neccessary packages
 chooseCRANmirror()
 
-BiocManager::install("genefilter")
-BiocManager::install("apeglm")
-BiocManager::install("ashr")
-BiocManager::install("BiocStyle")
-BiocManager::install("biomaRt")
-BiocManager::install("DESeq2")
-BiocManager::install("gage")
-BiocManager::install("gageData")
-BiocManager::install("pathview")
-BiocManager::install("RcppArmadillo")
-BiocManager::install("ReactomePA")
-BiocManager::install("rmarkdown")
-install.packages("https://cran.r-project.org/src/contrib/Archive/RcppArmadillo/RcppArmadillo_0.6.100.0.0.tar.gz", repos=NULL, type="source")
+#BiocManager::install("genefilter")
+#BiocManager::install("apeglm")
+#BiocManager::install("ashr")
+#BiocManager::install("BiocStyle")
+#BiocManager::install("biomaRt")
+#BiocManager::install("DESeq2")
+#BiocManager::install("gage")
+#BiocManager::install("gageData")
+#BiocManager::install("pathview")
+#BiocManager::install("RcppArmadillo")
+#BiocManager::install("ReactomePA")
+#BiocManager::install("rmarkdown")
+#install.packages("https://cran.r-project.org/src/contrib/Archive/RcppArmadillo/RcppArmadillo_0.6.100.0.0.tar.gz", repos=NULL, type="source")
 
 library(ashr)
 library(apeglm)
@@ -58,7 +58,7 @@ library(ReactomePA)
 library(SummarizedExperiment)
 #######
 
-
+doAll2 <- function() {
 ################################
 ## 2 Preparing count matrices ##
 ################################
@@ -362,3 +362,4 @@ lapply(fc.go.bp.p, head,20)
 write.table(fc.go.bp.p$greater, file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.greater.txt",sep = "\t")
 write.table(fc.go.bp.p$less, file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.less.txt",sep = "\t")
 
+}

@@ -188,6 +188,7 @@ $(samDir)/%Aligned.out.sam : $(starBinDir)/STAR \
      --sjdbGTFfile $(word 2, $^) \
      --runThreadN 12 \
      --outFileNamePrefix $(@D)/$(*F) \
+     --quantMode TranscriptomeSAM \
      --readFilesIn $(word 3, $^) $(word 4, $^) \
      --readFilesCommand zcat \
      --twopassMode Basic

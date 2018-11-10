@@ -24,6 +24,7 @@ Imports: AnnotationDbi, Biobase, BiocGenerics,
     ggplot2, gplots, grid, lattice,
     org.Hs.eg.db, parallel, pathview, pheatmap, plotly, plyr,
     readxl, shiny, stats4, stringr, survival
+LazyData: true
 License: Apache-2.0
 Maintainer: Su Wu <SWU16@mgh.harvard.edu>
 Package: DNFAGeneAnalysis
