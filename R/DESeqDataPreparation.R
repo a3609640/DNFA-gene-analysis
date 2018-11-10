@@ -40,16 +40,16 @@
 library("org.Hs.eg.db")
 
 # Reframe a data file with desired row and column names.
-processFile <- function(fileBaseDir, fileName) {
-  fullFileName <- paste(fileBaseDir, fileName, sep='/')
+processFile <- function(fullFileName) {
+  fileName <- basename(fullFileName)
   table <- read.table(fullFileName, stringsAsFactors=T)
   
   # Reframe the data, taking row names from first column.
   table.with.rownames <- data.frame(table[,-1], row.names=table[,1])
-  
-  # Generate 'test6.4.' from 'test6-4ReadsPerGene.out.tab'.
+
+  # Generate 'test6.4.' from 'test6_S4_L001ReadsPerGene.out.tab'.
   newColBaseName <- paste(substring(fileName, 1, 5),
-                          substring(fileName, 7, 7),
+                          substring(fileName, 8, 8),
                           '',  # gives us a trailing '.'
                           sep='.')
   
@@ -59,8 +59,8 @@ processFile <- function(fileBaseDir, fileName) {
 }
 
 # Merge reframed data from all input files, and add 'symbol' column.
-mergeFiles <- function(baseDir, files) {
-  processedData <- lapply(inputFiles, processFile, fileBaseDir=baseDir)
+mergeFiles <- function(files) {
+  processedData <- lapply(inputFiles, processFile)
   test <- do.call(cbind.data.frame, processedData)
   
   test$symbol <- mapIds(org.Hs.eg.db,
@@ -71,33 +71,46 @@ mergeFiles <- function(baseDir, files) {
   return(test)
 }
 
-dataDir <- "/Volumes/G-DRIVE\ mobile\ USB-C/Analysis/Testrun/STAR/results"
-
-inputFiles<-c(
-  "test1-1ReadsPerGene.out.tab",
-  "test1-2ReadsPerGene.out.tab",
-  "test1-3ReadsPerGene.out.tab",
-  "test1-4ReadsPerGene.out.tab",
-  "test2-1ReadsPerGene.out.tab",
-  "test2-2ReadsPerGene.out.tab",
-  "test2-3ReadsPerGene.out.tab",
-  "test2-4ReadsPerGene.out.tab",
-  "test3-1ReadsPerGene.out.tab",
-  "test3-2ReadsPerGene.out.tab",
-  "test3-3ReadsPerGene.out.tab",
-  "test3-4ReadsPerGene.out.tab",
-  "test4-1ReadsPerGene.out.tab",
-  "test4-2ReadsPerGene.out.tab",
-  "test4-3ReadsPerGene.out.tab",
-  "test4-4ReadsPerGene.out.tab",
-  "test5-1ReadsPerGene.out.tab",
-  "test5-2ReadsPerGene.out.tab",
-  "test5-3ReadsPerGene.out.tab",
-  "test5-4ReadsPerGene.out.tab",
-  "test6-1ReadsPerGene.out.tab",
-  "test6-2ReadsPerGene.out.tab",
-  "test6-3ReadsPerGene.out.tab",
-  "test6-4ReadsPerGene.out.tab"
+stems <- c(
+  "1_S2_L001", "1_S2_L002", "1_S2_L003", "1_S2_L004",
+  "2_S3_L001", "2_S3_L002", "2_S3_L003", "2_S3_L004",
+  "3_S4_L001", "3_S4_L002", "3_S4_L003", "3_S4_L004",
+  "4_S6_L001", "4_S6_L002", "4_S6_L003", "4_S6_L004",
+  "5_S5_L001", "5_S5_L002", "5_S5_L003", "5_S5_L004",
+  "6_S1_L001", "6_S1_L002", "6_S1_L003", "6_S1_L004"
 )
 
-test <- mergeFiles(dataDir, inputFiles)
+# TODO(dlroxe): Attempts to use 'extdata' are experimental for the moment.
+#getSystemFile <- function(name) {
+#  system.file("extdata", name, package = "DNFAGeneAnalysis", mustWork = TRUE)
+#}
+#inputFiles <- lapply(names, getSystemFile)
+
+# TODO(dlroxe): Get rid of dataDir.  The script should just work without
+# having to learn the environment configuration that was provided to the
+# Makefile.
+# 
+# One way to do this is to have 'make' deposit data into a well-known
+# location like 'inst/extdata'.  However R studio doesn't seem happy
+# with the amount of data it must manage in that case (at least, for
+# all generated data).  Furthermore, just putting symlinks there
+# *also* seems complicated, because there's an apparent
+# chicken-and-egg problem with RStudio trying to read data from the
+# installed package location.... in order to install the symlinks.
+#
+# Another way is to check in the relatively small ReadsPerGene.out.tab
+# files under 'data'.  However it would be good to see that the files
+# have been correctly generated and yield expected output, first.  So,
+# for now, the script must be manually updated to point to the local
+# data location.
+
+# dataDir <- "/Volumes/G-DRIVE\ mobile\ USB-C/Analysis/Testrun/STAR/results"
+dataDir <- "/usr/local/DNFA-genfiles/data/r-extdata"
+
+getFile <- function(stem) {
+  name <- paste ('test', stem, 'ReadsPerGene.out.tab', sep = "")
+  file.path(dataDir, name)
+}
+
+inputFiles <- lapply(stems, getFile)
+test <- mergeFiles(inputFiles)
