@@ -1,13 +1,13 @@
-## This R script uses ChIPseeker package to analyze the SREBP1 ChIP-seq data from A549 and MCF7 cell lines
-##load packages and get annotations
-source("https://bioconductor.org/biocLite.R")
-# biocLite("openssl")
-# biocLite("GenomicFeatures")
-biocLite("ChIPseeker")
-biocLite("TxDb.Hsapiens.UCSC.hg38.knownGene")
-biocLite("clusterProfiler")
-biocLite("org.Hs.eg.db")
-biocLite("ReactomePA")
+## This R script uses ChIPseeker package to analyze the SREBP1 ChIP-seq data
+## from A549 and MCF7 cell lines load packages and get annotations
+
+# BiocManager::install("openssl")
+# BiocManager::install("GenomicFeatures")
+# BiocManager::install("ChIPseeker")
+# BiocManager::install("TxDb.Hsapiens.UCSC.hg38.knownGene")
+# BiocManager::install("clusterProfiler")
+# BiocManager::install("org.Hs.eg.db")
+# BiocManager::install
 
 library(ChIPseeker)
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
@@ -16,6 +16,7 @@ library(clusterProfiler)
 library(org.Hs.eg.db)
 library(ReactomePA)
 
+doAll3 <- function() {
 tx19 <- TxDb.Hsapiens.UCSC.hg19.knownGene
 tx38 <- TxDb.Hsapiens.UCSC.hg38.knownGene
 promoter <- getPromoters(TxDb=tx38, upstream=3000, downstream=3000)
@@ -95,5 +96,4 @@ data(gcSample)
 res <- compareCluster(gcSample, fun="enrichPathway")
 plot(res)
 
-
-
+}

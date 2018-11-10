@@ -47,6 +47,8 @@ get_lipogenesis_data <- function(data) {
   return(renamed_geneset)
 }
 
+doAll4 <- function() {
+
 lipogenesis_data <- get_lipogenesis_data(singleRNAseq)
 
 # select RNA-seq data from malignant or non-malignant cells
@@ -254,3 +256,4 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=AXL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
 
+}
