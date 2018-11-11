@@ -38,7 +38,7 @@ GUNZIP=gunzip -k
 MKDIR=mkdir -m 755 -p
 
 # in accord with usual conventions, the first target is named 'all'
-all: bamfiles projectreadfiles
+all: bamfiles $(extDataDir)/gene-counts.csv projectreadfiles 
 
 # 'make ${DNFA_starRoot}/STAR-2.6.1a/bin/STAR' needs the source dir to exist
 # (the '|' means it will not check the time at which the dir was modified)
@@ -180,6 +180,9 @@ $(extDataDir)/%ReadsPerGene.out.tab $(extDataDir)/%Aligned.out.sam : $(starBinDi
 
 $(projectExtDataDir)/%ReadsPerGene.out.tab : $(extDataDir)/%ReadsPerGene.out.tab
 	ln -s $< $@ 
+
+$(extDataDir)/gene-counts.csv: R/DESeqDataPreparation.R readfiles
+	Rscript $<
 
 # To make a given .fastq.gz file, first we need the .tar file that contains
 # it, and a directory in which to put it.  Given that, we can execute a tar
