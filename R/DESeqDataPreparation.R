@@ -38,7 +38,7 @@
 # ...
 
 library("org.Hs.eg.db")
-
+library("dplyr")
 # Reframe a data file with desired row and column names.
 processFile <- function(fullFileName) {
   fileName <- basename(fullFileName)
@@ -47,14 +47,22 @@ processFile <- function(fullFileName) {
   # Reframe the data, taking row names from first column.
   table.with.rownames <- data.frame(table[,-1], row.names=table[,1])
 
-  # Generate 'test6.4.' from 'test6_S4_L001ReadsPerGene.out.tab'.
+  # Generate 'test6.1.' from 'test6_S4_L001ReadsPerGene.out.tab'.
   newColBaseName <- paste(substring(fileName, 1, 5),
-                          substring(fileName, 8, 8),
+                          substring(fileName, 13, 13),
                           '',  # gives us a trailing '.'
                           sep='.')
-  
+  print(paste("name", newColBaseName))
   # Rename the columns as test6.4.1, test6.4.2, test6.4.3.
   colnames(table.with.rownames) <- paste0(newColBaseName, 1:3)
+
+  ## ...but then preserve only column 3 (why?) -- original .csv keeps only col3 (why?)
+  name3 = paste(newColBaseName, 3, sep='')
+  print(paste("name3", name3))
+  table.with.rownames <- select(table.with.rownames, name3)
+  
+  
+  print(head(table.with.rownames))
   return(table.with.rownames)
 }
 
@@ -81,14 +89,16 @@ main <- function () {
     "6_S1_L001", "6_S1_L002", "6_S1_L003", "6_S1_L004"
   )
   
-  dataDir <- file.path(Sys.getenv("DNFA_generatedDataRoot"), "r-extdata")
+  root = Sys.getenv("DNFA_generatedDataRoot", unset="/usr/local/DNFA-genfiles/data")
+  dataDir <- file.path(root, "r-extdata")
   
   getFile <- function(stem) {
     name <- paste ('test', stem, 'ReadsPerGene.out.tab', sep = "")
     file.path(dataDir, name)
   }
-  
-  write.csv(mergeFiles(lapply(stems, getFile)),
+
+  files <- lapply(stems, getFile)
+  write.csv(mergeFiles(files),
             file = file.path(dataDir, 'gene-counts.csv'))
 }
 

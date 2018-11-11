@@ -13,21 +13,12 @@ dataRoot <- file.path("project-data")
 #BiocManager::install("gageData")
 #BiocManager::install("RcppArmadillo")
 #BiocManager::install("plotly")
-#BiocManager::install("FactoMineR")
-#BiocManager::install("factoextra")
-#install.packages("https://cran.r-project.org/src/contrib/Archive/RcppArmadillo/RcppArmadillo_0.6.100.0.0.tar.gz", 
-#                 repos=NULL, type="source")
 
-library(FactoMineR)
-library(factoextra)
 library(cluster)
 library(pheatmap)
-library(ashr)
-library(apeglm)
 library(RcppArmadillo)
 library(colorspace)
 library(lattice)
-library(RODBC)
 library(Matrix)
 library(survival)
 library(Rcpp)
@@ -41,11 +32,9 @@ library(plyr)
 library(DESeq2)
 library(RColorBrewer)
 library(stringr)
-library(biomaRt)
 library(dplyr)
 library(org.Hs.eg.db)
 library(AnnotationDbi)
-library(pathview)
 library(gage)
 library(gageData)
 library(Biobase)
@@ -72,6 +61,10 @@ testseq <- read.csv(testseqCSV)
 testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
 # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
 testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
+
+## TODO(dlroxe): have to remove symbol col: -25 for col3 counts only, -73 for full set
+testseq <- testseq[-25]
+
 ## check the distribution of RNA-Seq reads
 par(mar=c(3,12,2,1))
 boxplot(testseq, outline=FALSE, horizontal=TRUE, las=1)
@@ -838,3 +831,4 @@ ggplot(NRAS, aes(x=condition, y=log2(count), fill=condition)) +
   labs(title = "NRAS",x=" ", y= "log2(read counts)")
 ## *************************************************************
 }
+
