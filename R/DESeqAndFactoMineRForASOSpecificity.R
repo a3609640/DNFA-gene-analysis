@@ -1,69 +1,61 @@
-dataRoot <- file.path("project-data")
-
-##################################################
-# 1. Preparation: install the following packages #
-##################################################
-# set global chunk options and load the neccessary packages
-#BiocManager::install("genefilter")
-#BiocManager::install("BiocStyle")
-#BiocManager::install("rmarkdown")
-#BiocManager::install("DESeq2")
-#BiocManager::install("pathview")
-#BiocManager::install("gage")
-#BiocManager::install("gageData")
-#BiocManager::install("RcppArmadillo")
-#BiocManager::install("plotly")
-
-library(cluster)
-library(pheatmap)
-library(RcppArmadillo)
-library(colorspace)
-library(lattice)
-library(Matrix)
-library(survival)
-library(Rcpp)
-library(genefilter)
-library(BiocStyle)
-library(rmarkdown)
-library(geneplotter)
-library(ggplot2)
-library(gplots)
-library(plyr)
-library(DESeq2)
-library(RColorBrewer)
-library(stringr)
-library(dplyr)
-library(org.Hs.eg.db)
 library(AnnotationDbi)
+library(BiocStyle)
+library(cluster)
+library(colorspace)
+library(DESeq2)
+library(Biobase)
+library(BiocGenerics)
+library(dplyr)
+library(factoextra)
+library(FactoMineR)
 library(gage)
 library(gageData)
-library(Biobase)
-library(S4Vectors)
-library(stats4)
-library(BiocGenerics)
-library(parallel)
-library(IRanges)
+library(geneplotter)
+library(genefilter)
 library(GenomeInfoDb)
 library(GenomicRanges)
-library(SummarizedExperiment)
+library(ggplot2)
+library(gplots)
+library(IRanges)
+library(lattice)
+library(Matrix)
+library(org.Hs.eg.db)
+library(parallel)
+library(pheatmap)
 library(plotly)
+library(plyr)
+library(rmarkdown)
+library(Rcpp)
+library(RcppArmadillo)
+library(RColorBrewer)
+library(S4Vectors)
+library(SummarizedExperiment)
+library(stats4)
+library(stringr)
+library(survival)
+
+readGeneCounts <- function () {
+  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
+  # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
+  # read processed RNA-seq read data from file testseq.csv.
+  testseq <- read.csv(file.path("project-data", "gene-counts-from-Makefile.csv"))
+  # Use the column one (Ensemble names) as columnn names. 
+  testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
+  # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
+  testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
+  
+  ## TODO(dlroxe): have to remove symbol col: -25 for col3 counts only, -73 for full set
+  testseq <- testseq[-25]
+  
+  return(testseq)  
+}
 
 doAll1 <- function() {
 ##########################################################
 ## 2. Preparing count matrices from the RNA-seq results ##
 ##########################################################
-# obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
-# The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
-# read processed RNA-seq read data from file testseq.csv.
-testseqCSV <- file.path(dataRoot, "gene-counts.csv")
-testseq <- read.csv(testseqCSV)
-# Use the column one (Ensemble names) as columnn names. 
-testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
-# Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
-testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
 
-## TODO(dlroxe): have to remove symbol col: -25 for col3 counts only, -73 for full set
-testseq <- testseq[-25]
+testseq <- readGeneCounts()
 
 ## check the distribution of RNA-Seq reads
 par(mar=c(3,12,2,1))
