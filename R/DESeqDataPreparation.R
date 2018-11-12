@@ -11,7 +11,7 @@
 # ...
 # 
 #
-# The desired format of the merged data is:
+# The notional desired format of the merged data is:
 #                 test1.1.1 test1.1.2 test1.1.3 test1.2.1 test1.2.2 ...
 # N_unmapped      105984       105984    105984
 # N_multimapping  171224       171224    171224
@@ -21,6 +21,22 @@
 # ENSG00000227232     10            0       10
 # ENSG00000278267      0            0        0
 # ...
+#
+# However, only the .3 columns are meaningful for the
+# analyses to be performed by this package.  Therefore,
+# the final merged output should look like this:
+# 
+#                 test1.1.3 test1.2.3 test1.3.3 test1.4.3 test2.1.3 ...
+# N_unmapped      
+# N_multimapping  
+# N_noFeature     
+# N_ambiguous     
+# ENSG00000223972 
+# ENSG00000227232 
+# ENSG00000278267 
+# ...
+#
+
 #
 # Row names indicate metadata like the number of unmapped segments,
 # and Ensembl gene designations.  The designations are translated
@@ -56,7 +72,7 @@ processFile <- function(fullFileName) {
   # Rename the columns as test6.4.1, test6.4.2, test6.4.3.
   colnames(table.with.rownames) <- paste0(newColBaseName, 1:3)
 
-  ## ...but then preserve only column 3 (why?) -- original .csv keeps only col3 (why?)
+  ## ...but then preserve only column 3
   name3 = paste(newColBaseName, 3, sep='')
   print(paste("name3", name3))
   table.with.rownames <- select(table.with.rownames, name3)

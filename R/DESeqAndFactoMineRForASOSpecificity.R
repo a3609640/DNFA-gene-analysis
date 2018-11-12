@@ -44,7 +44,7 @@ readGeneCounts <- function () {
   # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
   testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
   
-  ## TODO(dlroxe): have to remove symbol col: -25 for col3 counts only, -73 for full set
+  ## remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
   testseq <- testseq[-25]
   
   return(testseq)  
