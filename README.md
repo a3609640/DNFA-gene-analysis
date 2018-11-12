@@ -44,6 +44,8 @@ the STAR source code, download human genome data, align a reference
 human genome, and translate 8 .fastq.gz files into .bam counterparts,
 all in about 75 minutes.
 
+System (2) is capable, starting from scratch, to 'make all' in about 4 hours.
+
 
 ## Installing Prerequisite Software Packages
 This software assumes that various tools are already available in your
