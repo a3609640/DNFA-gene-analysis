@@ -50,7 +50,7 @@ readGeneCounts <- function () {
   return(testseq)  
 }
 
-doAll1 <- function() {
+#doAll1 <- function() {
 ##########################################################
 ## 2. Preparing count matrices from the RNA-seq results ##
 ##########################################################
@@ -822,5 +822,5 @@ ggplot(NRAS, aes(x=condition, y=log2(count), fill=condition)) +
         panel.background = element_blank())+
   labs(title = "NRAS",x=" ", y= "log2(read counts)")
 ## *************************************************************
-}
+#}
 

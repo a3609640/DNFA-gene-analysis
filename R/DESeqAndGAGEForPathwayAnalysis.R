@@ -65,7 +65,7 @@ doAll2 <- function() {
 # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
 # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
 # read processed RNA-seq read data from file testseq.csv.
-testseqCSV <- file.path(dataRoot, "gene-counts.csv")
+testseqCSV <- file.path(dataRoot, "gene-counts-from-Makefile.csv")
 testseq <- read.csv(testseqCSV)
 # Use the column one (Ensemble names) as columnn names. 
 testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
@@ -363,3 +363,4 @@ write.table(fc.go.bp.p$greater, file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.gre
 write.table(fc.go.bp.p$less, file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.less.txt",sep = "\t")
 
 }
+
