@@ -50,38 +50,44 @@ readGeneCounts <- function () {
   return(testseq)  
 }
 
-doAll1 <- function() {
 ##########################################################
 ## 2. Preparing count matrices from the RNA-seq results ##
 ##########################################################
+getGuideData <- function() {
+  ## check the distribution of RNA-Seq reads
+  par(mar=c(3,12,2,1))
+  boxplot(testseq, outline=FALSE, horizontal=TRUE, las=1)
+  ## Remove rows in which there are no reads or nearly no reads
+  guideData <- testseq[rowSums(testseq)>1,]
+  head(guideData)
+  dim(guideData)
+  ## check how the data distribution with boxplot after removing rows with no read
+  par(mar=c(3,12,2,1))
+  boxplot(guideData, outline=FALSE, horizontal=TRUE, las=1)
+  return(guideData)
+}
 
-testseq <- readGeneCounts()
-
-## check the distribution of RNA-Seq reads
-par(mar=c(3,12,2,1))
-boxplot(testseq, outline=FALSE, horizontal=TRUE, las=1)
-## Remove rows in which there are no reads or nearly no reads
-guideData <- testseq[rowSums(testseq)>1,]
-head(guideData)
-dim(guideData)
-## check how the data distribution with boxplot after removing rows with no read
-par(mar=c(3,12,2,1))
-boxplot(guideData, outline=FALSE, horizontal=TRUE, las=1)
+getGuideDesign <- function(guideData) {
+  ## create a design for our "modelling" 
+  ## each sample contains four techinical replicates
+  #condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
+  #              rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))
+  return(data.frame(row.names = colnames(guideData),
+                            condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
+                                          rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))))
+  
+}
 
 #######################################################
 ### 3. Construct DESeqDataSet from the count matrix ###
 #######################################################
-## create a design for our "modelling" 
-## each sample contains four techinical replicates
-condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
-              rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))
-guideDesign <- data.frame(row.names = colnames(guideData),
-                          condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
-                                        rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4)))
-## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
-dds <- DESeqDataSetFromMatrix(countData = guideData,colData = guideDesign,design = ~ condition)
-dds
-head(assay(dds))
+getDDS <- function (guideData) {
+  ## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
+  dds <- DESeqDataSetFromMatrix(countData = guideData,colData = guideDesign,design = ~ condition)
+  dds
+  head(assay(dds))
+  return(dds)  
+}
 
 ######################################################
 #### 4. Standard differential expression analysis ####
@@ -90,10 +96,12 @@ head(assay(dds))
 # (1) estimation of size factor: estimateSizeFactors
 # (2) estimation of dispersion: estimateDispersions
 # (3) Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
-ddsDE <- DESeq(dds)  
-ddsres <- results(ddsDE)  
-summary(ddsres)
-res <- data.frame(ddsres)
+getDDSRES <- function(ddsDE) {
+  ddsres <- results(ddsDE)  
+  summary(ddsres)
+  res <- data.frame(ddsres)
+  return(ddsres)  
+}
 
 ########################################################
 ##### 5. Count data transformations for clustering #####
@@ -105,19 +113,31 @@ res <- data.frame(ddsres)
 ## The running times are shorter when using blind=FALSE and if the function DESeq has already been run, 
 ## because then it is not necessary to re-estimate the dispersion values. 
 ## The assay function is used to extract the matrix of normalized value
-vsd <- vst(ddsDE, blind=FALSE)
-rld <- rlog(ddsDE,blind=FALSE)
-# Hierarchical clustering using rlog transformation
-dists=dist(t(assay(rld)))
-plot(hclust(dists), labels=guideDesign$condition)
-sampleDistMatrix <- as.matrix(dists)
-rownames(sampleDistMatrix) <- paste(vsd$condition, vsd$type, sep="-")
-colnames(sampleDistMatrix) <- NULL
-colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
-pheatmap(sampleDistMatrix,
-         clustering_distance_rows=dists,
-         clustering_distance_cols=dists,
-         col=colors)
+makeHeatMap <- function(guideDesign, ddsDE) {
+  vsd <- vst(ddsDE, blind=FALSE)
+  rld <- rlog(ddsDE,blind=FALSE)
+  # Hierarchical clustering using rlog transformation
+  dists=dist(t(assay(rld)))
+  plot(hclust(dists), labels=guideDesign$condition)
+  sampleDistMatrix <- as.matrix(dists)
+  rownames(sampleDistMatrix) <- paste(vsd$condition, vsd$type, sep="-")
+  colnames(sampleDistMatrix) <- NULL
+  colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+  pheatmap(sampleDistMatrix,
+           clustering_distance_rows=dists,
+           clustering_distance_cols=dists,
+           col=colors)
+  return(rld)
+}
+
+doAll1 <- function() {
+testseq <- readGeneCounts()
+guideData <- getGuideData()
+guideDesign <- getGuideDesign(guideData)
+dds <- getDDS(guideData)
+ddsDE <- DESeq(dds)
+res <- getDDSRES(ddsDE)
+rld <- makeHeatMap(guideDesign, ddsDE)
 
 #############################################
 ###### 6. Principal component analysis ######
