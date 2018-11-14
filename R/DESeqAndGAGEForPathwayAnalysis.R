@@ -72,11 +72,11 @@ testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
 # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
 testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
 
-###############################
-## 3 Compare siNeg and siBF1 ##
-###############################
 
-## generate dataset for siRNA treatment
+##################################################################################
+## 3 Compare siNeg and siBF1 RNA-seq results for differentially expressed genes ##
+##################################################################################
+## generate DESeq dataset for siRNA treatment
 testsiRNA <- data.frame(testseq[,c(5,6,7,8,9,10,11,12)])
 ## check the read distribution by boxplot
 par(mar=c(3,12,2,1))
@@ -225,7 +225,7 @@ foldchanges = ressiRNA$log2FoldChange
 names(foldchanges) = ressiRNA$entrez
 head(foldchanges)
 
-# Look at both up (greater), down (less), and statatistics.
+# Look at top upregulated (greater) and downregulated (less) genes with statatistics.
 # Get KEGG pathway with both metabolism and signaling pathways
 kg.hsa=kegg.gsets("hsa")
 kegg.sigmet.idx=kg.hsa$kg.sets[kg.hsa$sigmet.idx]
@@ -254,16 +254,19 @@ go.hs <- go.gsets(species="human")
 go.bp.gs <- go.hs$go.sets[go.hs$go.subs$BP] # “Biological Process”
 go.mf.gs <- go.hs$go.sets[go.hs$go.subs$MF] # “Molecular Function”
 go.cc.gs <- go.hs$go.sets[go.hs$go.subs$CC] # “Cellular Component”
-
+# GO pathway analysis with Biological Process
 fc.go.bp.p <- gage(foldchanges, gsets = go.bp.gs,same.dir=TRUE)
 lapply(fc.go.bp.p, head,20)
 write.table(fc.go.bp.p$greater, file = "fc.go.bp.p.greater.txt",sep = "\t")
 write.table(fc.go.bp.p$less, file = "fc.go.bp.p.less.txt",sep = "\t")
 
+# GO pathway analysis with Molecular Process
 fc.go.mf.p <- gage(foldchanges, gsets = go.mf.gs)
 lapply(fc.go.mf.p, head,10)
+# GO pathway analysis with Cellular Process
 fc.go.cc.p <- gage(foldchanges, gsets = go.cc.gs)
 lapply(fc.go.cc.p, head,10)
+
 
 ########################################################################
 ###### Pathway analysis on ChIP-seq and RNA-seq overlapping genes ######
@@ -286,5 +289,5 @@ lapply(fc.go.bp.p, head,20)
 write.table(fc.go.bp.p$greater, file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.greater.txt",sep = "\t")
 write.table(fc.go.bp.p$less, file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.less.txt",sep = "\t")
 
-}
+
 
