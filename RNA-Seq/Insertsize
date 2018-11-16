@@ -152,7 +152,63 @@ java -jar /usr/share/java/picard.jar \
       H=test4_4_insert_size_histogram.pdf \
       M=0.5
 
+####
+java -jar /usr/share/java/picard.jar \
+      CollectInsertSizeMetrics \
+      I=/usr/local/DNFA-genfiles/data/r-extdata/test5_S5_L001Aligned.toTranscriptome.out.bam \
+      O=test5_1_insert_size_metrics.txt \
+      H=test5_1_insert_size_histogram.pdf \
+      M=0.5
 
+java -jar /usr/share/java/picard.jar \
+      CollectInsertSizeMetrics \
+      I=/usr/local/DNFA-genfiles/data/r-extdata/test5_S5_L002Aligned.toTranscriptome.out.bam \
+      O=test5_2_insert_size_metrics.txt \
+      H=test5_2_insert_size_histogram.pdf \
+      M=0.5
+
+java -jar /usr/share/java/picard.jar \
+      CollectInsertSizeMetrics \
+      I=/usr/local/DNFA-genfiles/data/r-extdata/test5_S5_L003Aligned.toTranscriptome.out.bam \
+      O=test5_3_insert_size_metrics.txt \
+      H=test5_3_insert_size_histogram.pdf \
+      M=0.5
+
+java -jar /usr/share/java/picard.jar \
+      CollectInsertSizeMetrics \
+      I=/usr/local/DNFA-genfiles/data/r-extdata/test5_S5_L004Aligned.toTranscriptome.out.bam \
+      O=test5_4_insert_size_metrics.txt \
+      H=test5_4_insert_size_histogram.pdf \
+      M=0.5
+
+####
+java -jar /usr/share/java/picard.jar \
+      CollectInsertSizeMetrics \
+      I=/usr/local/DNFA-genfiles/data/r-extdata/test6_S3_L001Aligned.toTranscriptome.out.bam \
+      O=test6_1_insert_size_metrics.txt \
+      H=test6_1_insert_size_histogram.pdf \
+      M=0.5
+
+java -jar /usr/share/java/picard.jar \
+      CollectInsertSizeMetrics \
+      I=/usr/local/DNFA-genfiles/data/r-extdata/test6_S3_L002Aligned.toTranscriptome.out.bam \
+      O=test6_2_insert_size_metrics.txt \
+      H=test6_2_insert_size_histogram.pdf \
+      M=0.5
+
+java -jar /usr/share/java/picard.jar \
+      CollectInsertSizeMetrics \
+      I=/usr/local/DNFA-genfiles/data/r-extdata/test6_S3_L003Aligned.toTranscriptome.out.bam \
+      O=test6_3_insert_size_metrics.txt \
+      H=test6_3_insert_size_histogram.pdf \
+      M=0.5
+
+java -jar /usr/share/java/picard.jar \
+      CollectInsertSizeMetrics \
+      I=/usr/local/DNFA-genfiles/data/r-extdata/test6_S3_L004Aligned.toTranscriptome.out.bam \
+      O=test6_4_insert_size_metrics.txt \
+      H=test6_4_insert_size_histogram.pdf \
+      M=0.5
 
 ## checke the statistics saved in output metics file
 ## head insert_size_metrics.txt
