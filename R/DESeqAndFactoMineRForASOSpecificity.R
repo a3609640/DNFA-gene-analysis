@@ -645,7 +645,7 @@ ggplot(USP9X, aes(x=condition, y=log2(count), fill=condition)) +
         panel.border = element_rect(colour = "black",size=1),
         panel.background = element_blank())+
   labs(title = "USP9X",x=" ", y= "log2(read counts)")
-d## *************************************************************
+## *************************************************************
 
 ## *************************************************************
 INSIG1 <- plotCounts(dds, gene="ENSG00000186480", 
