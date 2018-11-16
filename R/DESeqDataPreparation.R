@@ -1,3 +1,4 @@
+# The following R script combines all gene count results of each samples from RNA-Seq experiment and generate a mega data set for DESEQ analysis in the seperate R scripts. 
 # Combine a raw data file per sample to a single merged file.
 
 # Sample format of each file "testN-KReadsPerGene.out.tab":

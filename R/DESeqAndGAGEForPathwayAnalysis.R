@@ -1,3 +1,5 @@
+# The following script aim to find the differentially expressed genes between siSREBF1 and control siRNA treatment in melanoma HT-144 cells with DESeq package. And then perform pathway analysis on the differentially expressed genes.  
+
 dataRoot <- file.path("project-data")
 
 ####################
@@ -62,12 +64,12 @@ doAll2 <- function() {
 ################################
 ## 2 Preparing count matrices ##
 ################################
-# obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
+# obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
 # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
 # read processed RNA-seq read data from file testseq.csv.
 testseqCSV <- file.path(dataRoot, "gene-counts-from-Makefile.csv")
 testseq <- read.csv(testseqCSV)
-# Use the column one (Ensemble names) as columnn names. 
+# Use the column one (Ensemble names) as columnn names.
 testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
 # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
 testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
@@ -90,7 +92,7 @@ dim(guideDatasiRNA)
 par(mar=c(3,12,2,1))
 boxplot(guideDatasiRNA, outline=FALSE, horizontal=TRUE, las=1)
 
-# Time to create a design for our "modelling" 
+# Time to create a design for our "modelling"
 guideDesignsiRNA <- data.frame(row.names = colnames(guideDatasiRNA),
                                condition = c(rep("siNeg",4),rep("siBF1",4)))
 
@@ -99,7 +101,7 @@ guideDesignsiRNA <- data.frame(row.names = colnames(guideDatasiRNA),
 ddssiRNA <- DESeqDataSetFromMatrix(countData = guideDatasiRNA,
                                    colData = guideDesignsiRNA,
                                    design = ~ condition)
-## specifying the reference level: 
+## specifying the reference level:
 ddssiRNA$condition <- relevel(ddssiRNA$condition, ref = "siNeg")
 ddssiRNA
 
@@ -118,24 +120,24 @@ ressiRNA<-results(ddsDEsiRNA) # default alpha = 0.1
 ## We can order our results table by the smallest p value:
 # ressiRNA<-ressiRNA[order(ressiRNA$log2FoldChange),]
 ressiRNA <- ressiRNA[order(ressiRNA$pvalue),]
-## Information about which variables and tests were used can be found by calling the function mcols on the results object. 
+## Information about which variables and tests were used can be found by calling the function mcols on the results object.
 mcols(ressiRNA)$description
 ## We can summarize some basic tallies using the summary function
 summary(ressiRNA)
 ## How many adjusted p-values were less than 0.1?
 sum(ressiRNA$padj < 0.1, na.rm=TRUE)
 
-## Note that the results function automatically performs independent filtering based on the mean of normalized counts for each gene, 
+## Note that the results function automatically performs independent filtering based on the mean of normalized counts for each gene,
 ## optimizing the number of genes which will have an adjusted p value below a given FDR cutoff, alpha = 0.05 here
 res05 <- results(ddsDEsiRNA, alpha=0.05)
 summary(res05)
 sum(res05$padj < 0.05, na.rm=TRUE)
 
-## plotMA shows the log2 fold changes attributable to a given variable over the mean of normalized counts for all the samples in the DESeqDataSet. 
-## Points will be colored red if the adjusted p value is less than 0.1. 
+## plotMA shows the log2 fold changes attributable to a given variable over the mean of normalized counts for all the samples in the DESeqDataSet.
+## Points will be colored red if the adjusted p value is less than 0.1.
 ## Points which fall out of the window are plotted as open triangles pointing either up or down.
 plotMA(ressiRNA, main="DESeq2 siRNA", ylim=c(-2,2))
-## It is more useful visualize the MA-plot for the shrunken log2 fold changes, 
+## It is more useful visualize the MA-plot for the shrunken log2 fold changes,
 ## which remove the noise associated with log2 fold changes from low count genes without requiring arbitrary filtering thresholds.
 resultsNames(ddsDEsiRNA)
 # normal is the the original DESeq2 shrinkage estimator, an adaptive normal prior
@@ -153,17 +155,17 @@ plotMA(resLFC,xlab = "mean of normalized counts", ylim=ylim, main="normal",cex=.
 ressiRNA <- data.frame(ressiRNA)
 columns(org.Hs.eg.db)
 ressiRNA$symbol = mapIds(org.Hs.eg.db,
-                         keys=row.names(ressiRNA), 
+                         keys=row.names(ressiRNA),
                          column="SYMBOL",
                          keytype="ENSEMBL",
                          multiVals="first")
 ressiRNA$entrez = mapIds(org.Hs.eg.db,
-                         keys=row.names(ressiRNA), 
+                         keys=row.names(ressiRNA),
                          column="ENTREZID",
                          keytype="ENSEMBL",
                          multiVals="first")
 ressiRNA$name =   mapIds(org.Hs.eg.db,
-                         keys=row.names(ressiRNA), 
+                         keys=row.names(ressiRNA),
                          column="GENENAME",
                          keytype="ENSEMBL",
                          multiVals="first")
@@ -174,23 +176,23 @@ head(ressiRNA, 10)
 ########################################
 ## 4.3 Exporting results to CSV files ##
 ########################################
-## Exporting only the results which pass an adjusted p value threshold can be accomplished with the subset function, 
+## Exporting only the results which pass an adjusted p value threshold can be accomplished with the subset function,
 ## followed by the write.csv function.
 resSig <- subset(ressiRNA, pvalue < 0.05)
 resSig
-write.csv(as.data.frame(resSig), 
+write.csv(as.data.frame(resSig),
           file="siBF1_siNeg_sigresults.csv")
-write.csv(as.data.frame(ressiRNA), 
+write.csv(as.data.frame(ressiRNA),
           file="siBF1_siNeg_results.csv")
 
 
 ##############################################################
 ## 5. Heatmap for top variable genes across siNeg and siBF1 ##
 ##############################################################
-# The regularized log transform can be obtained using the rlog() function. 
-# The default “blinds” the normalization to the design. 
-# topVarGenes looks at the row variance of the transformed values regardless of which samples come from which group. 
-# Differential expression testing asks whether the difference across group is large relative to the within-group variance. 
+# The regularized log transform can be obtained using the rlog() function.
+# The default “blinds” the normalization to the design.
+# topVarGenes looks at the row variance of the transformed values regardless of which samples come from which group.
+# Differential expression testing asks whether the difference across group is large relative to the within-group variance.
 # So these are different ways of ranking genes.
 # calculate the variance for each gene, # select the top 50 genes by variance
 rldsiRNA <- rlog(ddsDEsiRNA,blind=TRUE)
@@ -273,7 +275,7 @@ lapply(fc.go.cc.p, head,10)
 ########################################################################
 setwd("~/Documents/Su Wu/Documents/Research/Naar Lab/ChIP-seq")
 library(readxl)
-ChIP_Seq_and_RNA_Seq_overlap <- read_excel("ChIP-Seq and RNA-Seq overlap.xlsx", 
+ChIP_Seq_and_RNA_Seq_overlap <- read_excel("ChIP-Seq and RNA-Seq overlap.xlsx",
                                             col_names = FALSE)
 colnames(ChIP_Seq_and_RNA_Seq_overlap) <- "symbol"
 View(ChIP_Seq_and_RNA_Seq_overlap)
@@ -288,6 +290,3 @@ fc.go.bp.p <- gage(CR.foldchanges, gsets = go.bp.gs,same.dir=TRUE)
 lapply(fc.go.bp.p, head,20)
 write.table(fc.go.bp.p$greater, file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.greater.txt",sep = "\t")
 write.table(fc.go.bp.p$less, file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.less.txt",sep = "\t")
-
-
-

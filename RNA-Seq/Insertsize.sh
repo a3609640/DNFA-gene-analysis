@@ -3,7 +3,9 @@
 ## the following methods give very similar averge insert size statistics
 ## however bamtools does not provide STANDARD DEVIATION
 ## picard tool provides STANDARD DEVIATION but number is usually higher than 10%
-## this is due STAR does not restrict the insert size as tophot or other aligner does. 
+# For mapping of DNA-seq data we can decide whether an alignment has insert size that's too big or too small by comparing it "expected" distribution of insert size.
+# However, in RNA-seq the unsequenced portion of insert between the mates can contain a splice junctions.
+# This means that we cannot simply calculate the insert size from an alignment to compare it with "expected" insert size.
 
 ########################################################
 ## Method 1: use bamtools to view stats from bam file ##

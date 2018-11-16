@@ -1,3 +1,5 @@
+## This R script will use the final processed RNA-Seq file from STAR alignment  (gene-counts-from-Makefile.csv) to perform differential gene expression analysis. The following script uses DESeq and PCA analysis to compare the specificity of SREBF1 ASOs to pooled siRNA of SREBF1 (as positive control).
+
 library(AnnotationDbi)
 library(BiocStyle)
 library(cluster)
@@ -35,19 +37,19 @@ library(stringr)
 library(survival)
 
 readGeneCounts <- function () {
-  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
+  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
   # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
   # read processed RNA-seq read data from file testseq.csv.
   testseq <- read.csv(file.path("project-data", "gene-counts-from-Makefile.csv"))
-  # Use the column one (Ensemble names) as columnn names. 
+  # Use the column one (Ensemble names) as columnn names.
   testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
   # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
   testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
-  
+
   ## remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
   testseq <- testseq[-25]
-  
-  return(testseq)  
+
+  return(testseq)
 }
 
 #doAll1 <- function() {
@@ -71,7 +73,7 @@ boxplot(guideData, outline=FALSE, horizontal=TRUE, las=1)
 #######################################################
 ### 3. Construct DESeqDataSet from the count matrix ###
 #######################################################
-## create a design for our "modelling" 
+## create a design for our "modelling"
 ## each sample contains four techinical replicates
 condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
               rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))
@@ -90,20 +92,20 @@ head(assay(dds))
 # (1) estimation of size factor: estimateSizeFactors
 # (2) estimation of dispersion: estimateDispersions
 # (3) Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
-ddsDE <- DESeq(dds)  
-ddsres <- results(ddsDE)  
+ddsDE <- DESeq(dds)
+ddsres <- results(ddsDE)
 summary(ddsres)
 res <- data.frame(ddsres)
 
 ########################################################
 ##### 5. Count data transformations for clustering #####
 ########################################################
-## The regularized log transform can be obtained using the rlog() function. 
+## The regularized log transform can be obtained using the rlog() function.
 ## Regularized log transform is to stabilize the variance of the data and to make its distribution roughly symmetric
-## The default “blinds” the normalization to the design. 
+## The default “blinds” the normalization to the design.
 ## This is very important so as to not bias the analyses (e.g. class discovery)
-## The running times are shorter when using blind=FALSE and if the function DESeq has already been run, 
-## because then it is not necessary to re-estimate the dispersion values. 
+## The running times are shorter when using blind=FALSE and if the function DESeq has already been run,
+## because then it is not necessary to re-estimate the dispersion values.
 ## The assay function is used to extract the matrix of normalized value
 vsd <- vst(ddsDE, blind=FALSE)
 rld <- rlog(ddsDE,blind=FALSE)
@@ -127,12 +129,12 @@ data <- plotPCA(rld, intgroup = c( "condition"), returnData=TRUE)
 percentVar <- round(100 * attr(data, "percentVar"))
 ## Print 2D PCA plot
 black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
-ggplot(data=data, aes_string(x="PC1", y="PC2", color="condition")) + 
-      geom_point(size=3) + 
-      theme_bw() + 
-      xlim(-10, 6) + 
+ggplot(data=data, aes_string(x="PC1", y="PC2", color="condition")) +
+      geom_point(size=3) +
+      theme_bw() +
+      xlim(-10, 6) +
       ylim(-6, 6) +
-      theme(text = black.bold.18.text, 
+      theme(text = black.bold.18.text,
             axis.text = black.bold.18.text,
             axis.line.x = element_line(color="black", size=1),
             axis.line.y = element_line(color="black", size=1),
@@ -145,7 +147,7 @@ ggplot(data=data, aes_string(x="PC1", y="PC2", color="condition")) +
             legend.position=c(0,0),
             legend.justification=c(-0.05,-0.05)) +
       xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-      ylab(paste0("PC2: ", percentVar[2], "% variance")) 
+      ylab(paste0("PC2: ", percentVar[2], "% variance"))
 
 ## Print 3D PCA plot
 plotPCA3D <- function (object, intgroup = "condition", ntop = 5000, returnData = FALSE){
@@ -191,17 +193,17 @@ plotPCA3D(rld, intgroup = "condition", ntop = 5000, returnData = FALSE)
 ####################################################################
 columns(org.Hs.eg.db)
 res$symbol = mapIds(org.Hs.eg.db,
-                    keys=row.names(res), 
+                    keys=row.names(res),
                     column="SYMBOL",
                     keytype="ENSEMBL",
                     multiVals="first")
 res$entrez = mapIds(org.Hs.eg.db,
-                    keys=row.names(res), 
+                    keys=row.names(res),
                     column="ENTREZID",
                     keytype="ENSEMBL",
                     multiVals="first")
 res$name =   mapIds(org.Hs.eg.db,
-                    keys=row.names(res), 
+                    keys=row.names(res),
                     column="GENENAME",
                     keytype="ENSEMBL",
                     multiVals="first")
@@ -211,20 +213,20 @@ head(res, 10)
 ##################################################################
 ######## 8. Annotate genes enriched in each PCA component ########
 ##################################################################
-## scale.unit : a logical value. If TRUE, the data are scaled to unit variance before the analysis. 
+## scale.unit : a logical value. If TRUE, the data are scaled to unit variance before the analysis.
 ## This standardization to the same scale avoids some variables to become dominant just because of their large measurement units.
-## We used FAlSE for scale.unit because rld has been run with DESEQ function before. 
+## We used FAlSE for scale.unit because rld has been run with DESEQ function before.
 ## ncp : number of dimensions kept in the final results.
 ## graph : a logical value. If TRUE a graph is displayed.
 head(assay(rld))
 assayrld <- assay(rld)
 Pvars <- rowVars(assayrld)
-select <- order(Pvars, decreasing = TRUE)[seq_len(min(500, 
+select <- order(Pvars, decreasing = TRUE)[seq_len(min(500,
                                                       length(Pvars)))]
 
 columns(org.Hs.eg.db)
 row.names(assayrld) = mapIds(org.Hs.eg.db,
-                    keys=row.names(assayrld), 
+                    keys=row.names(assayrld),
                     column="SYMBOL",
                     keytype="ENSEMBL",
                     multiVals="first")
@@ -247,36 +249,36 @@ rownames(assayrld) = con
 res.pca <- PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2,graph = TRUE)
 
 ####################################################################
-######### 9. Extract variances in each principal component ######### 
+######### 9. Extract variances in each principal component #########
 ####################################################################
-## Eigenvalues correspond to the amount of the variation explained by each principal component (PC). 
+## Eigenvalues correspond to the amount of the variation explained by each principal component (PC).
 ## Eigenvalues are large for the first PC and small for the subsequent PCs.
 eigenvalues <- res.pca$eig
 head(eigenvalues[, 1:2])
 eigen <- eigenvalues[1:10,]
-# Make a scree plot using base graphics : 
+# Make a scree plot using base graphics :
 # A scree plot is a graph of the eigenvalues/variances associated with components.
-barplot(eigen[, 2], names.arg=1:nrow(eigen), 
+barplot(eigen[, 2], names.arg=1:nrow(eigen),
         main = "Variances",
         xlab = "Principal Components",
         ylab = "Percentage of variances",
         col ="steelblue")
-lines(x = 1:nrow(eigen), eigen[, 2], 
+lines(x = 1:nrow(eigen), eigen[, 2],
       type="b", pch=19, col = "red")
 
 # plot biplot graph with the top six contributing genes to PCA from RNA-Seq
-fviz_pca_biplot(res.pca, 
+fviz_pca_biplot(res.pca,
                 select.var = list(contrib = 6),
-                #select.var = list(contrib = 0.6), 
+                #select.var = list(contrib = 0.6),
                 col.var = "red",
-                label="var", 
-                habillage=assayrld$condition)+ 
-  geom_point(size=3, 
-             aes(colour = factor(assayrld$condition))) + 
-  theme_bw() + 
-  xlim(-8, 4) + 
+                label="var",
+                habillage=assayrld$condition)+
+  geom_point(size=3,
+             aes(colour = factor(assayrld$condition))) +
+  theme_bw() +
+  xlim(-8, 4) +
   ylim(-5, 5) +
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.line.x = element_line(color="black", size=1),
         axis.line.y = element_line(color="black", size=1),
@@ -286,19 +288,19 @@ fviz_pca_biplot(res.pca,
         panel.grid.minor = element_blank(),
         panel.border = element_rect(colour = "black",size=1),
         panel.background = element_blank(),
-        legend.text = element_text(colour="black", size = 18, face = "bold"),  
+        legend.text = element_text(colour="black", size = 18, face = "bold"),
         legend.position=c(0,1),
         legend.justification=c(-0.05,1.05)) +
   xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-  ylab(paste0("PC2: ", percentVar[2], "% variance")) 
+  ylab(paste0("PC2: ", percentVar[2], "% variance"))
 
 #########################################################################
-########## 10. Hierarchical Clustering on Principal Components ########## 
+########## 10. Hierarchical Clustering on Principal Components ##########
 #########################################################################
-## Compute hierarchical clustering: Hierarchical clustering is performed using the Ward’s criterion on the selected principal components. 
+## Compute hierarchical clustering: Hierarchical clustering is performed using the Ward’s criterion on the selected principal components.
 ## Ward criterion is used in the hierarchical clustering because it is based on the multidimensional variance like principal component analysis.
 res.hcpc <- HCPC(res.pca, graph = FALSE)
-fviz_dend(res.hcpc, 
+fviz_dend(res.hcpc,
           cex = 0.7,                     # Label size
           palette = "jco",               # Color palette see ?ggpubr::ggpar
           rect = TRUE, rect_fill = TRUE, # Add rectangle around groups
@@ -333,14 +335,14 @@ head(res.pca$var$cos2, 10)
 var <- get_pca_var(res.pca)
 var
 #library("corrplot")
-#corrplot(var$contrib, is.corr=FALSE)   
+#corrplot(var$contrib, is.corr=FALSE)
 # Contributions of gene variables to PC1
-fviz_contrib(res.pca, choice="var", axes = 1,top = 10, 
+fviz_contrib(res.pca, choice="var", axes = 1,top = 10,
              fill = "lightgray", color = "black") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle=45))
 # Contributions of gene variables to PC2
-fviz_contrib(res.pca, choice="var", axes = 2,top = 10, 
+fviz_contrib(res.pca, choice="var", axes = 2,top = 10,
              fill = "lightgray", color = "black") +
              theme_minimal() +
              theme(axis.text.x = element_text(angle=45))
@@ -353,23 +355,23 @@ res.desc$Dim.1
 dim1 <-data.frame(res.desc$Dim.1)
 columns(org.Hs.eg.db)
 dim1$symbol = mapIds(org.Hs.eg.db,
-                     keys=row.names(dim1), 
+                     keys=row.names(dim1),
                      column="SYMBOL",
                      keytype="ENSEMBL",
                      multiVals="first")
 dim1$entrez = mapIds(org.Hs.eg.db,
-                     keys=row.names(dim1), 
+                     keys=row.names(dim1),
                      column="ENTREZID",
                      keytype="ENSEMBL",
                      multiVals="first")
 dim1$name =   mapIds(org.Hs.eg.db,
-                     keys=row.names(dim1), 
+                     keys=row.names(dim1),
                      column="GENENAME",
                      keytype="ENSEMBL",
                      multiVals="first")
 summary(dim1)
 head(dim1,10)
-quanti.correlation.dim1 = dim1$quanti.correlation 
+quanti.correlation.dim1 = dim1$quanti.correlation
 names(quanti.correlation.dim1) = dim1$entrez
 head(quanti.correlation.dim1)
 
@@ -378,17 +380,17 @@ res.desc$Dim.2
 dim2 <-data.frame(res.desc$Dim.2)
 columns(org.Hs.eg.db)
 dim2$symbol = mapIds(org.Hs.eg.db,
-                     keys=row.names(dim2), 
+                     keys=row.names(dim2),
                      column="SYMBOL",
                      keytype="ENSEMBL",
                      multiVals="first")
 dim2$entrez = mapIds(org.Hs.eg.db,
-                     keys=row.names(dim2), 
+                     keys=row.names(dim2),
                      column="ENTREZID",
                      keytype="ENSEMBL",
                      multiVals="first")
 dim2$name =   mapIds(org.Hs.eg.db,
-                     keys=row.names(dim2), 
+                     keys=row.names(dim2),
                      column="GENENAME",
                      keytype="ENSEMBL",
                      multiVals="first")
@@ -404,20 +406,20 @@ head(dim2,10)
 # theme_bw() removes background color in the graph, guides(fill=FALSE) removes legends
 black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 
-SREBF1 <- plotCounts(dds, gene="ENSG00000072310", 
-                     intgroup="condition", 
-                     normalized = TRUE, 
+SREBF1 <- plotCounts(dds, gene="ENSG00000072310",
+                     intgroup="condition",
+                     normalized = TRUE,
                      transform = TRUE,
                      returnData=TRUE)
-SREBF1$condition <- factor(SREBF1$condition, 
+SREBF1$condition <- factor(SREBF1$condition,
                            levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(SREBF1, aes(x=condition, y=log2(count), fill=condition)) + 
-      geom_boxplot()+ 
-      ylim(8, 10.5)+ 
-      theme_bw()+ 
+ggplot(SREBF1, aes(x=condition, y=log2(count), fill=condition)) +
+      geom_boxplot()+
+      ylim(8, 10.5)+
+      theme_bw()+
       guides(fill=FALSE)+
-      theme(text = black.bold.18.text, 
+      theme(text = black.bold.18.text,
             axis.text = black.bold.18.text,
             axis.text.x = element_text(angle = 45, hjust = 1),
             axis.line.x = element_line(color="black", size=1),
@@ -432,20 +434,20 @@ ggplot(SREBF1, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-SCD <- plotCounts(dds, gene="ENSG00000099194", 
-                     intgroup="condition", 
-                     normalized = TRUE, 
+SCD <- plotCounts(dds, gene="ENSG00000099194",
+                     intgroup="condition",
+                     normalized = TRUE,
                      transform = TRUE,
                      returnData=TRUE)
-SCD$condition <- factor(SCD$condition, 
+SCD$condition <- factor(SCD$condition,
                            levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(SCD, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(13, 14.5)+ 
-  theme_bw()+ 
+ggplot(SCD, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(13, 14.5)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -460,20 +462,20 @@ ggplot(SCD, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-FASN <- plotCounts(dds, gene="ENSG00000169710", 
-                  intgroup="condition", 
-                  normalized = TRUE, 
+FASN <- plotCounts(dds, gene="ENSG00000169710",
+                  intgroup="condition",
+                  normalized = TRUE,
                   transform = TRUE,
                   returnData=TRUE)
-FASN$condition <- factor(FASN$condition, 
+FASN$condition <- factor(FASN$condition,
                         levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(FASN, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(12, 13.25)+ 
-  theme_bw()+ 
+ggplot(FASN, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(12, 13.25)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -488,20 +490,20 @@ ggplot(FASN, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-ACACA <- plotCounts(dds, gene="ENSG00000278540", 
-                  intgroup="condition", 
-                  normalized = TRUE, 
+ACACA <- plotCounts(dds, gene="ENSG00000278540",
+                  intgroup="condition",
+                  normalized = TRUE,
                   transform = TRUE,
                   returnData=TRUE)
-ACACA$condition <- factor(ACACA$condition, 
+ACACA$condition <- factor(ACACA$condition,
                         levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(ACACA, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(9.7, 10.5)+ 
-  theme_bw()+ 
+ggplot(ACACA, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(9.7, 10.5)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -516,20 +518,20 @@ ggplot(ACACA, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-ACSL1 <- plotCounts(dds, gene="ENSG00000169710", 
-                   intgroup="condition", 
-                   normalized = TRUE, 
+ACSL1 <- plotCounts(dds, gene="ENSG00000169710",
+                   intgroup="condition",
+                   normalized = TRUE,
                    transform = TRUE,
                    returnData=TRUE)
-ACSL1$condition <- factor(ACSL1$condition, 
+ACSL1$condition <- factor(ACSL1$condition,
                          levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(ACSL1, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(11.5, 13.5)+ 
-  theme_bw()+ 
+ggplot(ACSL1, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(11.5, 13.5)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -544,20 +546,20 @@ ggplot(ACSL1, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-BRAF <- plotCounts(dds, gene="ENSG00000157764", 
-                  intgroup="condition", 
-                  normalized = TRUE, 
+BRAF <- plotCounts(dds, gene="ENSG00000157764",
+                  intgroup="condition",
+                  normalized = TRUE,
                   transform = TRUE,
                   returnData=TRUE)
-BRAF$condition <- factor(SCD$condition, 
+BRAF$condition <- factor(SCD$condition,
                         levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(BRAF, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(6, 9)+ 
-  theme_bw()+ 
+ggplot(BRAF, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(6, 9)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -572,20 +574,20 @@ ggplot(BRAF, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-SPIRE1 <- plotCounts(dds, gene="ENSG00000134278", 
-                   intgroup="condition", 
-                   normalized = TRUE, 
+SPIRE1 <- plotCounts(dds, gene="ENSG00000134278",
+                   intgroup="condition",
+                   normalized = TRUE,
                    transform = TRUE,
                    returnData=TRUE)
-SPIRE1$condition <- factor(SPIRE1$condition, 
+SPIRE1$condition <- factor(SPIRE1$condition,
                          levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(SPIRE1, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(4, 9)+ 
-  theme_bw()+ 
+ggplot(SPIRE1, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(4, 9)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -600,20 +602,20 @@ ggplot(SPIRE1, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-USP9X <- plotCounts(dds, gene="ENSG00000124486", 
-                     intgroup="condition", 
-                     normalized = TRUE, 
+USP9X <- plotCounts(dds, gene="ENSG00000124486",
+                     intgroup="condition",
+                     normalized = TRUE,
                      transform = TRUE,
                      returnData=TRUE)
-USP9X$condition <- factor(USP9X$condition, 
+USP9X$condition <- factor(USP9X$condition,
                            levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(USP9X, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(7, 10)+ 
-  theme_bw()+ 
+ggplot(USP9X, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(7, 10)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -628,20 +630,20 @@ ggplot(USP9X, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-INSIG1 <- plotCounts(dds, gene="ENSG00000186480", 
-                   intgroup="condition", 
-                   normalized = TRUE, 
+INSIG1 <- plotCounts(dds, gene="ENSG00000186480",
+                   intgroup="condition",
+                   normalized = TRUE,
                    transform = TRUE,
                    returnData=TRUE)
-INSIG1$condition <- factor(INSIG1$condition, 
+INSIG1$condition <- factor(INSIG1$condition,
                          levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(INSIG1, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(10, 12)+ 
-  theme_bw()+ 
+ggplot(INSIG1, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(10, 12)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -656,20 +658,20 @@ ggplot(INSIG1, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-YY1 <- plotCounts(dds, gene="ENSG00000100811", 
-                     intgroup="condition", 
-                     normalized = TRUE, 
+YY1 <- plotCounts(dds, gene="ENSG00000100811",
+                     intgroup="condition",
+                     normalized = TRUE,
                      transform = TRUE,
                      returnData=TRUE)
-YY1$condition <- factor(YY1$condition, 
+YY1$condition <- factor(YY1$condition,
                            levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(YY1, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(8, 10.5)+ 
-  theme_bw()+ 
+ggplot(YY1, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(8, 10.5)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -684,20 +686,20 @@ ggplot(YY1, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-FABP7 <- plotCounts(dds, gene="ENSG00000164434", 
-                  intgroup="condition", 
-                  normalized = TRUE, 
+FABP7 <- plotCounts(dds, gene="ENSG00000164434",
+                  intgroup="condition",
+                  normalized = TRUE,
                   transform = TRUE,
                   returnData=TRUE)
-FABP7$condition <- factor(FABP7$condition, 
+FABP7$condition <- factor(FABP7$condition,
                         levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(FABP7, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(6, 9)+ 
-  theme_bw()+ 
+ggplot(FABP7, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(6, 9)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -712,20 +714,20 @@ ggplot(FABP7, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-MITF <- plotCounts(dds, gene="ENSG00000187098", 
-                   intgroup="condition", 
-                   normalized = TRUE, 
+MITF <- plotCounts(dds, gene="ENSG00000187098",
+                   intgroup="condition",
+                   normalized = TRUE,
                    transform = TRUE,
                    returnData=TRUE)
-MITF$condition <- factor(MITF$condition, 
+MITF$condition <- factor(MITF$condition,
                          levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(MITF, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(10, 12)+ 
-  theme_bw()+ 
+ggplot(MITF, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(10, 12)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -740,20 +742,20 @@ ggplot(MITF, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-SREBF2 <- plotCounts(dds, gene="ENSG00000198911", 
-                   intgroup="condition", 
-                   normalized = TRUE, 
+SREBF2 <- plotCounts(dds, gene="ENSG00000198911",
+                   intgroup="condition",
+                   normalized = TRUE,
                    transform = TRUE,
                    returnData=TRUE)
-SREBF2$condition <- factor(SREBF2$condition, 
+SREBF2$condition <- factor(SREBF2$condition,
                          levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(SREBF2, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(10, 12)+ 
-  theme_bw()+ 
+ggplot(SREBF2, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(10, 12)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -768,20 +770,20 @@ ggplot(SREBF2, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-HMGCR <- plotCounts(dds, gene="ENSG00000113161", 
-                     intgroup="condition", 
-                     normalized = TRUE, 
+HMGCR <- plotCounts(dds, gene="ENSG00000113161",
+                     intgroup="condition",
+                     normalized = TRUE,
                      transform = TRUE,
                      returnData=TRUE)
-HMGCR$condition <- factor(HMGCR$condition, 
+HMGCR$condition <- factor(HMGCR$condition,
                            levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(HMGCR, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(10, 12)+ 
-  theme_bw()+ 
+ggplot(HMGCR, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(10, 12)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -796,20 +798,20 @@ ggplot(HMGCR, aes(x=condition, y=log2(count), fill=condition)) +
 ## *************************************************************
 
 ## *************************************************************
-NRAS <- plotCounts(dds, gene="ENSG00000213281", 
-                    intgroup="condition", 
-                    normalized = TRUE, 
+NRAS <- plotCounts(dds, gene="ENSG00000213281",
+                    intgroup="condition",
+                    normalized = TRUE,
                     transform = TRUE,
                     returnData=TRUE)
-NRAS$condition <- factor(NRAS$condition, 
+NRAS$condition <- factor(NRAS$condition,
                           levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
 
-ggplot(NRAS, aes(x=condition, y=log2(count), fill=condition)) + 
-  geom_boxplot()+ 
-  ylim(7, 9)+ 
-  theme_bw()+ 
+ggplot(NRAS, aes(x=condition, y=log2(count), fill=condition)) +
+  geom_boxplot()+
+  ylim(7, 9)+
+  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text, 
+  theme(text = black.bold.18.text,
         axis.text = black.bold.18.text,
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.line.x = element_line(color="black", size=1),
@@ -823,4 +825,3 @@ ggplot(NRAS, aes(x=condition, y=log2(count), fill=condition)) +
   labs(title = "NRAS",x=" ", y= "log2(read counts)")
 ## *************************************************************
 #}
-
