@@ -1,30 +1,36 @@
 ## following script is writen to calculate the insertion size of aligned pair-end reads in
 ## STAR generated BAM files.
 
-## Method 1: use bamtools to view stats from bam file. can't see SD value.
+############################################################################
+## Method 1: use bamtools to view stats from bam file. can't see SD value ##
+############################################################################
 bamtools stats -in test6_S1_L003Aligned.toTranscriptome.out.bam -insert
 
-# [sw542@eris1n2 genecount]$ bamtools stats -in test3-4Aligned.sortedByCoord.out.bam -insert
 # **********************************************
 # Stats for BAM file(s):
 # **********************************************
 
-# Mapped reads:      8578143	(100%)
-# Forward strand:    4289080	(50.0001%)
-# Reverse strand:    4289063	(49.9999%)
+# Total reads:       33139892
+# Mapped reads:      33139892	(100%)
+# Forward strand:    16569946	(50%)
+# Reverse strand:    16569946	(50%)
 # Failed QC:         0	(0%)
 # Duplicates:        0	(0%)
-# Paired-end reads:  8578143	(100%)
-# 'Proper-pairs':    8577744	(99.9954%)
-# Both pairs mapped: 8577744	(99.9954%)
-# Read 1:            4289241
-# Read 2:            4288902
-# Singletons:        399	(0.00465136%)
-# Average insert size (absolute value): 2405.26
-# Median insert size (absolute value): 262
+# Paired-end reads:  33139892	(100%)
+# 'Proper-pairs':    33139892	(100%)
+# Both pairs mapped: 33139892	(100%)
+# Read 1:            16569946
+# Read 2:            16569946
+# Singletons:        0	(0%)
+# Average insert size (absolute value): 206.381
+# Median insert size (absolute value): 186
 
-## Method 2: picard tool
+
+###################################################################
+## Method 2: picard tool on bam files for insert size statistics ##
+###################################################################
 ## install picard tool
+sudo apt-get update
 sudo apt-get install picard-tools
 ## find the pathway to picard tool #/home/suwu/.conda/pkgs/picard-2.18.16-0/share/picard-2.18.16-0/picard.jar
 #/usr/share/java/picard.jar
@@ -39,9 +45,3 @@ java -jar /usr/share/java/picard.jar \
       O=picardinsert\test6_S1_3_insert_size_metrics.txt \
       H=picardinsert\test6_S1_3_insert_size_histogram.pdf \
       M=0.5
-
-
-## Method 4, online python script
-# http://timoast.github.io/2014/11/04/SizeEstimation/
-head -10000 test6_S1_L002Aligned.out.sam | python mean_size.py
-samtools view test3-4Aligned.sortedByCoord.out.sam | head -10000 | python mean_size.py
