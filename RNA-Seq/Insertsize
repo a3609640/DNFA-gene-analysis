@@ -1,18 +1,8 @@
 ## following script is writen to calculate the insertion size of aligned pair-end reads in
 ## STAR generated BAM files.
 
-## Method 1: generate sam file from bam output and view the stats with samtools
-samtools view -h -o 3-4.sam test3-4Aligned.sortedByCoord.out.bam
-# The ninth column of the SAM file (TLEN) approximately represents the insert size.
-# Subtract length of a read (For example 75 bp or 100 bp) from TLEN to get the insert size.
-# https://www.biostars.org/p/94246/
-
-head -10000 test3-4Aligned.sortedByCoord.out.sam | awk '{ if ($9 > 0) { N+=1; S+=$9; S2+=$9*$9 }} END { M=S/N; print "n="N", mean="M", stdev="sqrt ((S2-M*M*N)/(N-1))}'
-# [sw542@eris1n2 genecount]$ bamtools stats -in test3-4Aligned.sortedByCoord.out.bam -insert
-# n=307, mean=0.319218, stdev=1.95765
-
-## Method 2: use bamtools to view stats from bam file. can't see SD value.
-bamtools stats -in test3-4Aligned.sortedByCoord.out.bam -insert
+## Method 1: use bamtools to view stats from bam file. can't see SD value.
+bamtools stats -in test6_S1_L003Aligned.toTranscriptome.out.bam -insert
 
 # [sw542@eris1n2 genecount]$ bamtools stats -in test3-4Aligned.sortedByCoord.out.bam -insert
 # **********************************************
@@ -33,15 +23,25 @@ bamtools stats -in test3-4Aligned.sortedByCoord.out.bam -insert
 # Average insert size (absolute value): 2405.26
 # Median insert size (absolute value): 262
 
-## Method 3: Picard tool
-java -jar picard.jar CollectInsertSizeMetrics \
-      I=input.bam \
-      O=insert_size_metrics.txt \
-      H=insert_size_histogram.pdf \
+## Method 2: picard tool
+## install picard tool
+sudo apt-get install picard-tools
+## find the pathway to picard tool #/home/suwu/.conda/pkgs/picard-2.18.16-0/share/picard-2.18.16-0/picard.jar
+#/usr/share/java/picard.jar
+## To test that you can run Picard tools, run the following command in your terminal application, providing either the full path to the picard.jar file
+java -jar /usr/share/java/picard.jar -h
+## analyze the bam file with picard tools for insert size statistics
+## save the output files in a new folder picardinsert
+
+java -jar /usr/share/java/picard.jar \
+      CollectInsertSizeMetrics \
+      I=test6_S1_L003Aligned.toTranscriptome.out.bam \
+      O=picardinsert\test6_S1_3_insert_size_metrics.txt \
+      H=picardinsert\test6_S1_3_insert_size_histogram.pdf \
       M=0.5
 
 
 ## Method 4, online python script
 # http://timoast.github.io/2014/11/04/SizeEstimation/
-head -10000 test3-4Aligned.sortedByCoord.out.sam | python mean_size.py
+head -10000 test6_S1_L002Aligned.out.sam | python mean_size.py
 samtools view test3-4Aligned.sortedByCoord.out.sam | head -10000 | python mean_size.py
