@@ -4,7 +4,7 @@ dataRoot <- file.path("project-data")
 ## 1 Preparations ##
 ####################
 # set global chunk options and load the neccessary packages
-chooseCRANmirror()
+#chooseCRANmirror()
 
 #BiocManager::install("genefilter")
 #BiocManager::install("apeglm")

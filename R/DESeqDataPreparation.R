@@ -118,4 +118,4 @@ main <- function () {
             file = file.path(dataDir, 'gene-counts.csv'))
 }
 
-main()
+# main()
