@@ -1,9 +1,14 @@
 ## following script is writen to calculate the insertion size of aligned pair-end reads in
 ## STAR generated BAM files.
+## the following methods give very similar averge insert size statistics
+## however bamtools does not provide STANDARD DEVIATION
+## picard tool provides STANDARD DEVIATION but number is usually higher than 10%
+## this is due STAR does not restrict the insert size as tophot or other aligner does. 
 
 ########################################################
 ## Method 1: use bamtools to view stats from bam file ##
 ########################################################
+## use Aligned.toTranscriptome.out.bam file as input
 bamtools stats -in test6_S1_L003Aligned.toTranscriptome.out.bam -insert
 
 # **********************************************
@@ -45,6 +50,7 @@ java -jar /usr/share/java/picard.jar \
       O=test1_1_insert_size_metrics.txt \
       H=test1_1_insert_size_histogram.pdf \
       M=0.5
+
 
 java -jar /usr/share/java/picard.jar \
       CollectInsertSizeMetrics \
