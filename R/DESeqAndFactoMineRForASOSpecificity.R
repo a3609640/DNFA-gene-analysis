@@ -34,7 +34,7 @@ library(stats4)
 library(stringr)
 library(survival)
 
-readGeneCounts <- function () {
+.readGeneCounts <- function () {
   # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
   # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
   # read processed RNA-seq read data from file testseq.csv.
@@ -53,7 +53,7 @@ readGeneCounts <- function () {
 ##########################################################
 ## 2. Preparing count matrices from the RNA-seq results ##
 ##########################################################
-getGuideData <- function() {
+.getGuideData <- function() {
   ## check the distribution of RNA-Seq reads
   par(mar=c(3,12,2,1))
   boxplot(testseq, outline=FALSE, horizontal=TRUE, las=1)
@@ -67,7 +67,7 @@ getGuideData <- function() {
   return(guideData)
 }
 
-getGuideDesign <- function(guideData) {
+.getGuideDesign <- function(guideData) {
   ## create a design for our "modelling" 
   ## each sample contains four techinical replicates
   #condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
@@ -81,7 +81,7 @@ getGuideDesign <- function(guideData) {
 #######################################################
 ### 3. Construct DESeqDataSet from the count matrix ###
 #######################################################
-getDDS <- function (guideData) {
+.getDDS <- function (guideData) {
   ## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
   dds <- DESeqDataSetFromMatrix(countData = guideData,colData = guideDesign,design = ~ condition)
   dds
@@ -96,7 +96,7 @@ getDDS <- function (guideData) {
 # (1) estimation of size factor: estimateSizeFactors
 # (2) estimation of dispersion: estimateDispersions
 # (3) Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
-getDDSRES <- function(ddsDE) {
+.getDDSRES <- function(ddsDE) {
   ddsres <- results(ddsDE)  
   summary(ddsres)
   res <- data.frame(ddsres)
@@ -113,7 +113,7 @@ getDDSRES <- function(ddsDE) {
 ## The running times are shorter when using blind=FALSE and if the function DESeq has already been run, 
 ## because then it is not necessary to re-estimate the dispersion values. 
 ## The assay function is used to extract the matrix of normalized value
-makeHeatMap <- function(guideDesign, ddsDE) {
+.makeHeatMap <- function(guideDesign, ddsDE) {
   vsd <- vst(ddsDE, blind=FALSE)
   rld <- rlog(ddsDE,blind=FALSE)
   # Hierarchical clustering using rlog transformation
@@ -130,45 +130,39 @@ makeHeatMap <- function(guideDesign, ddsDE) {
   return(rld)
 }
 
-doAll1 <- function() {
-testseq <- readGeneCounts()
-guideData <- getGuideData()
-guideDesign <- getGuideDesign(guideData)
-dds <- getDDS(guideData)
-ddsDE <- DESeq(dds)
-res <- getDDSRES(ddsDE)
-rld <- makeHeatMap(guideDesign, ddsDE)
-
 #############################################
 ###### 6. Principal component analysis ######
 #############################################
-## number of top genes to use for principal components, selected by highest row variance, 500 by default
-data <- plotPCA(rld, intgroup = c( "condition"), returnData=TRUE)
-percentVar <- round(100 * attr(data, "percentVar"))
-## Print 2D PCA plot
-black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
-ggplot(data=data, aes_string(x="PC1", y="PC2", color="condition")) + 
-      geom_point(size=3) + 
-      theme_bw() + 
-      xlim(-10, 6) + 
-      ylim(-6, 6) +
-      theme(text = black.bold.18.text, 
-            axis.text = black.bold.18.text,
-            axis.line.x = element_line(color="black", size=1),
-            axis.line.y = element_line(color="black", size=1),
-            axis.ticks = element_line(size = 1),
-            axis.ticks.length = unit(.25, "cm"),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            panel.border = element_rect(colour = "black",size=1),
-            panel.background = element_blank(),
-            legend.position=c(0,0),
-            legend.justification=c(-0.05,-0.05)) +
-      xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-      ylab(paste0("PC2: ", percentVar[2], "% variance")) 
+.makePcaPlot <- function(rld) {
+  ## number of top genes to use for principal components, selected by highest row variance, 500 by default
+  data <- plotPCA(rld, intgroup = c( "condition"), returnData=TRUE)
+  percentVar <- round(100 * attr(data, "percentVar"))
+  ## Print 2D PCA plot
+  black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
+  ggplot(data=data, aes_string(x="PC1", y="PC2", color="condition")) + 
+    geom_point(size=3) + 
+    theme_bw() + 
+    xlim(-10, 6) + 
+    ylim(-6, 6) +
+    theme(text = black.bold.18.text, 
+          axis.text = black.bold.18.text,
+          axis.line.x = element_line(color="black", size=1),
+          axis.line.y = element_line(color="black", size=1),
+          axis.ticks = element_line(size = 1),
+          axis.ticks.length = unit(.25, "cm"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_rect(colour = "black",size=1),
+          panel.background = element_blank(),
+          legend.position=c(0,0),
+          legend.justification=c(-0.05,-0.05)) +
+    xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+    ylab(paste0("PC2: ", percentVar[2], "% variance")) 
+  
+}
 
 ## Print 3D PCA plot
-plotPCA3D <- function (object, intgroup = "condition", ntop = 5000, returnData = FALSE){
+.plotPCA3D <- function (object, intgroup = "condition", ntop = 5000, returnData = FALSE){
   rv <- rowVars(assay(object))
   select <- order(rv, decreasing = TRUE)[seq_len(min(ntop, length(rv)))]
   pca <- prcomp(t(assay(object)[select, ]))
@@ -204,29 +198,30 @@ plotPCA3D <- function (object, intgroup = "condition", ntop = 5000, returnData =
   return(p)
 }
 
-plotPCA3D(rld, intgroup = "condition", ntop = 5000, returnData = FALSE)
-
 ####################################################################
 ####### 7. Add Entrez IDs, gene symbols, and full gene names #######
 ####################################################################
-columns(org.Hs.eg.db)
-res$symbol = mapIds(org.Hs.eg.db,
-                    keys=row.names(res), 
-                    column="SYMBOL",
-                    keytype="ENSEMBL",
-                    multiVals="first")
-res$entrez = mapIds(org.Hs.eg.db,
-                    keys=row.names(res), 
-                    column="ENTREZID",
-                    keytype="ENSEMBL",
-                    multiVals="first")
-res$name =   mapIds(org.Hs.eg.db,
-                    keys=row.names(res), 
-                    column="GENENAME",
-                    keytype="ENSEMBL",
-                    multiVals="first")
-summary(res)
-head(res, 10)
+.addEntrez <- function(res) {
+  columns(org.Hs.eg.db)
+  res$symbol = mapIds(org.Hs.eg.db,
+                      keys=row.names(res), 
+                      column="SYMBOL",
+                      keytype="ENSEMBL",
+                      multiVals="first")
+  res$entrez = mapIds(org.Hs.eg.db,
+                      keys=row.names(res), 
+                      column="ENTREZID",
+                      keytype="ENSEMBL",
+                      multiVals="first")
+  res$name =   mapIds(org.Hs.eg.db,
+                      keys=row.names(res), 
+                      column="GENENAME",
+                      keytype="ENSEMBL",
+                      multiVals="first")
+  summary(res)
+  head(res, 10)
+  return(res)  
+}
 
 ##################################################################
 ######## 8. Annotate genes enriched in each PCA component ########
@@ -236,35 +231,52 @@ head(res, 10)
 ## We used FAlSE for scale.unit because rld has been run with DESEQ function before. 
 ## ncp : number of dimensions kept in the final results.
 ## graph : a logical value. If TRUE a graph is displayed.
-head(assay(rld))
-assayrld <- assay(rld)
-Pvars <- rowVars(assayrld)
-select <- order(Pvars, decreasing = TRUE)[seq_len(min(500, 
-                                                      length(Pvars)))]
+.annotatePca <- function(rld) {
+  head(assay(rld))
+  assayrld <- assay(rld)
+  Pvars <- rowVars(assayrld)
+  select <- order(Pvars, decreasing = TRUE)[seq_len(min(500, 
+                                                        length(Pvars)))]
+  
+  columns(org.Hs.eg.db)
+  row.names(assayrld) = mapIds(org.Hs.eg.db,
+                               keys=row.names(assayrld), 
+                               column="SYMBOL",
+                               keytype="ENSEMBL",
+                               multiVals="first")
+  
+  
+  assayrld <-data.frame(t(assayrld[select, ]))
+  assayrld$condition = guideDesign$condition
+  
+  con = c("Mock-1", "Mock-2", "Mock-3", "Mock-4",
+          "siNegative-1", "siNegative-2", "siNegative-3", "siNegative-4",
+          "siSREBF1-1", "siSREBF1-2", "siSREBF1-3", "siSREBF1-4",
+          "ASO-Neg-1", "ASO-Neg-2", "ASO-Neg-3", "ASO-Neg-4",
+          "ASO-1-1", "ASO-1-2","ASO-1-3","ASO-1-4",
+          "ASO-4-1", "ASO-4-2", "ASO-4-3", "ASO-4-4")
+  rownames(assayrld) = con
+  
+  # The variable Species (index = 501) is removed
+  # before PCA analysis
+  ## # Compute PCA with ncp = 3, to keep only the first three principal components
+  return(PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2,graph = TRUE))
+}
 
-columns(org.Hs.eg.db)
-row.names(assayrld) = mapIds(org.Hs.eg.db,
-                    keys=row.names(assayrld), 
-                    column="SYMBOL",
-                    keytype="ENSEMBL",
-                    multiVals="first")
+#doAll1 <- function() {
+testseq <- .readGeneCounts()
+guideData <- .getGuideData()
+guideDesign <- .getGuideDesign(guideData)
+dds <- .getDDS(guideData)
+ddsDE <- DESeq(dds)
+res <- .getDDSRES(ddsDE)
+rld <- .makeHeatMap(guideDesign, ddsDE)
 
+.makePcaPlot(rld)
+.plotPCA3D(rld, intgroup = "condition", ntop = 5000, returnData = FALSE)
 
-assayrld <-data.frame(t(assayrld[select, ]))
-assayrld$condition = guideDesign$condition
-
-con = c("Mock-1", "Mock-2", "Mock-3", "Mock-4",
-        "siNegative-1", "siNegative-2", "siNegative-3", "siNegative-4",
-        "siSREBF1-1", "siSREBF1-2", "siSREBF1-3", "siSREBF1-4",
-        "ASO-Neg-1", "ASO-Neg-2", "ASO-Neg-3", "ASO-Neg-4",
-        "ASO-1-1", "ASO-1-2","ASO-1-3","ASO-1-4",
-        "ASO-4-1", "ASO-4-2", "ASO-4-3", "ASO-4-4")
-rownames(assayrld) = con
-
-# The variable Species (index = 501) is removed
-# before PCA analysis
-## # Compute PCA with ncp = 3, to keep only the first three principal components
-res.pca <- PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2,graph = TRUE)
+res <- .addEntrez(res)
+res.pca <- .annotatePca(rld)
 
 ####################################################################
 ######### 9. Extract variances in each principal component ######### 
@@ -842,5 +854,5 @@ ggplot(NRAS, aes(x=condition, y=log2(count), fill=condition)) +
         panel.background = element_blank())+
   labs(title = "NRAS",x=" ", y= "log2(read counts)")
 ## *************************************************************
-}
+#}
 
