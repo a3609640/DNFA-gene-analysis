@@ -36,7 +36,6 @@ library(stats4)
 library(stringr)
 library(survival)
 
-percentVar <- round(100 * attr(data, "percentVar"))
 black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 
 
@@ -141,9 +140,14 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 #############################################
 .makePcaPlot <- function(rld) {
   ## number of top genes to use for principal components, selected by highest row variance, 500 by default
-  data <- plotPCA(rld, intgroup = c( "condition"), returnData=TRUE)
+  pcaData <- plotPCA(rld, intgroup = c( "condition"), returnData=TRUE)
+  percentVar <- round(100 * attr(pcaData, "percentVar"))
+
   ## Print 2D PCA plot
-  ggplot(data=data, aes_string(x="PC1", y="PC2", color="condition")) + 
+  pcaPlot <- ggplot(
+    data=pcaData,
+    aes_string(x="PC1", y="PC2", color="condition")
+    ) + 
     geom_point(size=3) + 
     theme_bw() + 
     xlim(-10, 6) + 
@@ -161,8 +165,11 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
           legend.position=c(0,0),
           legend.justification=c(-0.05,-0.05)) +
     xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-    ylab(paste0("PC2: ", percentVar[2], "% variance")) 
-  
+    ylab(paste0("PC2: ", percentVar[2], "% variance"))
+  # Why 'print'?  See here:
+  # https://stackoverflow.com/questions/26643852/ggplot-plots-in-scripts-do-not-display-in-rstudio
+  print(pcaPlot)
+  return(pcaData)
 }
 
 ## Print 3D PCA plot
@@ -275,7 +282,7 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 ####################################################################
 ## Eigenvalues correspond to the amount of the variation explained by each principal component (PC).
 ## Eigenvalues are large for the first PC and small for the subsequent PCs.
-.makeBiplot <- function(assayrld, res.pca) {
+.makeBiplot <- function(assayrld, res.pca, pcaData) {
   eigenvalues <- res.pca$eig
   head(eigenvalues[, 1:2])
   eigen <- eigenvalues[1:10,]
@@ -290,6 +297,7 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
         type="b", pch=19, col = "red")
   
   # plot biplot graph with the top six contributing genes to PCA from RNA-Seq
+  percentVar <- round(100 * attr(pcaData, "percentVar"))
   fviz_pca_biplot(res.pca,
                   select.var = list(contrib = 6),
                   #select.var = list(contrib = 0.6),
@@ -318,6 +326,40 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
     ylab(paste0("PC2: ", percentVar[2], "% variance"))
 }
 
+#########################################################################
+########## 10. Hierarchical Clustering on Principal Components ##########
+#########################################################################
+## Compute hierarchical clustering: Hierarchical clustering is performed using the Ward’s criterion on the selected principal components.
+## Ward criterion is used in the hierarchical clustering because it is based on the multidimensional variance like principal component analysis.
+.makeHierarchicalCluster <- function(res.pca, pcaData) {
+  res.hcpc <- HCPC(res.pca, graph = FALSE)
+  fviz_dend(res.hcpc,
+            cex = 0.7,                     # Label size
+            palette = "jco",               # Color palette see ?ggpubr::ggpar
+            rect = TRUE, rect_fill = TRUE, # Add rectangle around groups
+            rect_border = "jco",           # Rectangle color
+            labels_track_height = 0.8      # Augment the room for labels
+  )
+  fviz_cluster(res.hcpc,
+               repel = TRUE,            # Avoid label overlapping
+               show.clust.cent = TRUE, # Show cluster centers
+               palette = "jco",         # Color palette see ?ggpubr::ggpar
+               ggtheme = theme_minimal(),
+               main = "Factor map"
+  )
+  
+  #Hierarchical Clustering
+  #compute dissimilarity matrix for all data
+  eu.d <- dist(pcaData, method = "euclidean")
+  # Hierarchical clustering using Ward's method
+  res.hc <- hclust(eu.d, method = "ward.D2" )
+  # Cut tree into 4 groups
+  grp <- cutree(res.hc, k = 2)
+  # Visualize
+  plot(res.hc, cex = 0.6) # plot tree
+  rect.hclust(res.hc, k = 2, border = c("yellow","blue")) # add rectangle
+}
+
 #doAll1 <- function() {
 
 testseq <- .readGeneCounts()
@@ -328,47 +370,18 @@ ddsDE <- DESeq(dds)
 res <- .getDDSRES(ddsDE)
 rld <- .makeHeatMap(guideDesign, ddsDE)
 
-.makePcaPlot(rld)
+pcaData <- .makePcaPlot(rld)
 .plotPCA3D(rld, intgroup = "condition", ntop = 5000, returnData = FALSE)
 
 res <- .addEntrez(res)
 assayrld <- .annotateRld(rld)
 res.pca <- .makeAnnotatedPcaPlot(assayrld)
 
-.makeBiplot(assayrld, res.pca)
+.makeBiplot(assayrld, res.pca, pcaData)
+
+.makeHierarchicalCluster(res.pca, pcaData)
 
 
-#########################################################################
-########## 10. Hierarchical Clustering on Principal Components ##########
-#########################################################################
-## Compute hierarchical clustering: Hierarchical clustering is performed using the Ward’s criterion on the selected principal components.
-## Ward criterion is used in the hierarchical clustering because it is based on the multidimensional variance like principal component analysis.
-res.hcpc <- HCPC(res.pca, graph = FALSE)
-fviz_dend(res.hcpc,
-          cex = 0.7,                     # Label size
-          palette = "jco",               # Color palette see ?ggpubr::ggpar
-          rect = TRUE, rect_fill = TRUE, # Add rectangle around groups
-          rect_border = "jco",           # Rectangle color
-          labels_track_height = 0.8      # Augment the room for labels
-          )
-fviz_cluster(res.hcpc,
-             repel = TRUE,            # Avoid label overlapping
-             show.clust.cent = TRUE, # Show cluster centers
-             palette = "jco",         # Color palette see ?ggpubr::ggpar
-             ggtheme = theme_minimal(),
-             main = "Factor map"
-            )
-
-#Hierarchical Clustering
-#compute dissimilarity matrix for all data
-eu.d <- dist(data, method = "euclidean")
-# Hierarchical clustering using Ward's method
-res.hc <- hclust(eu.d, method = "ward.D2" )
-# Cut tree into 4 groups
-grp <- cutree(res.hc, k = 2)
-# Visualize
-plot(res.hc, cex = 0.6) # plot tree
-rect.hclust(res.hc, k = 2, border = c("yellow","blue")) # add rectangle
 
 ##########################################################################
 ########### 11. Top contributing gene variables to PC1 and PC2 ###########
