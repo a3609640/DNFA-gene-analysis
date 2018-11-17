@@ -212,7 +212,7 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 ####################################################################
 ####### 7. Add Entrez IDs, gene symbols, and full gene names #######
 ####################################################################
-.addEntrez <- function(res) {
+.addGeneIdentifiers <- function(res) {
   columns(org.Hs.eg.db)
   res$symbol = mapIds(org.Hs.eg.db,
                       keys=row.names(res), 
@@ -393,7 +393,7 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
   # TODO(dlroxe): Figure out why it is necessary to comment out
   # the mapIDs calls, here and for Dim.2 below.  Perhaps they
   # don't work (and are needless anyway) because the work was
-  # done in annotateRld() above?
+  # done when .addGeneIdentifiers() was called elsewhere?
 
   #dim1$symbol = mapIds(org.Hs.eg.db,
   #                     keys=row.names(dim1),
@@ -452,7 +452,7 @@ rld <- .makeHeatMap(guideDesign, ddsDE)
 pcaData <- .makePcaPlot(rld)
 .plotPCA3D(rld, intgroup = "condition", ntop = 5000, returnData = FALSE)
 
-res <- .addEntrez(res)
+res <- .addGeneIdentifiers(res)
 assayrld <- .annotateRld(rld)
 res.pca <- .makeAnnotatedPcaPlot(assayrld)
 
