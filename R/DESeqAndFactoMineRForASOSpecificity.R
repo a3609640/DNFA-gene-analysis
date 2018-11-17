@@ -298,32 +298,34 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
   
   # plot biplot graph with the top six contributing genes to PCA from RNA-Seq
   percentVar <- round(100 * attr(pcaData, "percentVar"))
-  fviz_pca_biplot(res.pca,
-                  select.var = list(contrib = 6),
-                  #select.var = list(contrib = 0.6),
-                  col.var = "red",
-                  label="var",
-                  habillage=assayrld$condition)+
-    geom_point(size=3,
-               aes(colour = factor(assayrld$condition))) +
-    theme_bw() +
-    xlim(-8, 4) +
-    ylim(-5, 5) +
-    theme(text = black.bold.18.text,
-          axis.text = black.bold.18.text,
-          axis.line.x = element_line(color="black", size=1),
-          axis.line.y = element_line(color="black", size=1),
-          axis.ticks = element_line(size = 1),
-          axis.ticks.length = unit(.25, "cm"),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          panel.border = element_rect(colour = "black",size=1),
-          panel.background = element_blank(),
-          legend.text = element_text(colour="black", size = 18, face = "bold"),
-          legend.position=c(0,1),
-          legend.justification=c(-0.05,1.05)) +
-    xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-    ylab(paste0("PC2: ", percentVar[2], "% variance"))
+  pcaBiplot <-
+    fviz_pca_biplot(res.pca,
+                    select.var = list(contrib = 6),
+                    #select.var = list(contrib = 0.6),
+                    col.var = "red",
+                    label="var",
+                    habillage=assayrld$condition)+
+      geom_point(size=3,
+                 aes(colour = factor(assayrld$condition))) +
+      theme_bw() +
+      xlim(-8, 4) +
+      ylim(-5, 5) +
+      theme(text = black.bold.18.text,
+            axis.text = black.bold.18.text,
+            axis.line.x = element_line(color="black", size=1),
+            axis.line.y = element_line(color="black", size=1),
+            axis.ticks = element_line(size = 1),
+            axis.ticks.length = unit(.25, "cm"),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            panel.border = element_rect(colour = "black",size=1),
+            panel.background = element_blank(),
+            legend.text = element_text(colour="black", size = 18, face = "bold"),
+            legend.position=c(0,1),
+            legend.justification=c(-0.05,1.05)) +
+      xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+      ylab(paste0("PC2: ", percentVar[2], "% variance"))
+  print(pcaBiplot)
 }
 
 #########################################################################
