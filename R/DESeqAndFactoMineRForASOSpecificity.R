@@ -360,6 +360,85 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
   rect.hclust(res.hc, k = 2, border = c("yellow","blue")) # add rectangle
 }
 
+##########################################################################
+########### 11. Top contributing gene variables to PC1 and PC2 ###########
+##########################################################################
+.findTopPrincipalComponentContributors <- function(res.pca) {
+  ## Contributions of variables to PCs
+  head(res.pca$var$contrib,10)
+  head(res.pca$var$cos2, 10)
+  var <- get_pca_var(res.pca)
+  var
+  #library("corrplot")
+  #corrplot(var$contrib, is.corr=FALSE)
+  # Contributions of gene variables to PC1
+  pc1Plot <- fviz_contrib(res.pca, choice="var", axes = 1,top = 10,
+               fill = "lightgray", color = "black") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle=45))
+  # Contributions of gene variables to PC2
+  pc2Plot <- fviz_contrib(res.pca, choice="var", axes = 2,top = 10,
+               fill = "lightgray", color = "black") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle=45))
+  print(pc1Plot)
+  print(pc2Plot)
+  ##  identify the most correlated variables with a given principal component
+  res.desc <- dimdesc(res.pca, axes = c(1,2),proba = 0.05)
+  # Description of dimension 1
+  head(res.desc, 10)
+  res.desc$Dim.1
+  dim1 <-data.frame(res.desc$Dim.1)
+  columns(org.Hs.eg.db)
+  # TODO(dlroxe): Figure out why it is necessary to comment out
+  # the mapIDs calls, here and for Dim.2 below.  Perhaps they
+  # don't work (and are needless anyway) because the work was
+  # done in annotateRld() above?
+
+  #dim1$symbol = mapIds(org.Hs.eg.db,
+  #                     keys=row.names(dim1),
+  #                     column="SYMBOL",
+  #                     keytype="ENSEMBL",
+  #                     multiVals="first")
+  #dim1$entrez = mapIds(org.Hs.eg.db,
+  #                     keys=row.names(dim1),
+  #                     column="ENTREZID",
+  #                     keytype="ENSEMBL",
+  #                     multiVals="first")
+  #dim1$name =   mapIds(org.Hs.eg.db,
+  #                     keys=row.names(dim1),
+  #                     column="GENENAME",
+  #                     keytype="ENSEMBL",
+  #                     multiVals="first")
+  summary(dim1)
+  head(dim1,10)
+  quanti.correlation.dim1 = dim1$quanti.correlation
+  names(quanti.correlation.dim1) = dim1$entrez
+  head(quanti.correlation.dim1)
+  
+  
+  res.desc$Dim.2
+  dim2 <-data.frame(res.desc$Dim.2)
+  columns(org.Hs.eg.db)
+  #dim2$symbol = mapIds(org.Hs.eg.db,
+  #                     keys=row.names(dim2),
+  #                     column="SYMBOL",
+  #                     keytype="ENSEMBL",
+  #                     multiVals="first")
+  #dim2$entrez = mapIds(org.Hs.eg.db,
+  #                     keys=row.names(dim2),
+  #                     column="ENTREZID",
+  #                     keytype="ENSEMBL",
+  #                     multiVals="first")
+  #dim2$name =   mapIds(org.Hs.eg.db,
+  #                     keys=row.names(dim2),
+  #                     column="GENENAME",
+  #                     keytype="ENSEMBL",
+  #                     multiVals="first")
+  summary(dim2)
+  head(dim2,10)
+}
+
 #doAll1 <- function() {
 
 testseq <- .readGeneCounts()
@@ -381,78 +460,8 @@ res.pca <- .makeAnnotatedPcaPlot(assayrld)
 
 .makeHierarchicalCluster(res.pca, pcaData)
 
+.findTopPrincipalComponentContributors(res.pca)
 
-
-##########################################################################
-########### 11. Top contributing gene variables to PC1 and PC2 ###########
-##########################################################################
-## Contributions of variables to PCs
-head(res.pca$var$contrib,10)
-head(res.pca$var$cos2, 10)
-var <- get_pca_var(res.pca)
-var
-#library("corrplot")
-#corrplot(var$contrib, is.corr=FALSE)
-# Contributions of gene variables to PC1
-fviz_contrib(res.pca, choice="var", axes = 1,top = 10,
-             fill = "lightgray", color = "black") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle=45))
-# Contributions of gene variables to PC2
-fviz_contrib(res.pca, choice="var", axes = 2,top = 10,
-             fill = "lightgray", color = "black") +
-             theme_minimal() +
-             theme(axis.text.x = element_text(angle=45))
-
-##  identify the most correlated variables with a given principal component
-res.desc <- dimdesc(res.pca, axes = c(1,2),proba = 0.05)
-# Description of dimension 1
-head(res.desc, 10)
-res.desc$Dim.1
-dim1 <-data.frame(res.desc$Dim.1)
-columns(org.Hs.eg.db)
-dim1$symbol = mapIds(org.Hs.eg.db,
-                     keys=row.names(dim1),
-                     column="SYMBOL",
-                     keytype="ENSEMBL",
-                     multiVals="first")
-dim1$entrez = mapIds(org.Hs.eg.db,
-                     keys=row.names(dim1),
-                     column="ENTREZID",
-                     keytype="ENSEMBL",
-                     multiVals="first")
-dim1$name =   mapIds(org.Hs.eg.db,
-                     keys=row.names(dim1),
-                     column="GENENAME",
-                     keytype="ENSEMBL",
-                     multiVals="first")
-summary(dim1)
-head(dim1,10)
-quanti.correlation.dim1 = dim1$quanti.correlation
-names(quanti.correlation.dim1) = dim1$entrez
-head(quanti.correlation.dim1)
-
-
-res.desc$Dim.2
-dim2 <-data.frame(res.desc$Dim.2)
-columns(org.Hs.eg.db)
-dim2$symbol = mapIds(org.Hs.eg.db,
-                     keys=row.names(dim2),
-                     column="SYMBOL",
-                     keytype="ENSEMBL",
-                     multiVals="first")
-dim2$entrez = mapIds(org.Hs.eg.db,
-                     keys=row.names(dim2),
-                     column="ENTREZID",
-                     keytype="ENSEMBL",
-                     multiVals="first")
-dim2$name =   mapIds(org.Hs.eg.db,
-                     keys=row.names(dim2),
-                     column="GENENAME",
-                     keytype="ENSEMBL",
-                     multiVals="first")
-summary(dim2)
-head(dim2,10)
 
 ##########################################################################
 ############ 12. Plot of normalized counts for a single gene  ############
@@ -881,3 +890,4 @@ ggplot(NRAS, aes(x=condition, y=log2(count), fill=condition)) +
   labs(title = "NRAS",x=" ", y= "log2(read counts)")
 ## *************************************************************
 #}
+
