@@ -19,7 +19,7 @@ starBinDir=${DNFA_starRoot}/STAR-2.6.1a/bin
 # FTP root for fetching human reference genome data from ENSEMBL
 ensemblBase=ftp://ftp.ensembl.org/pub/release-94
 
-# local output files where human gene annotation file (.gtf) and 
+# local output files where human gene annotation file (.gtf) and
 # human reference genome file (.fa)  from ENSEMBL will be stored
 gtf=${DNFA_generatedDataRoot}/referenceGenome/Homo_sapiens.GRCh38.94.gtf
 fa=${DNFA_generatedDataRoot}/referenceGenome/Homo_sapiens.GRCh38.dna.primary_assembly.fa
@@ -29,7 +29,7 @@ fa=${DNFA_generatedDataRoot}/referenceGenome/Homo_sapiens.GRCh38.dna.primary_ass
 # location instead.
 extDataDir=${DNFA_generatedDataRoot}/r-extdata
 
-# R project external data directory 
+# R project external data directory
 projectExtDataDir=inst/extdata
 
 # convenience definitions for commands with options (e.g. if permissions other than 755
@@ -38,8 +38,11 @@ GUNZIP=gunzip -k
 MKDIR=mkdir -m 755 -p
 
 # in accord with usual conventions, the first target is named 'all'
-all: bamfiles $(extDataDir)/gene-counts.csv projectreadfiles 
+all: bamfiles $(extDataDir)/gene-counts.csv projectreadfiles
 
+#############################################
+# install the STAR aligner software package #
+#############################################
 # 'make ${DNFA_starRoot}/STAR-2.6.1a/bin/STAR' needs the source dir to exist
 # (the '|' means it will not check the time at which the dir was modified)
 # and will build STAR from the source dir fir STAR does not already exist.
@@ -58,6 +61,9 @@ $(starSrcDir): ${DNFA_starRoot}/2.6.1a.tar.gz
 ${DNFA_starRoot}/2.6.1a.tar.gz: | $$(@D)
 	cd $(@D) && wget -nc https://github.com/alexdobin/STAR/archive/$(@F)
 
+########################################################
+# Prepare the reference genome file for STAR alignment #
+########################################################
 # If we want the Ensembl .fa or .gtf files, first we need their .gz
 # forms.  Given those, we can go to the directory where we want the
 # genome data to be, and unzip them.
@@ -76,6 +82,9 @@ $(gtf).gz: | $$(@D)
 $(fa).gz: | $$(@D)
 	cd $(@D) && wget -nc $(ensemblBase)/fasta/homo_sapiens/dna/$(@F)
 
+#######################
+# generate STAR Index #
+#######################
 # 'SA' (containing a suffix array) is one of many alignment output files,
 # but used as a proxy for the whole alignment step
 reference_genome: ${DNFA_generatedDataRoot}/STARIndex/SA
@@ -86,6 +95,10 @@ reference_genome: ${DNFA_generatedDataRoot}/STARIndex/SA
 # something new and rebuild the SA file.  We also need the STARIndex dir to
 # exist, but we don't care how recently it changed.  Given all the prereqs,
 # we can 'cd' to STARIndex and execute STAR to build the reference genome.
+
+# Notes about the parameters
+# --sjdbOverhang species the length of the genomic sequence around the annotated junction to be used in constructing the splice junctions database. Ideally, this length should be equal to the ReadLength-1, where ReadLength is the length of the reads. We used 2x76b paired-end reads, the ideal value is 76-1=75.
+
 ${DNFA_generatedDataRoot}/STARIndex/SA: $(starBinDir)/STAR $(fa) $(gtf) | $$(@D)
 	cd $(@D) && $< \
 	  --runThreadN 12 \
@@ -136,13 +149,16 @@ fastqfiles: \
   $(foreach id, $(testIDs5), ${DNFA_raw_data_basedir}/test5-40233238/test$(id)_R$(n)_001.fastq.gz) \
   $(foreach id, $(testIDs6), ${DNFA_raw_data_basedir}/test6-40220753/test$(id)_R$(n)_001.fastq.gz) )
 
+#################################################
+# sort SAM files from the STAR alignment output #
+#################################################
 # For each .bam file we might want to build, locate a similarly-named
 # .sam file and execute 'samtools' on it.  A given .bam file we want to
 # build could require a .sam file from any of the test directories.
-# 
+#
 # So, we repeat the sam->bam target rule for each such directory, but
 # we let each rule share the same $(sam2bam) recipe.
-# 
+#
 # Note the pattern matching.  For example, "%" could match "test2_S3_L001".
 # In that case, where "%" has to mean the same string for both $.sorted.bam
 # and $.out.sam, the second rule below (with 'test2' in its name) would
@@ -157,11 +173,21 @@ $(extDataDir)/%.sorted.bam : $(extDataDir)/%.out.sam | $$(@D)
 # a parent directory and a reference genome, but we don't care how recently
 # they were changed.  Given all those prereqs, we can invoke STAR to read
 # the inputs and generate the output in the location we choose.
-# 
+#
 # Again note the pattern matching here.  In this case, the wildcard '*'
 # will end up matching a string like "test3-40218815", and the pattern
 # matcher "%" will end up matching a string (for both .sam and .fastq.gz)
 # like "test3_S4_L002"
+
+#############################################
+# Perform STAR alignment on the FASTQ files #
+#############################################
+# parameters used for STAR alignment #
+# --readFilesCommand zcat option inputs readfiles that are compressed as gzipped files (*.gz))
+# default output files include Aligned.out.sam (alignments in standard SAM format)
+# --quantMode TranscriptomeSAM optionwill output alignments translated into transcript coordinates in the Aligned.toTranscriptome.out.bamfile (in addition to alignments in genomic coordinates in Aligned.*.sam
+# --quantMode GeneCounts option will count number reads per gene while mapping.
+# --quantMode TranscriptomeSAM GeneCounts option will get both the Aligned.toTranscriptome.out.bam and ReadsPerGene.out.tab output files.
 
 $(extDataDir)/%ReadsPerGene.out.tab $(extDataDir)/%Aligned.out.sam : $(starBinDir)/STAR \
                              $(gtf) \
@@ -179,7 +205,7 @@ $(extDataDir)/%ReadsPerGene.out.tab $(extDataDir)/%Aligned.out.sam : $(starBinDi
      --twopassMode Basic
 
 $(projectExtDataDir)/%ReadsPerGene.out.tab : $(extDataDir)/%ReadsPerGene.out.tab
-	ln -s $< $@ 
+	ln -s $< $@
 
 $(extDataDir)/gene-counts.csv: R/DESeqDataPreparation.R readfiles
 	Rscript $<
@@ -190,7 +216,7 @@ $(extDataDir)/gene-counts.csv: R/DESeqDataPreparation.R readfiles
 # in this case will turn out to match a string like
 # "test6-40220753/test6_S1_L004_R1_001".  (The '%' matcher can in general
 # match patterns that span directories.)
-# 
+#
 # Mark the extracted file (with 'touch') as more recently modified than the
 # archive, prevent it from being re-extracted (with an old 'modified' date)
 # in every run.
@@ -229,8 +255,8 @@ clean: clean_starindex clean_refgenome clean_samfiles clean_bamfiles
 
 # Oops -- that's a dangerous directive that will delete the whole system
 # if run with root permissions and the environment variable is not set.
-# 
-# 
+#
+#
 #clean_star:
 #	rm -rf ${DNFA_starRoot}
 
@@ -245,7 +271,7 @@ clean_samfiles:
 
 clean_bamfiles:
 	rm $(extDataDir)/*.bam
-	
+
 clean_fastqfiles:
 	rm -rf ${DNFA_raw_data_basedir}
 
