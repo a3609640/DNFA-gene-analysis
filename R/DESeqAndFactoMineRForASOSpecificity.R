@@ -471,6 +471,19 @@ res.pca <- .makeAnnotatedPcaPlot(assayrld)
 # re-arrange x-ase according to the following order: "Mock","siNeg","siBF1","ASO-neg","ASO-1","ASO-4"
 # theme_bw() removes background color in the graph, guides(fill=FALSE) removes legends
 
+normalizedGeneCountTheme <- 
+  theme_bw() + theme(text = black.bold.18.text,
+        axis.text = black.bold.18.text,
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.line.x = element_line(color="black", size=1),
+        axis.line.y = element_line(color="black", size=1),
+        axis.ticks = element_line(size = 1),
+        axis.ticks.length = unit(.25, "cm"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_rect(colour = "black",size=1),
+        panel.background = element_blank())
+
 SREBF1 <- plotCounts(dds, gene="ENSG00000072310",
                      intgroup="condition",
                      normalized = TRUE,
@@ -482,19 +495,8 @@ SREBF1$condition <- factor(SREBF1$condition,
 ggplot(SREBF1, aes(x=condition, y=log2(count), fill=condition)) +
       geom_boxplot()+
       ylim(8, 10.5)+
-      theme_bw()+
       guides(fill=FALSE)+
-      theme(text = black.bold.18.text,
-            axis.text = black.bold.18.text,
-            axis.text.x = element_text(angle = 45, hjust = 1),
-            axis.line.x = element_line(color="black", size=1),
-            axis.line.y = element_line(color="black", size=1),
-            axis.ticks = element_line(size = 1),
-            axis.ticks.length = unit(.25, "cm"),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            panel.border = element_rect(colour = "black",size=1),
-            panel.background = element_blank())+
+      normalizedGeneCountTheme+
       labs(title = "SREBF1",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -510,19 +512,8 @@ SCD$condition <- factor(SCD$condition,
 ggplot(SCD, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(13, 14.5)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "SCD",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -538,19 +529,8 @@ FASN$condition <- factor(FASN$condition,
 ggplot(FASN, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(12, 13.25)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "FASN",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -566,19 +546,8 @@ ACACA$condition <- factor(ACACA$condition,
 ggplot(ACACA, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(9.7, 10.5)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "ACACA",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -594,19 +563,8 @@ ACSL1$condition <- factor(ACSL1$condition,
 ggplot(ACSL1, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(11.5, 13.5)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "ACSL1",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -622,19 +580,8 @@ BRAF$condition <- factor(SCD$condition,
 ggplot(BRAF, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(6, 9)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "BRAF",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -650,19 +597,8 @@ SPIRE1$condition <- factor(SPIRE1$condition,
 ggplot(SPIRE1, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(4, 9)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "SPIRE1",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -678,19 +614,8 @@ USP9X$condition <- factor(USP9X$condition,
 ggplot(USP9X, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(7, 10)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "USP9X",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -706,19 +631,8 @@ INSIG1$condition <- factor(INSIG1$condition,
 ggplot(INSIG1, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(10, 12)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "INSIG1",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -734,19 +648,8 @@ YY1$condition <- factor(YY1$condition,
 ggplot(YY1, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(8, 10.5)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "YY1",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -762,19 +665,8 @@ FABP7$condition <- factor(FABP7$condition,
 ggplot(FABP7, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(6, 9)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "FABP7",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -790,19 +682,8 @@ MITF$condition <- factor(MITF$condition,
 ggplot(MITF, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(10, 12)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "MITF",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -818,19 +699,8 @@ SREBF2$condition <- factor(SREBF2$condition,
 ggplot(SREBF2, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(10, 12)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "SREBF2",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -846,19 +716,8 @@ HMGCR$condition <- factor(HMGCR$condition,
 ggplot(HMGCR, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(10, 12)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "HMGCR",x=" ", y= "log2(read counts)")
 ## *************************************************************
 
@@ -874,20 +733,8 @@ NRAS$condition <- factor(NRAS$condition,
 ggplot(NRAS, aes(x=condition, y=log2(count), fill=condition)) +
   geom_boxplot()+
   ylim(7, 9)+
-  theme_bw()+
   guides(fill=FALSE)+
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())+
+  normalizedGeneCountTheme+
   labs(title = "NRAS",x=" ", y= "log2(read counts)")
 ## *************************************************************
 #}
-
