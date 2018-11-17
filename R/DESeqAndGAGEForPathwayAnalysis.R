@@ -6,7 +6,7 @@ dataRoot <- file.path("project-data")
 ## 1 Preparations ##
 ####################
 # set global chunk options and load the neccessary packages
-#chooseCRANmirror()
+chooseCRANmirror()
 
 #BiocManager::install("genefilter")
 #BiocManager::install("apeglm")
@@ -67,21 +67,18 @@ doAll2 <- function() {
 # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
 # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
 # read processed RNA-seq read data from file testseq.csv.
-testseqCSV <- file.path(dataRoot, "gene-counts.csv")
+testseqCSV <- file.path(dataRoot, "gene-counts-from-Makefile.csv")
 testseq <- read.csv(testseqCSV)
 # Use the column one (Ensemble names) as columnn names.
 testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
 # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
 testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
-par(mar=c(3,12,2,1))
-boxplot(testseq, outline=FALSE, horizontal=TRUE, las=1)
 
 
-###############################
-## 3 Compare siNeg and siBF1 ##
-###############################
-
-## generate dataset for siRNA treatment
+##################################################################################
+## 3 Compare siNeg and siBF1 RNA-seq results for differentially expressed genes ##
+##################################################################################
+## generate DESeq dataset for siRNA treatment
 testsiRNA <- data.frame(testseq[,c(5,6,7,8,9,10,11,12)])
 ## check the read distribution by boxplot
 par(mar=c(3,12,2,1))
@@ -151,43 +148,8 @@ plotMA(resLFC,xlab = "mean of normalized counts", ylim=ylim, main="normal",cex=.
 # plotMA(resLFC, xlim=xlim, xlab = "mean of normalized counts", ylim=ylim, main="normal")
 
 
-resApeT <- lfcShrink(ddsDEsiRNA, coef=2, lfcThreshold=.5)
-plotMA(resApeT, ylim=c(-3,3), cex=.8)
-abline(h=c(-0.5,0.5), col="dodgerblue", lwd=2)
-
-# Alternative shrinkage estimators
-# apeglm is the adaptive t prior shrinkage estimator from the apeglm package
-resApe <- lfcShrink(ddsDEsiRNA, coef=2, type="apeglm")
-plotMA(resApe, xlim=xlim, ylim=ylim, main="apeglm")
-# ashr is the adaptive shrinkage estimator from the ashr package (Stephens 2016). 
-# Here DESeq2 uses the ashr option to fit a mixture of normal distributions to form the prior, with method="shrinkage"
-resAsh <- lfcShrink(ddsDEsiRNA, coef=2, type="ashr")
-plotMA(resAsh, xlim=xlim, ylim=ylim, main="ashr")
-
 ###########################################################
 ## 4.2 Add Entrez IDs, gene symbols, and full gene names ##
-###########################################################
-resApe <- data.frame(resApe)
-columns(org.Hs.eg.db)
-resApe$symbol = mapIds(org.Hs.eg.db,
-                       keys=row.names(resApe), 
-                       column="SYMBOL",
-                       keytype="ENSEMBL",
-                       multiVals="first")
-resApe$entrez = mapIds(org.Hs.eg.db,
-                       keys=row.names(resApe), 
-                       column="ENTREZID",
-                       keytype="ENSEMBL",
-                       multiVals="first")
-resApe$name =   mapIds(org.Hs.eg.db,
-                       keys=row.names(resApe), 
-                       column="GENENAME",
-                       keytype="ENSEMBL",
-                       multiVals="first")
-summary(resApe)
-head(resApe, 10)
-
-###########################################################
 ###########################################################
 
 ressiRNA <- data.frame(ressiRNA)
@@ -211,36 +173,6 @@ summary(ressiRNA)
 head(ressiRNA, 10)
 
 
-
-
-
-#####################
-### Volcano plot #### 
-#####################
-with(resApe, plot(log2FoldChange, -log10(pvalue), pch=20, main="Volcano plot", xlim=c(-2.5,2)))
-
-# Add colored points: red if padj<0.05, orange of log2FC>1, green if both)
-with(subset(resApe, padj<.05 ), points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
-with(subset(resApe, abs(log2FoldChange)>1), points(log2FoldChange, -log10(pvalue), pch=20, col="orange"))
-with(subset(resApe, padj<.05 & abs(log2FoldChange)>1), points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
-
-# Label points with the textxy function from the calibrate plot
-library(calibrate)
-with(subset(resApe, padj<.05 & abs(log2FoldChange)>1), 
-     textxy(log2FoldChange, -log10(pvalue), labs=symbol, cex=.8))
-
-
-head(ressiRNA)
-with(ressiRNA, plot(log2FoldChange, -log10(pvalue), pch=20, main="eXpress DESeq2 Results", xlim=c(-5,5)))
-axis(1, at = seq(-5, 5, by = 1))
-with(subset(ressiRNA, padj<=0.05 & log2FoldChange<=-1), points(log2FoldChange, -log10(pvalue), pch=20, col="green"))
-with(subset(ressiRNA, padj<=0.05 & log2FoldChange>=1), points(log2FoldChange, -log10(pvalue), pch=20, col="red"))
-library(calibrate)
-with(subset(ressiRNA, padj<.01 & abs(log2FoldChange)>2.32), textxy(log2FoldChange, -log10(pvalue), labs=symbol, cex=.5))
-
-
-
-
 ########################################
 ## 4.3 Exporting results to CSV files ##
 ########################################
@@ -254,23 +186,6 @@ write.csv(as.data.frame(ressiRNA),
           file="siBF1_siNeg_results.csv")
 
 
-<<<<<<< HEAD
-###########################################################
-## Heatmap for top variable genes across siNeg and siBF1 ##
-###########################################################
-# The regularized log transform can be obtained using the rlog() function. 
-# The default “blinds” the normalization to the design. 
-# topVarGenes looks at the row variance of the transformed values regardless of which samples come from which group. 
-# Differential expression testing asks whether the difference across group is large relative to the within-group variance. 
-||||||| merged common ancestors
-##############################################################
-## 5. Heatmap for top variable genes across siNeg and siBF1 ##
-##############################################################
-# The regularized log transform can be obtained using the rlog() function. 
-# The default “blinds” the normalization to the design. 
-# topVarGenes looks at the row variance of the transformed values regardless of which samples come from which group. 
-# Differential expression testing asks whether the difference across group is large relative to the within-group variance. 
-=======
 ##############################################################
 ## 5. Heatmap for top variable genes across siNeg and siBF1 ##
 ##############################################################
@@ -278,7 +193,6 @@ write.csv(as.data.frame(ressiRNA),
 # The default “blinds” the normalization to the design.
 # topVarGenes looks at the row variance of the transformed values regardless of which samples come from which group.
 # Differential expression testing asks whether the difference across group is large relative to the within-group variance.
->>>>>>> upstream/master
 # So these are different ways of ranking genes.
 # calculate the variance for each gene, # select the top 50 genes by variance
 rldsiRNA <- rlog(ddsDEsiRNA,blind=TRUE)
@@ -292,22 +206,19 @@ heatmap.2(mat,labRow = NA,labCol=NA, scale="row",lhei = c(2, 8),
           ColSideColors = c(Control="gray", DPN="darkgreen", OHT="orange")[colData(rldsiRNA)$condition ])
 
 
-###############################################
-## KEGG pathways analysis on DESeq for siRNA ##
-###############################################
+######################################################
+## 6. KEGG pathway analysis on DESeq siNeg vs siBF1 ##
+######################################################
 ## Generally Applicable Gene-set/Pathway Analysis (GAGE)
 ## check for coordinated differential expression over gene sets instead of changes of individual genes.
 data(kegg.gs)
-data(go.gs)
-data(carta.gs)
 lapply(kegg.gs[1:3],head)
-lapply(go.gs[1:3],head)
 ## kegg.sets.hs is a named list of 229 elements
 ## Each element is a character vector of member gene Entrez IDs for a single KEGG pathway
 data(kegg.sets.hs)
 ## sigmet.idx.hs is an index of numbers of sinaling and metabolic pathways in kegg.set.gs.
 data(sigmet.idx.hs)
-## kegg.sets.hs[sigmet.idx.hs] gives you the “cleaner” gene sets of sinaling and metabolic pathways only.
+## kegg.sets.hs[sigmet.idx.hs] gives you the “cleaner” gene sets of signalling and metabolic pathways only.
 kegg.sets.hs.sigmet <-  kegg.sets.hs[sigmet.idx.hs]
 head(kegg.sets.hs.sigmet, 3)
 
@@ -316,20 +227,8 @@ foldchanges = ressiRNA$log2FoldChange
 names(foldchanges) = ressiRNA$entrez
 head(foldchanges)
 
-
-# Get the results
-# keggres = gage(foldchanges, gsets=kegg.sets.hs, same.dir=TRUE)
-# keggres.sigmet = gage(foldchanges, gsets=kegg.sets.hs.sigmet, same.dir=TRUE)
-# gores = gage(foldchanges, gsets=go.gs, same.dir=TRUE)
-# cartares = gage(foldchanges, gsets=carta.gs, same.dir=TRUE)
-
-# Look at both up (greater), down (less), and statatistics.
-# lapply(keggres, head,10)
-# lapply(keggres.sigmet, head,10)
-# lapply(gores, head,10)
-# lapply(cartares, head,10)
-
-# Get KEGG pathway with only metabolism and signaling pathways
+# Look at top upregulated (greater) and downregulated (less) genes with statatistics.
+# Get KEGG pathway with both metabolism and signaling pathways
 kg.hsa=kegg.gsets("hsa")
 kegg.sigmet.idx=kg.hsa$kg.sets[kg.hsa$sigmet.idx]
 keggres.sigmet.idx = gage(foldchanges, gsets=kegg.sigmet.idx, same.dir=TRUE)
@@ -337,29 +236,39 @@ lapply(keggres.sigmet.idx, head,20)
 write.table(keggres.sigmet.idx$greater, file = "keggres.sigmet.idx.greater.txt",sep = "\t")
 write.table(keggres.sigmet.idx$less, file = "keggres.sigmet.idx.less.txt",sep = "\t")
 
+# Get KEGG pathway with only metabolism pathways
 kegg.met.idx=kg.hsa$kg.sets[kg.hsa$met.idx]
 keggres.met.idx = gage(foldchanges, gsets=kegg.met.idx, same.dir=TRUE)
 lapply(keggres.met.idx, head,10)
-
+# Get KEGG pathway with only signaling pathways
 kegg.sig.idx=kg.hsa$kg.sets[kg.hsa$sig.idx]
 keggres.sig.idx = gage(foldchanges, gsets=kegg.sig.idx, same.dir=TRUE)
 lapply(keggres.sig.idx, head,10)
 
+
+####################################################
+## 6. GO pathway analysis on DESeq siNeg vs siBF1 ##
+####################################################
 # set up GO database
+data(go.gs)
+lapply(go.gs[1:3],head)
 go.hs <- go.gsets(species="human")
 go.bp.gs <- go.hs$go.sets[go.hs$go.subs$BP] # “Biological Process”
 go.mf.gs <- go.hs$go.sets[go.hs$go.subs$MF] # “Molecular Function”
 go.cc.gs <- go.hs$go.sets[go.hs$go.subs$CC] # “Cellular Component”
-
+# GO pathway analysis with Biological Process
 fc.go.bp.p <- gage(foldchanges, gsets = go.bp.gs,same.dir=TRUE)
 lapply(fc.go.bp.p, head,20)
 write.table(fc.go.bp.p$greater, file = "fc.go.bp.p.greater.txt",sep = "\t")
 write.table(fc.go.bp.p$less, file = "fc.go.bp.p.less.txt",sep = "\t")
 
+# GO pathway analysis with Molecular Process
 fc.go.mf.p <- gage(foldchanges, gsets = go.mf.gs)
 lapply(fc.go.mf.p, head,10)
+# GO pathway analysis with Cellular Process
 fc.go.cc.p <- gage(foldchanges, gsets = go.cc.gs)
 lapply(fc.go.cc.p, head,10)
+
 
 ########################################################################
 ###### Pathway analysis on ChIP-seq and RNA-seq overlapping genes ######
@@ -367,7 +276,7 @@ lapply(fc.go.cc.p, head,10)
 setwd("~/Documents/Su Wu/Documents/Research/Naar Lab/ChIP-seq")
 library(readxl)
 ChIP_Seq_and_RNA_Seq_overlap <- read_excel("ChIP-Seq and RNA-Seq overlap.xlsx",
-                                            col_names = FALSE)
+                                           col_names = FALSE)
 colnames(ChIP_Seq_and_RNA_Seq_overlap) <- "symbol"
 View(ChIP_Seq_and_RNA_Seq_overlap)
 ChIP_Seq_and_RNA_Seq_overlap <- merge(ressiRNA, ChIP_Seq_and_RNA_Seq_overlap, by="symbol")
@@ -381,12 +290,4 @@ fc.go.bp.p <- gage(CR.foldchanges, gsets = go.bp.gs,same.dir=TRUE)
 lapply(fc.go.bp.p, head,20)
 write.table(fc.go.bp.p$greater, file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.greater.txt",sep = "\t")
 write.table(fc.go.bp.p$less, file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.less.txt",sep = "\t")
-<<<<<<< HEAD
-
 }
-||||||| merged common ancestors
-
-
-
-=======
->>>>>>> upstream/master
