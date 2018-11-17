@@ -36,16 +36,8 @@ library(stats4)
 library(stringr)
 library(survival)
 
-<<<<<<< HEAD
 .readGeneCounts <- function () {
   # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
-||||||| merged common ancestors
-readGeneCounts <- function () {
-  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
-=======
-readGeneCounts <- function () {
-  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
->>>>>>> upstream/master
   # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
   # read processed RNA-seq read data from file testseq.csv.
   testseq <- read.csv(file.path("project-data", "gene-counts-from-Makefile.csv"))
@@ -91,7 +83,6 @@ readGeneCounts <- function () {
 #######################################################
 ### 3. Construct DESeqDataSet from the count matrix ###
 #######################################################
-<<<<<<< HEAD
 .getDDS <- function (guideData) {
   ## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
   dds <- DESeqDataSetFromMatrix(countData = guideData,colData = guideDesign,design = ~ condition)
@@ -99,31 +90,6 @@ readGeneCounts <- function () {
   head(assay(dds))
   return(dds)  
 }
-||||||| merged common ancestors
-## create a design for our "modelling" 
-## each sample contains four techinical replicates
-condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
-              rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))
-guideDesign <- data.frame(row.names = colnames(guideData),
-                          condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
-                                        rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4)))
-## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
-dds <- DESeqDataSetFromMatrix(countData = guideData,colData = guideDesign,design = ~ condition)
-dds
-head(assay(dds))
-=======
-## create a design for our "modelling"
-## each sample contains four techinical replicates
-condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
-              rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))
-guideDesign <- data.frame(row.names = colnames(guideData),
-                          condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
-                                        rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4)))
-## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
-dds <- DESeqDataSetFromMatrix(countData = guideData,colData = guideDesign,design = ~ condition)
-dds
-head(assay(dds))
->>>>>>> upstream/master
 
 ######################################################
 #### 4. Standard differential expression analysis ####
@@ -132,24 +98,12 @@ head(assay(dds))
 # (1) estimation of size factor: estimateSizeFactors
 # (2) estimation of dispersion: estimateDispersions
 # (3) Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
-<<<<<<< HEAD
 .getDDSRES <- function(ddsDE) {
   ddsres <- results(ddsDE)  
   summary(ddsres)
   res <- data.frame(ddsres)
   return(ddsres)  
 }
-||||||| merged common ancestors
-ddsDE <- DESeq(dds)  
-ddsres <- results(ddsDE)  
-summary(ddsres)
-res <- data.frame(ddsres)
-=======
-ddsDE <- DESeq(dds)
-ddsres <- results(ddsDE)
-summary(ddsres)
-res <- data.frame(ddsres)
->>>>>>> upstream/master
 
 ########################################################
 ##### 5. Count data transformations for clustering #####
@@ -181,7 +135,6 @@ res <- data.frame(ddsres)
 #############################################
 ###### 6. Principal component analysis ######
 #############################################
-<<<<<<< HEAD
 .makePcaPlot <- function(rld) {
   ## number of top genes to use for principal components, selected by highest row variance, 500 by default
   data <- plotPCA(rld, intgroup = c( "condition"), returnData=TRUE)
@@ -209,57 +162,6 @@ res <- data.frame(ddsres)
     ylab(paste0("PC2: ", percentVar[2], "% variance")) 
   
 }
-||||||| merged common ancestors
-## number of top genes to use for principal components, selected by highest row variance, 500 by default
-data <- plotPCA(rld, intgroup = c( "condition"), returnData=TRUE)
-percentVar <- round(100 * attr(data, "percentVar"))
-## Print 2D PCA plot
-black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
-ggplot(data=data, aes_string(x="PC1", y="PC2", color="condition")) + 
-      geom_point(size=3) + 
-      theme_bw() + 
-      xlim(-10, 6) + 
-      ylim(-6, 6) +
-      theme(text = black.bold.18.text, 
-            axis.text = black.bold.18.text,
-            axis.line.x = element_line(color="black", size=1),
-            axis.line.y = element_line(color="black", size=1),
-            axis.ticks = element_line(size = 1),
-            axis.ticks.length = unit(.25, "cm"),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            panel.border = element_rect(colour = "black",size=1),
-            panel.background = element_blank(),
-            legend.position=c(0,0),
-            legend.justification=c(-0.05,-0.05)) +
-      xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-      ylab(paste0("PC2: ", percentVar[2], "% variance")) 
-=======
-## number of top genes to use for principal components, selected by highest row variance, 500 by default
-data <- plotPCA(rld, intgroup = c( "condition"), returnData=TRUE)
-percentVar <- round(100 * attr(data, "percentVar"))
-## Print 2D PCA plot
-black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
-ggplot(data=data, aes_string(x="PC1", y="PC2", color="condition")) +
-      geom_point(size=3) +
-      theme_bw() +
-      xlim(-10, 6) +
-      ylim(-6, 6) +
-      theme(text = black.bold.18.text,
-            axis.text = black.bold.18.text,
-            axis.line.x = element_line(color="black", size=1),
-            axis.line.y = element_line(color="black", size=1),
-            axis.ticks = element_line(size = 1),
-            axis.ticks.length = unit(.25, "cm"),
-            panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank(),
-            panel.border = element_rect(colour = "black",size=1),
-            panel.background = element_blank(),
-            legend.position=c(0,0),
-            legend.justification=c(-0.05,-0.05)) +
-      xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-      ylab(paste0("PC2: ", percentVar[2], "% variance"))
->>>>>>> upstream/master
 
 ## Print 3D PCA plot
 .plotPCA3D <- function (object, intgroup = "condition", ntop = 5000, returnData = FALSE){
@@ -301,7 +203,6 @@ ggplot(data=data, aes_string(x="PC1", y="PC2", color="condition")) +
 ####################################################################
 ####### 7. Add Entrez IDs, gene symbols, and full gene names #######
 ####################################################################
-<<<<<<< HEAD
 .addEntrez <- function(res) {
   columns(org.Hs.eg.db)
   res$symbol = mapIds(org.Hs.eg.db,
@@ -323,45 +224,6 @@ ggplot(data=data, aes_string(x="PC1", y="PC2", color="condition")) +
   head(res, 10)
   return(res)  
 }
-||||||| merged common ancestors
-columns(org.Hs.eg.db)
-res$symbol = mapIds(org.Hs.eg.db,
-                    keys=row.names(res), 
-                    column="SYMBOL",
-                    keytype="ENSEMBL",
-                    multiVals="first")
-res$entrez = mapIds(org.Hs.eg.db,
-                    keys=row.names(res), 
-                    column="ENTREZID",
-                    keytype="ENSEMBL",
-                    multiVals="first")
-res$name =   mapIds(org.Hs.eg.db,
-                    keys=row.names(res), 
-                    column="GENENAME",
-                    keytype="ENSEMBL",
-                    multiVals="first")
-summary(res)
-head(res, 10)
-=======
-columns(org.Hs.eg.db)
-res$symbol = mapIds(org.Hs.eg.db,
-                    keys=row.names(res),
-                    column="SYMBOL",
-                    keytype="ENSEMBL",
-                    multiVals="first")
-res$entrez = mapIds(org.Hs.eg.db,
-                    keys=row.names(res),
-                    column="ENTREZID",
-                    keytype="ENSEMBL",
-                    multiVals="first")
-res$name =   mapIds(org.Hs.eg.db,
-                    keys=row.names(res),
-                    column="GENENAME",
-                    keytype="ENSEMBL",
-                    multiVals="first")
-summary(res)
-head(res, 10)
->>>>>>> upstream/master
 
 ##################################################################
 ######## 8. Annotate genes enriched in each PCA component ########
@@ -371,7 +233,6 @@ head(res, 10)
 ## We used FAlSE for scale.unit because rld has been run with DESEQ function before.
 ## ncp : number of dimensions kept in the final results.
 ## graph : a logical value. If TRUE a graph is displayed.
-<<<<<<< HEAD
 .annotatePca <- function(rld) {
   head(assay(rld))
   assayrld <- assay(rld)
@@ -403,21 +264,7 @@ head(res, 10)
   ## # Compute PCA with ncp = 3, to keep only the first three principal components
   return(PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2,graph = TRUE))
 }
-||||||| merged common ancestors
-head(assay(rld))
-assayrld <- assay(rld)
-Pvars <- rowVars(assayrld)
-select <- order(Pvars, decreasing = TRUE)[seq_len(min(500, 
-                                                      length(Pvars)))]
-=======
-head(assay(rld))
-assayrld <- assay(rld)
-Pvars <- rowVars(assayrld)
-select <- order(Pvars, decreasing = TRUE)[seq_len(min(500,
-                                                      length(Pvars)))]
->>>>>>> upstream/master
 
-<<<<<<< HEAD
 #doAll1 <- function() {
 testseq <- .readGeneCounts()
 guideData <- .getGuideData()
@@ -432,55 +279,6 @@ rld <- .makeHeatMap(guideDesign, ddsDE)
 
 res <- .addEntrez(res)
 res.pca <- .annotatePca(rld)
-||||||| merged common ancestors
-columns(org.Hs.eg.db)
-row.names(assayrld) = mapIds(org.Hs.eg.db,
-                    keys=row.names(assayrld), 
-                    column="SYMBOL",
-                    keytype="ENSEMBL",
-                    multiVals="first")
-
-
-assayrld <-data.frame(t(assayrld[select, ]))
-assayrld$condition = guideDesign$condition
-
-con = c("Mock-1", "Mock-2", "Mock-3", "Mock-4",
-        "siNegative-1", "siNegative-2", "siNegative-3", "siNegative-4",
-        "siSREBF1-1", "siSREBF1-2", "siSREBF1-3", "siSREBF1-4",
-        "ASO-Neg-1", "ASO-Neg-2", "ASO-Neg-3", "ASO-Neg-4",
-        "ASO-1-1", "ASO-1-2","ASO-1-3","ASO-1-4",
-        "ASO-4-1", "ASO-4-2", "ASO-4-3", "ASO-4-4")
-rownames(assayrld) = con
-
-# The variable Species (index = 501) is removed
-# before PCA analysis
-## # Compute PCA with ncp = 3, to keep only the first three principal components
-res.pca <- PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2,graph = TRUE)
-=======
-columns(org.Hs.eg.db)
-row.names(assayrld) = mapIds(org.Hs.eg.db,
-                    keys=row.names(assayrld),
-                    column="SYMBOL",
-                    keytype="ENSEMBL",
-                    multiVals="first")
-
-
-assayrld <-data.frame(t(assayrld[select, ]))
-assayrld$condition = guideDesign$condition
-
-con = c("Mock-1", "Mock-2", "Mock-3", "Mock-4",
-        "siNegative-1", "siNegative-2", "siNegative-3", "siNegative-4",
-        "siSREBF1-1", "siSREBF1-2", "siSREBF1-3", "siSREBF1-4",
-        "ASO-Neg-1", "ASO-Neg-2", "ASO-Neg-3", "ASO-Neg-4",
-        "ASO-1-1", "ASO-1-2","ASO-1-3","ASO-1-4",
-        "ASO-4-1", "ASO-4-2", "ASO-4-3", "ASO-4-4")
-rownames(assayrld) = con
-
-# The variable Species (index = 501) is removed
-# before PCA analysis
-## # Compute PCA with ncp = 3, to keep only the first three principal components
-res.pca <- PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2,graph = TRUE)
->>>>>>> upstream/master
 
 ####################################################################
 ######### 9. Extract variances in each principal component #########
