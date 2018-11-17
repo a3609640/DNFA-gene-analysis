@@ -36,6 +36,10 @@ library(stats4)
 library(stringr)
 library(survival)
 
+percentVar <- round(100 * attr(data, "percentVar"))
+black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
+
+
 .readGeneCounts <- function () {
   # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
   # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
@@ -138,9 +142,7 @@ library(survival)
 .makePcaPlot <- function(rld) {
   ## number of top genes to use for principal components, selected by highest row variance, 500 by default
   data <- plotPCA(rld, intgroup = c( "condition"), returnData=TRUE)
-  percentVar <- round(100 * attr(data, "percentVar"))
   ## Print 2D PCA plot
-  black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
   ggplot(data=data, aes_string(x="PC1", y="PC2", color="condition")) + 
     geom_point(size=3) + 
     theme_bw() + 
@@ -233,7 +235,7 @@ library(survival)
 ## We used FAlSE for scale.unit because rld has been run with DESEQ function before.
 ## ncp : number of dimensions kept in the final results.
 ## graph : a logical value. If TRUE a graph is displayed.
-.annotatePca <- function(rld) {
+.annotateRld <- function(rld) {
   head(assay(rld))
   assayrld <- assay(rld)
   Pvars <- rowVars(assayrld)
@@ -258,14 +260,66 @@ library(survival)
           "ASO-1-1", "ASO-1-2","ASO-1-3","ASO-1-4",
           "ASO-4-1", "ASO-4-2", "ASO-4-3", "ASO-4-4")
   rownames(assayrld) = con
-  
-  # The variable Species (index = 501) is removed
-  # before PCA analysis
-  ## # Compute PCA with ncp = 3, to keep only the first three principal components
+  return(assayrld)
+}
+
+# The variable Species (index = 501) is removed
+# before PCA analysis
+## # Compute PCA with ncp = 3, to keep only the first three principal components
+.makeAnnotatedPcaPlot <- function (assayrld) {
   return(PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2,graph = TRUE))
 }
 
+####################################################################
+######### 9. Extract variances in each principal component #########
+####################################################################
+## Eigenvalues correspond to the amount of the variation explained by each principal component (PC).
+## Eigenvalues are large for the first PC and small for the subsequent PCs.
+.makeBiplot <- function(assayrld, res.pca) {
+  eigenvalues <- res.pca$eig
+  head(eigenvalues[, 1:2])
+  eigen <- eigenvalues[1:10,]
+  # Make a scree plot using base graphics :
+  # A scree plot is a graph of the eigenvalues/variances associated with components.
+  barplot(eigen[, 2], names.arg=1:nrow(eigen),
+          main = "Variances",
+          xlab = "Principal Components",
+          ylab = "Percentage of variances",
+          col ="steelblue")
+  lines(x = 1:nrow(eigen), eigen[, 2],
+        type="b", pch=19, col = "red")
+  
+  # plot biplot graph with the top six contributing genes to PCA from RNA-Seq
+  fviz_pca_biplot(res.pca,
+                  select.var = list(contrib = 6),
+                  #select.var = list(contrib = 0.6),
+                  col.var = "red",
+                  label="var",
+                  habillage=assayrld$condition)+
+    geom_point(size=3,
+               aes(colour = factor(assayrld$condition))) +
+    theme_bw() +
+    xlim(-8, 4) +
+    ylim(-5, 5) +
+    theme(text = black.bold.18.text,
+          axis.text = black.bold.18.text,
+          axis.line.x = element_line(color="black", size=1),
+          axis.line.y = element_line(color="black", size=1),
+          axis.ticks = element_line(size = 1),
+          axis.ticks.length = unit(.25, "cm"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_rect(colour = "black",size=1),
+          panel.background = element_blank(),
+          legend.text = element_text(colour="black", size = 18, face = "bold"),
+          legend.position=c(0,1),
+          legend.justification=c(-0.05,1.05)) +
+    xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+    ylab(paste0("PC2: ", percentVar[2], "% variance"))
+}
+
 #doAll1 <- function() {
+
 testseq <- .readGeneCounts()
 guideData <- .getGuideData()
 guideDesign <- .getGuideDesign(guideData)
@@ -278,53 +332,11 @@ rld <- .makeHeatMap(guideDesign, ddsDE)
 .plotPCA3D(rld, intgroup = "condition", ntop = 5000, returnData = FALSE)
 
 res <- .addEntrez(res)
-res.pca <- .annotatePca(rld)
+assayrld <- .annotateRld(rld)
+res.pca <- .makeAnnotatedPcaPlot(assayrld)
 
-####################################################################
-######### 9. Extract variances in each principal component #########
-####################################################################
-## Eigenvalues correspond to the amount of the variation explained by each principal component (PC).
-## Eigenvalues are large for the first PC and small for the subsequent PCs.
-eigenvalues <- res.pca$eig
-head(eigenvalues[, 1:2])
-eigen <- eigenvalues[1:10,]
-# Make a scree plot using base graphics :
-# A scree plot is a graph of the eigenvalues/variances associated with components.
-barplot(eigen[, 2], names.arg=1:nrow(eigen),
-        main = "Variances",
-        xlab = "Principal Components",
-        ylab = "Percentage of variances",
-        col ="steelblue")
-lines(x = 1:nrow(eigen), eigen[, 2],
-      type="b", pch=19, col = "red")
+.makeBiplot(assayrld, res.pca)
 
-# plot biplot graph with the top six contributing genes to PCA from RNA-Seq
-fviz_pca_biplot(res.pca,
-                select.var = list(contrib = 6),
-                #select.var = list(contrib = 0.6),
-                col.var = "red",
-                label="var",
-                habillage=assayrld$condition)+
-  geom_point(size=3,
-             aes(colour = factor(assayrld$condition))) +
-  theme_bw() +
-  xlim(-8, 4) +
-  ylim(-5, 5) +
-  theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank(),
-        legend.text = element_text(colour="black", size = 18, face = "bold"),
-        legend.position=c(0,1),
-        legend.justification=c(-0.05,1.05)) +
-  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-  ylab(paste0("PC2: ", percentVar[2], "% variance"))
 
 #########################################################################
 ########## 10. Hierarchical Clustering on Principal Components ##########
@@ -436,7 +448,6 @@ head(dim2,10)
 # plotcount: "transform" whether to present log2 counts (TRUE) or to present the counts on the log scale (FALSE, default)
 # re-arrange x-ase according to the following order: "Mock","siNeg","siBF1","ASO-neg","ASO-1","ASO-4"
 # theme_bw() removes background color in the graph, guides(fill=FALSE) removes legends
-black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 
 SREBF1 <- plotCounts(dds, gene="ENSG00000072310",
                      intgroup="condition",
