@@ -4,7 +4,7 @@ library(gplots)
 library(grid)
 library(data.table)
 
-# singleRNAseq <- fread("GSE72056_melanoma_single_cell_revised_v2.txt")
+singleRNAseq <- fread("GSE72056_melanoma_single_cell_revised_v2.txt")
 
 get_lipogenesis_data <- function(data) {
   # -----------------------------------------------------------------------------------------------
