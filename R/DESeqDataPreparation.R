@@ -10,7 +10,20 @@
 # ENSG00000227232     10       0     10
 # ENSG00000278267      0       0      0
 # ...
-# 
+# STAR outputs read counts per gene into ReadsPerGene.out.tab with 4 columns
+# column 1: gene ID
+# column 2: counts for unstranded RNA-seq
+# column 3: counts for the 1st read strand aligned with RNA
+# column 4: counts for the 2nd read strand aligned with RNA
+#
+# Our RNA-Seq libraries were contructed by the
+# NEBNext® Ultra™ Directional RNA Library Prep Kit for Illumina.
+# This kit uses dUTP method to generate anti-sense strand for the 1st read strand synthesis.
+# (the original RNA strand is degradated due to the dUTP incorporated),
+# so the 2nf read strand in the result column is from the original RNA strand.
+# See the illustration from the following link https://bit.ly/29Yi771
+# We choose the data from columns 4 as the gene counts for the given sample.
+#
 #
 # The notional desired format of the merged data is:
 #                 test1.1.1 test1.1.2 test1.1.3 test1.2.1 test1.2.2 ...
@@ -26,15 +39,15 @@
 # However, only the .3 columns are meaningful for the
 # analyses to be performed by this package.  Therefore,
 # the final merged output should look like this:
-# 
+#
 #                 test1.1.3 test1.2.3 test1.3.3 test1.4.3 test2.1.3 ...
-# N_unmapped      
-# N_multimapping  
-# N_noFeature     
-# N_ambiguous     
-# ENSG00000223972 
-# ENSG00000227232 
-# ENSG00000278267 
+# N_unmapped
+# N_multimapping
+# N_noFeature
+# N_ambiguous
+# ENSG00000223972
+# ENSG00000227232
+# ENSG00000278267
 # ...
 #
 
@@ -63,7 +76,7 @@ processFile <- function(fullFileName) {
   
   # Reframe the data, taking row names from first column.
   table.with.rownames <- data.frame(table[,-1], row.names=table[,1])
-
+  
   # Generate 'test6.1.' from 'test6_S4_L001ReadsPerGene.out.tab'.
   newColBaseName <- paste(substring(fileName, 1, 5),
                           substring(fileName, 13, 13),
@@ -72,7 +85,7 @@ processFile <- function(fullFileName) {
   print(paste("name", newColBaseName))
   # Rename the columns as test6.4.1, test6.4.2, test6.4.3.
   colnames(table.with.rownames) <- paste0(newColBaseName, 1:3)
-
+  
   ## ...but then preserve only column 3
   name3 = paste(newColBaseName, 3, sep='')
   print(paste("name3", name3))
@@ -113,10 +126,10 @@ main <- function () {
     name <- paste ('test', stem, 'ReadsPerGene.out.tab', sep = "")
     file.path(dataDir, name)
   }
-
+  
   files <- lapply(stems, getFile)
   write.csv(mergeFiles(files),
             file = file.path(dataDir, 'gene-counts.csv'))
 }
 
-# main()
+main()
