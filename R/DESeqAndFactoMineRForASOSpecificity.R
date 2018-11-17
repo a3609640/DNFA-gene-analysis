@@ -510,231 +510,53 @@ normalizedGeneCountTheme <-
   print(plot)
 }
 
+# TODO(dlroxe): Use a function to derive "ENSG.." from
+# gene name.  Then the following repeated calls can be
+# collapsed into a single function that iterates over
+# a list of SREBF1, SCD, etc.
 SREBF1 <- .getCountsAndConditions(dds, "ENSG00000072310")
 .makeGeneCountPlot(SREBF1, "SREBF1", 8, 10.5)
 
 SCD <- .getCountsAndConditions(dds, "ENSG00000099194")
 .makeGeneCountPlot(SCD, "SCD", 13, 14.5)
 
+FASN <- .getCountsAndConditions(dds, "ENSG00000169710")
+.makeGeneCountPlot(FASN, "FASN", 12, 13.25)
 
-## *************************************************************
-FASN <- plotCounts(dds, gene="ENSG00000169710",
-                  intgroup="condition",
-                  normalized = TRUE,
-                  transform = TRUE,
-                  returnData=TRUE)
-FASN$condition <- factor(FASN$condition,
-                        levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
+ACACA <- .getCountsAndConditions(dds, "ENSG00000278540")
+.makeGeneCountPlot(ACACA, "ACACA", 9.7, 10.5)
 
-ggplot(FASN, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(12, 13.25)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "FASN",x=" ", y= "log2(read counts)")
-## *************************************************************
+ACSL1 <- .getCountsAndConditions(dds, "ENSG00000169710")
+.makeGeneCountPlot(ACSL1, "ACSL1", 11.5, 13.5)
 
-## *************************************************************
-ACACA <- plotCounts(dds, gene="ENSG00000278540",
-                  intgroup="condition",
-                  normalized = TRUE,
-                  transform = TRUE,
-                  returnData=TRUE)
-ACACA$condition <- factor(ACACA$condition,
-                        levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
+BRAF <- .getCountsAndConditions(dds, "ENSG00000157764")
+.makeGeneCountPlot(BRAF, "BRAF", 6, 9)
 
-ggplot(ACACA, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(9.7, 10.5)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "ACACA",x=" ", y= "log2(read counts)")
-## *************************************************************
+SPIRE1 <- .getCountsAndConditions(dds, "ENSG00000134278")
+.makeGeneCountPlot(SPIRE1, "SPIRE1", 4, 9)
 
-## *************************************************************
-ACSL1 <- plotCounts(dds, gene="ENSG00000169710",
-                   intgroup="condition",
-                   normalized = TRUE,
-                   transform = TRUE,
-                   returnData=TRUE)
-ACSL1$condition <- factor(ACSL1$condition,
-                         levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
+USP9X <- .getCountsAndConditions(dds, "ENSG00000124486")
+.makeGeneCountPlot(USP9X, "USP9X", 7, 10)
 
-ggplot(ACSL1, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(11.5, 13.5)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "ACSL1",x=" ", y= "log2(read counts)")
-## *************************************************************
+INSIG1 <- .getCountsAndConditions(dds, "ENSG00000186480")
+.makeGeneCountPlot(INSIG1, "INSIG1", 10, 12)
 
-## *************************************************************
-BRAF <- plotCounts(dds, gene="ENSG00000157764",
-                  intgroup="condition",
-                  normalized = TRUE,
-                  transform = TRUE,
-                  returnData=TRUE)
-BRAF$condition <- factor(SCD$condition,
-                        levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
+YY1 <- .getCountsAndConditions(dds, "ENSG00000100811")
+.makeGeneCountPlot(YY1, "YY1", 8, 10.5)
 
-ggplot(BRAF, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(6, 9)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "BRAF",x=" ", y= "log2(read counts)")
-## *************************************************************
+FABP7 <- .getCountsAndConditions(dds, "ENSG00000164434")
+.makeGeneCountPlot(FABP7, "FABP7", 6, 9)
 
-## *************************************************************
-SPIRE1 <- plotCounts(dds, gene="ENSG00000134278",
-                   intgroup="condition",
-                   normalized = TRUE,
-                   transform = TRUE,
-                   returnData=TRUE)
-SPIRE1$condition <- factor(SPIRE1$condition,
-                         levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
+MITF <- .getCountsAndConditions(dds, "ENSG00000187098")
+.makeGeneCountPlot(MITF, "MITF", 10, 12)
 
-ggplot(SPIRE1, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(4, 9)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "SPIRE1",x=" ", y= "log2(read counts)")
-## *************************************************************
+SREBF2 <- .getCountsAndConditions(dds, "ENSG00000198911")
+.makeGeneCountPlot(SREBF2, "SREBF2", 10, 12)
 
-## *************************************************************
-USP9X <- plotCounts(dds, gene="ENSG00000124486",
-                     intgroup="condition",
-                     normalized = TRUE,
-                     transform = TRUE,
-                     returnData=TRUE)
-USP9X$condition <- factor(USP9X$condition,
-                           levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
+HMGCR <- .getCountsAndConditions(dds, "ENSG00000113161")
+.makeGeneCountPlot(HMGCR, "HMGCR", 10, 12)
 
-ggplot(USP9X, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(7, 10)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "USP9X",x=" ", y= "log2(read counts)")
-## *************************************************************
+NRAS <- .getCountsAndConditions(dds, "ENSG00000213281")
+.makeGeneCountPlot(NRAS, "NRAS", 7, 9)
 
-## *************************************************************
-INSIG1 <- plotCounts(dds, gene="ENSG00000186480",
-                   intgroup="condition",
-                   normalized = TRUE,
-                   transform = TRUE,
-                   returnData=TRUE)
-INSIG1$condition <- factor(INSIG1$condition,
-                         levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
-
-ggplot(INSIG1, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(10, 12)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "INSIG1",x=" ", y= "log2(read counts)")
-## *************************************************************
-
-## *************************************************************
-YY1 <- plotCounts(dds, gene="ENSG00000100811",
-                     intgroup="condition",
-                     normalized = TRUE,
-                     transform = TRUE,
-                     returnData=TRUE)
-YY1$condition <- factor(YY1$condition,
-                           levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
-
-ggplot(YY1, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(8, 10.5)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "YY1",x=" ", y= "log2(read counts)")
-## *************************************************************
-
-## *************************************************************
-FABP7 <- plotCounts(dds, gene="ENSG00000164434",
-                  intgroup="condition",
-                  normalized = TRUE,
-                  transform = TRUE,
-                  returnData=TRUE)
-FABP7$condition <- factor(FABP7$condition,
-                        levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
-
-ggplot(FABP7, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(6, 9)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "FABP7",x=" ", y= "log2(read counts)")
-## *************************************************************
-
-## *************************************************************
-MITF <- plotCounts(dds, gene="ENSG00000187098",
-                   intgroup="condition",
-                   normalized = TRUE,
-                   transform = TRUE,
-                   returnData=TRUE)
-MITF$condition <- factor(MITF$condition,
-                         levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
-
-ggplot(MITF, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(10, 12)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "MITF",x=" ", y= "log2(read counts)")
-## *************************************************************
-
-## *************************************************************
-SREBF2 <- plotCounts(dds, gene="ENSG00000198911",
-                   intgroup="condition",
-                   normalized = TRUE,
-                   transform = TRUE,
-                   returnData=TRUE)
-SREBF2$condition <- factor(SREBF2$condition,
-                         levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
-
-ggplot(SREBF2, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(10, 12)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "SREBF2",x=" ", y= "log2(read counts)")
-## *************************************************************
-
-## *************************************************************
-HMGCR <- plotCounts(dds, gene="ENSG00000113161",
-                     intgroup="condition",
-                     normalized = TRUE,
-                     transform = TRUE,
-                     returnData=TRUE)
-HMGCR$condition <- factor(HMGCR$condition,
-                           levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
-
-ggplot(HMGCR, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(10, 12)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "HMGCR",x=" ", y= "log2(read counts)")
-## *************************************************************
-
-## *************************************************************
-NRAS <- plotCounts(dds, gene="ENSG00000213281",
-                    intgroup="condition",
-                    normalized = TRUE,
-                    transform = TRUE,
-                    returnData=TRUE)
-NRAS$condition <- factor(NRAS$condition,
-                          levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
-
-ggplot(NRAS, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(7, 9)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "NRAS",x=" ", y= "log2(read counts)")
-## *************************************************************
 #}
