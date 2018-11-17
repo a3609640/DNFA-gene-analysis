@@ -100,7 +100,7 @@ processFile <- function(fullFileName) {
 mergeFiles <- function(files) {
   processedData <- lapply(files, processFile)
   test <- do.call(cbind.data.frame, processedData)
-  
+
   test$symbol <- mapIds(org.Hs.eg.db,
                         keys=row.names(test),
                         column="SYMBOL",
@@ -118,15 +118,15 @@ main <- function () {
     "5_S5_L001", "5_S5_L002", "5_S5_L003", "5_S5_L004",
     "6_S1_L001", "6_S1_L002", "6_S1_L003", "6_S1_L004"
   )
-  
+
   root = Sys.getenv("DNFA_generatedDataRoot", unset="/usr/local/DNFA-genfiles/data")
   dataDir <- file.path(root, "r-extdata")
-  
+
   getFile <- function(stem) {
     name <- paste ('test', stem, 'ReadsPerGene.out.tab', sep = "")
     file.path(dataDir, name)
   }
-  
+
   files <- lapply(stems, getFile)
   write.csv(mergeFiles(files),
             file = file.path(dataDir, 'gene-counts.csv'))
