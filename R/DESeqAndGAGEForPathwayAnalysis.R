@@ -290,3 +290,4 @@ fc.go.bp.p <- gage(CR.foldchanges, gsets = go.bp.gs,same.dir=TRUE)
 lapply(fc.go.bp.p, head,20)
 write.table(fc.go.bp.p$greater, file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.greater.txt",sep = "\t")
 write.table(fc.go.bp.p$less, file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.less.txt",sep = "\t")
+}
