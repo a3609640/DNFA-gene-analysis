@@ -206,6 +206,7 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
                        color = group,
                        mode = "markers",
                        type = "scatter3d")
+  print(p)
   return(p)
 }
 
