@@ -73,10 +73,10 @@ library("dplyr")
 processFile <- function(fullFileName) {
   fileName <- basename(fullFileName)
   table <- read.table(fullFileName, stringsAsFactors=T)
-  
+
   # Reframe the data, taking row names from first column.
   table.with.rownames <- data.frame(table[,-1], row.names=table[,1])
-  
+
   # Generate 'test6.1.' from 'test6_S4_L001ReadsPerGene.out.tab'.
   newColBaseName <- paste(substring(fileName, 1, 5),
                           substring(fileName, 13, 13),
@@ -85,13 +85,13 @@ processFile <- function(fullFileName) {
   print(paste("name", newColBaseName))
   # Rename the columns as test6.4.1, test6.4.2, test6.4.3.
   colnames(table.with.rownames) <- paste0(newColBaseName, 1:3)
-  
+
   ## ...but then preserve only column 3
   name3 = paste(newColBaseName, 3, sep='')
   print(paste("name3", name3))
   table.with.rownames <- select(table.with.rownames, name3)
-  
-  
+
+
   print(head(table.with.rownames))
   return(table.with.rownames)
 }

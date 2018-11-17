@@ -276,7 +276,7 @@ lapply(fc.go.cc.p, head,10)
 setwd("~/Documents/Su Wu/Documents/Research/Naar Lab/ChIP-seq")
 library(readxl)
 ChIP_Seq_and_RNA_Seq_overlap <- read_excel("ChIP-Seq and RNA-Seq overlap.xlsx",
-                                           col_names = FALSE)
+                                            col_names = FALSE)
 colnames(ChIP_Seq_and_RNA_Seq_overlap) <- "symbol"
 View(ChIP_Seq_and_RNA_Seq_overlap)
 ChIP_Seq_and_RNA_Seq_overlap <- merge(ressiRNA, ChIP_Seq_and_RNA_Seq_overlap, by="symbol")
