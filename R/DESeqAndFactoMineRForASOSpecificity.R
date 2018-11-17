@@ -497,11 +497,13 @@ normalizedGeneCountTheme <-
   return(geneCounts)  
 }
 
-.makeGeneCountPlot <- function(countsAndConditions, title) {
+.makeGeneCountPlot <- function(countsAndConditions, title, ylim1, ylim2) {
   plot <-
-    ggplot(SREBF1, aes(x=condition, y=log2(count), fill=condition)) +
+    ggplot(
+      countsAndConditions,
+      aes(x=condition, y=log2(count), fill=condition)) +
     geom_boxplot()+
-    ylim(8, 10.5)+
+    ylim(ylim1, ylim2)+
     guides(fill=FALSE)+
     normalizedGeneCountTheme+
     labs(title = title ,x=" ", y= "log2(read counts)")
@@ -509,10 +511,10 @@ normalizedGeneCountTheme <-
 }
 
 SREBF1 <- .getCountsAndConditions(dds, "ENSG00000072310")
-.makeGeneCountPlot(SREBF1, "SREBF1")
+.makeGeneCountPlot(SREBF1, "SREBF1", 8, 10.5)
 
 SCD <- .getCountsAndConditions(dds, "ENSG00000099194")
-.makeGeneCountPlot(SCD, "SCD")
+.makeGeneCountPlot(SCD, "SCD", 13, 14.5)
 
 
 ## *************************************************************
