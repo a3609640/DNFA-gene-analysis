@@ -484,38 +484,36 @@ normalizedGeneCountTheme <-
         panel.border = element_rect(colour = "black",size=1),
         panel.background = element_blank())
 
-SREBF1 <- plotCounts(dds, gene="ENSG00000072310",
-                     intgroup="condition",
-                     normalized = TRUE,
-                     transform = TRUE,
-                     returnData=TRUE)
-SREBF1$condition <- factor(SREBF1$condition,
-                           levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
+.getCountsAndConditions <- function(dds, ensgID) {
+  geneCounts <- plotCounts(
+    dds, gene=ensgID,
+    intgroup="condition",
+    normalized = TRUE,
+    transform = TRUE,
+    returnData=TRUE)
+  geneCounts$condition <- factor(
+    geneCounts$condition,
+    levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
+  return(geneCounts)  
+}
 
-ggplot(SREBF1, aes(x=condition, y=log2(count), fill=condition)) +
-      geom_boxplot()+
-      ylim(8, 10.5)+
-      guides(fill=FALSE)+
-      normalizedGeneCountTheme+
-      labs(title = "SREBF1",x=" ", y= "log2(read counts)")
-## *************************************************************
+.makeGeneCountPlot <- function(countsAndConditions, title) {
+  plot <-
+    ggplot(SREBF1, aes(x=condition, y=log2(count), fill=condition)) +
+    geom_boxplot()+
+    ylim(8, 10.5)+
+    guides(fill=FALSE)+
+    normalizedGeneCountTheme+
+    labs(title = title ,x=" ", y= "log2(read counts)")
+  print(plot)
+}
 
-## *************************************************************
-SCD <- plotCounts(dds, gene="ENSG00000099194",
-                     intgroup="condition",
-                     normalized = TRUE,
-                     transform = TRUE,
-                     returnData=TRUE)
-SCD$condition <- factor(SCD$condition,
-                           levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
+SREBF1 <- .getCountsAndConditions(dds, "ENSG00000072310")
+.makeGeneCountPlot(SREBF1, "SREBF1")
 
-ggplot(SCD, aes(x=condition, y=log2(count), fill=condition)) +
-  geom_boxplot()+
-  ylim(13, 14.5)+
-  guides(fill=FALSE)+
-  normalizedGeneCountTheme+
-  labs(title = "SCD",x=" ", y= "log2(read counts)")
-## *************************************************************
+SCD <- .getCountsAndConditions(dds, "ENSG00000099194")
+.makeGeneCountPlot(SCD, "SCD")
+
 
 ## *************************************************************
 FASN <- plotCounts(dds, gene="ENSG00000169710",
