@@ -1,26 +1,7 @@
-# The following script aim to find the differentially expressed genes between siSREBF1 and control siRNA treatment in melanoma HT-144 cells with DESeq package. And then perform pathway analysis on the differentially expressed genes.  
-
-dataRoot <- file.path("project-data")
-
-####################
-## 1 Preparations ##
-####################
-# set global chunk options and load the neccessary packages
-chooseCRANmirror()
-
-#BiocManager::install("genefilter")
-#BiocManager::install("apeglm")
-#BiocManager::install("ashr")
-#BiocManager::install("BiocStyle")
-#BiocManager::install("biomaRt")
-#BiocManager::install("DESeq2")
-#BiocManager::install("gage")
-#BiocManager::install("gageData")
-#BiocManager::install("pathview")
-#BiocManager::install("RcppArmadillo")
-#BiocManager::install("ReactomePA")
-#BiocManager::install("rmarkdown")
-#install.packages("https://cran.r-project.org/src/contrib/Archive/RcppArmadillo/RcppArmadillo_0.6.100.0.0.tar.gz", repos=NULL, type="source")
+# The following script aim to find the differentially expressed
+# genes between siSREBF1 and control siRNA treatment in melanoma
+# HT-144 cells with DESeq package. And then perform pathway
+# analysis on the differentially expressed genes.  
 
 library(ashr)
 library(apeglm)
@@ -58,50 +39,72 @@ library(GenomeInfoDb)
 library(GenomicRanges)
 library(ReactomePA)
 library(SummarizedExperiment)
-#######
 
-doAll2 <- function() {
 ################################
 ## 2 Preparing count matrices ##
 ################################
-# obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
-# The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
-# read processed RNA-seq read data from file testseq.csv.
-testseqCSV <- file.path(dataRoot, "gene-counts-from-Makefile.csv")
-testseq <- read.csv(testseqCSV)
-# Use the column one (Ensemble names) as columnn names.
-testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
-# Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
-testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
+
+# TODO(dlroxe): This function is copied from the FactoMineR file.
+# Find a single place to define it in common for all callers.
+.readGeneCounts <- function () {
+  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
+  # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
+  # read processed RNA-seq read data from file testseq.csv.
+  testseq <- read.csv(file.path("project-data", "gene-counts-from-Makefile.csv"))
+  # Use the column one (Ensemble names) as columnn names.
+  testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
+  # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
+  testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
+  
+  ## remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
+  testseq <- testseq[-25]
+  
+  return(testseq)
+}
 
 
 ##################################################################################
 ## 3 Compare siNeg and siBF1 RNA-seq results for differentially expressed genes ##
 ##################################################################################
-## generate DESeq dataset for siRNA treatment
-testsiRNA <- data.frame(testseq[,c(5,6,7,8,9,10,11,12)])
-## check the read distribution by boxplot
-par(mar=c(3,12,2,1))
-boxplot(testsiRNA, outline=FALSE, horizontal=TRUE, las=1)
 
-## Prefiltering: by removing rows in which there are no reads or nearly no reads
-guideDatasiRNA <- testsiRNA[rowSums(testsiRNA)>1,]
-head(guideDatasiRNA)
-dim(guideDatasiRNA)
-## Lets see how the data looks in a box plot
-par(mar=c(3,12,2,1))
-boxplot(guideDatasiRNA, outline=FALSE, horizontal=TRUE, las=1)
+# TODO(dlroxe): again, this is exactly the same function as
+# found in FactoMineR
+.getGuideData <- function(testseq) {
+  ## check the distribution of RNA-Seq reads
+  par(mar=c(3,12,2,1))
+  boxplot(testseq, outline=FALSE, horizontal=TRUE, las=1)
+  ## Remove rows in which there are no reads or nearly no reads
+  guideData <- testseq[rowSums(testseq)>1,]
+  head(guideData)
+  dim(guideData)
+  ## check how the data distribution with boxplot after removing rows with no read
+  par(mar=c(3,12,2,1))
+  boxplot(guideData, outline=FALSE, horizontal=TRUE, las=1)
+  return(guideData)
+}
 
-# Time to create a design for our "modelling"
+# TODO(dlroxe): again, same function as other file
+.getDDS <- function (guideData, guideDesign, condition) {
+  ## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
+  dds <- DESeqDataSetFromMatrix(countData = guideData,
+                                colData = guideDesign,
+                                design = ~ condition)
+  dds
+  head(assay(dds))
+  return(dds)  
+}
+
+doAll2 <- function() {
+testseq <- .readGeneCounts()
+guideDatasiRNA <- .getGuideData(
+  data.frame(testseq[,c(5,6,7,8,9,10,11,12)]))
+
+condition <- c(rep("siNeg",4),rep("siBF1",4))
 guideDesignsiRNA <- data.frame(row.names = colnames(guideDatasiRNA),
-                               condition = c(rep("siNeg",4),rep("siBF1",4)))
+                               condition = condition)
 
-## object construction
-## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
-ddssiRNA <- DESeqDataSetFromMatrix(countData = guideDatasiRNA,
-                                   colData = guideDesignsiRNA,
-                                   design = ~ condition)
 ## specifying the reference level:
+ddssiRNA <- .getDDS(guideDatasiRNA, guideDesignsiRNA, condition)
 ddssiRNA$condition <- relevel(ddssiRNA$condition, ref = "siNeg")
 ddssiRNA
 
