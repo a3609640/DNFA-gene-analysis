@@ -37,7 +37,7 @@ library(stringr)
 library(survival)
 
 black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
-
+lockBinding("black.bold.18.text", globalenv())
 
 .readGeneCounts <- function () {
   # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
@@ -82,9 +82,11 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 #######################################################
 ### 3. Construct DESeqDataSet from the count matrix ###
 #######################################################
-.getDDS <- function (guideData, condition) {
+.getDDS <- function (guideData, guideDesign, condition) {
   ## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
-  dds <- DESeqDataSetFromMatrix(countData = guideData,colData = guideDesign,design = ~ condition)
+  dds <- DESeqDataSetFromMatrix(countData = guideData,
+                                colData = guideDesign,
+                                design = ~ condition)
   dds
   head(assay(dds))
   return(dds)  
@@ -239,7 +241,7 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 ## We used FAlSE for scale.unit because rld has been run with DESEQ function before.
 ## ncp : number of dimensions kept in the final results.
 ## graph : a logical value. If TRUE a graph is displayed.
-.annotateRld <- function(rld) {
+.annotateRld <- function(rld, guideDesign) {
   head(assay(rld))
   assayrld <- assay(rld)
   Pvars <- rowVars(assayrld)
@@ -441,30 +443,6 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
   head(dim2,10)
 }
 
-#doAll1 <- function() {
-testseq <- .readGeneCounts()
-guideData <- .getGuideData(testseq)
-condition <- c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
-               rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))
-guideDesign <- .getGuideDesign(guideData, condition)
-dds <- .getDDS(guideData, condition)
-ddsDE <- DESeq(dds)
-res <- .getDDSRES(ddsDE)
-rld <- .makeHeatMap(guideDesign, ddsDE)
-
-pcaData <- .makePcaPlot(rld)
-.plotPCA3D(rld, intgroup = "condition", ntop = 5000, returnData = FALSE)
-
-res <- .addGeneIdentifiers(res)
-assayrld <- .annotateRld(rld)
-res.pca <- .makeAnnotatedPcaPlot(assayrld)
-
-.makeBiplot(assayrld, res.pca, pcaData)
-
-.makeHierarchicalCluster(res.pca, pcaData)
-
-.findTopPrincipalComponentContributors(res.pca)
-
 
 ##########################################################################
 ############ 12. Plot of normalized counts for a single gene  ############
@@ -474,18 +452,6 @@ res.pca <- .makeAnnotatedPcaPlot(assayrld)
 # re-arrange x-ase according to the following order: "Mock","siNeg","siBF1","ASO-neg","ASO-1","ASO-4"
 # theme_bw() removes background color in the graph, guides(fill=FALSE) removes legends
 
-normalizedGeneCountTheme <- 
-  theme_bw() + theme(text = black.bold.18.text,
-        axis.text = black.bold.18.text,
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_rect(colour = "black",size=1),
-        panel.background = element_blank())
 
 .getCountsAndConditions <- function(dds, ensgID) {
   geneCounts <- plotCounts(
@@ -501,6 +467,19 @@ normalizedGeneCountTheme <-
 }
 
 .makeGeneCountPlot <- function(countsAndConditions, title, ylim1, ylim2) {
+  normalizedGeneCountTheme <- 
+    theme_bw() +
+    theme(text = black.bold.18.text,
+          axis.text = black.bold.18.text,
+          axis.text.x = element_text(angle = 45, hjust = 1),
+          axis.line.x = element_line(color="black", size=1),
+          axis.line.y = element_line(color="black", size=1),
+          axis.ticks = element_line(size = 1),
+          axis.ticks.length = unit(.25, "cm"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.border = element_rect(colour = "black",size=1),
+          panel.background = element_blank())
   plot <-
     ggplot(
       countsAndConditions,
@@ -513,53 +492,79 @@ normalizedGeneCountTheme <-
   print(plot)
 }
 
-# TODO(dlroxe): Use a function to derive "ENSG.." from
-# gene name.  Then the following repeated calls can be
-# collapsed into a single function that iterates over
-# a list of SREBF1, SCD, etc.
-SREBF1 <- .getCountsAndConditions(dds, "ENSG00000072310")
-.makeGeneCountPlot(SREBF1, "SREBF1", 8, 10.5)
+main <- function() {
+  testseq <- .readGeneCounts()
+  guideData <- .getGuideData(testseq)
+  condition <- c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
+                 rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))
+  guideDesign <- .getGuideDesign(guideData, condition)
+  dds <- .getDDS(guideData, guideDesign, condition)
+  ddsDE <- DESeq(dds)
+  res <- .getDDSRES(ddsDE)
+  rld <- .makeHeatMap(guideDesign, ddsDE)
+  
+  pcaData <- .makePcaPlot(rld)
+  .plotPCA3D(rld, intgroup = "condition", ntop = 5000, returnData = FALSE)
+  
+  res <- .addGeneIdentifiers(res)
+  assayrld <- .annotateRld(rld, guideDesign)
+  res.pca <- .makeAnnotatedPcaPlot(assayrld)
+  
+  .makeBiplot(assayrld, res.pca, pcaData)
+  
+  .makeHierarchicalCluster(res.pca, pcaData)
+  
+  .findTopPrincipalComponentContributors(res.pca)
+  
+  
+  # TODO(dlroxe): Use a function to derive "ENSG.." from
+  # gene name.  Then the following repeated calls can be
+  # collapsed into a single function that iterates over
+  # a list of SREBF1, SCD, etc.
+  SREBF1 <- .getCountsAndConditions(dds, "ENSG00000072310")
+  .makeGeneCountPlot(SREBF1, "SREBF1", 8, 10.5)
+  
+  SCD <- .getCountsAndConditions(dds, "ENSG00000099194")
+  .makeGeneCountPlot(SCD, "SCD", 13, 14.5)
+  
+  FASN <- .getCountsAndConditions(dds, "ENSG00000169710")
+  .makeGeneCountPlot(FASN, "FASN", 12, 13.25)
+  
+  ACACA <- .getCountsAndConditions(dds, "ENSG00000278540")
+  .makeGeneCountPlot(ACACA, "ACACA", 9.7, 10.5)
+  
+  ACSL1 <- .getCountsAndConditions(dds, "ENSG00000169710")
+  .makeGeneCountPlot(ACSL1, "ACSL1", 11.5, 13.5)
+  
+  BRAF <- .getCountsAndConditions(dds, "ENSG00000157764")
+  .makeGeneCountPlot(BRAF, "BRAF", 6, 9)
+  
+  SPIRE1 <- .getCountsAndConditions(dds, "ENSG00000134278")
+  .makeGeneCountPlot(SPIRE1, "SPIRE1", 4, 9)
+  
+  USP9X <- .getCountsAndConditions(dds, "ENSG00000124486")
+  .makeGeneCountPlot(USP9X, "USP9X", 7, 10)
+  
+  INSIG1 <- .getCountsAndConditions(dds, "ENSG00000186480")
+  .makeGeneCountPlot(INSIG1, "INSIG1", 10, 12)
+  
+  YY1 <- .getCountsAndConditions(dds, "ENSG00000100811")
+  .makeGeneCountPlot(YY1, "YY1", 8, 10.5)
+  
+  FABP7 <- .getCountsAndConditions(dds, "ENSG00000164434")
+  .makeGeneCountPlot(FABP7, "FABP7", 6, 9)
+  
+  MITF <- .getCountsAndConditions(dds, "ENSG00000187098")
+  .makeGeneCountPlot(MITF, "MITF", 10, 12)
+  
+  SREBF2 <- .getCountsAndConditions(dds, "ENSG00000198911")
+  .makeGeneCountPlot(SREBF2, "SREBF2", 10, 12)
+  
+  HMGCR <- .getCountsAndConditions(dds, "ENSG00000113161")
+  .makeGeneCountPlot(HMGCR, "HMGCR", 10, 12)
+  
+  NRAS <- .getCountsAndConditions(dds, "ENSG00000213281")
+  .makeGeneCountPlot(NRAS, "NRAS", 7, 9)
+}
 
-SCD <- .getCountsAndConditions(dds, "ENSG00000099194")
-.makeGeneCountPlot(SCD, "SCD", 13, 14.5)
-
-FASN <- .getCountsAndConditions(dds, "ENSG00000169710")
-.makeGeneCountPlot(FASN, "FASN", 12, 13.25)
-
-ACACA <- .getCountsAndConditions(dds, "ENSG00000278540")
-.makeGeneCountPlot(ACACA, "ACACA", 9.7, 10.5)
-
-ACSL1 <- .getCountsAndConditions(dds, "ENSG00000169710")
-.makeGeneCountPlot(ACSL1, "ACSL1", 11.5, 13.5)
-
-BRAF <- .getCountsAndConditions(dds, "ENSG00000157764")
-.makeGeneCountPlot(BRAF, "BRAF", 6, 9)
-
-SPIRE1 <- .getCountsAndConditions(dds, "ENSG00000134278")
-.makeGeneCountPlot(SPIRE1, "SPIRE1", 4, 9)
-
-USP9X <- .getCountsAndConditions(dds, "ENSG00000124486")
-.makeGeneCountPlot(USP9X, "USP9X", 7, 10)
-
-INSIG1 <- .getCountsAndConditions(dds, "ENSG00000186480")
-.makeGeneCountPlot(INSIG1, "INSIG1", 10, 12)
-
-YY1 <- .getCountsAndConditions(dds, "ENSG00000100811")
-.makeGeneCountPlot(YY1, "YY1", 8, 10.5)
-
-FABP7 <- .getCountsAndConditions(dds, "ENSG00000164434")
-.makeGeneCountPlot(FABP7, "FABP7", 6, 9)
-
-MITF <- .getCountsAndConditions(dds, "ENSG00000187098")
-.makeGeneCountPlot(MITF, "MITF", 10, 12)
-
-SREBF2 <- .getCountsAndConditions(dds, "ENSG00000198911")
-.makeGeneCountPlot(SREBF2, "SREBF2", 10, 12)
-
-HMGCR <- .getCountsAndConditions(dds, "ENSG00000113161")
-.makeGeneCountPlot(HMGCR, "HMGCR", 10, 12)
-
-NRAS <- .getCountsAndConditions(dds, "ENSG00000213281")
-.makeGeneCountPlot(NRAS, "NRAS", 7, 9)
-
-#}
+main()
