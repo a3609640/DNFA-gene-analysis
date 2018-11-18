@@ -58,7 +58,7 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 ##########################################################
 ## 2. Preparing count matrices from the RNA-seq results ##
 ##########################################################
-.getGuideData <- function() {
+.getGuideData <- function(testseq) {
   ## check the distribution of RNA-Seq reads
   par(mar=c(3,12,2,1))
   boxplot(testseq, outline=FALSE, horizontal=TRUE, las=1)
@@ -74,13 +74,10 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 
 .getGuideDesign <- function(guideData) {
   ## create a design for our "modelling" 
-  ## each sample contains four techinical replicates
-  #condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
-  #              rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))
+  ## each sample contains four technical replicates
   return(data.frame(row.names = colnames(guideData),
                             condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
                                           rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))))
-  
 }
 
 #######################################################
@@ -446,9 +443,8 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 }
 
 #doAll1 <- function() {
-
 testseq <- .readGeneCounts()
-guideData <- .getGuideData()
+guideData <- .getGuideData(testseq)
 guideDesign <- .getGuideDesign(guideData)
 dds <- .getDDS(guideData)
 ddsDE <- DESeq(dds)
