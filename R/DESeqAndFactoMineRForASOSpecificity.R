@@ -297,7 +297,7 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
   lines(x = 1:nrow(eigen), eigen[, 2],
         type="b", pch=19, col = "red")
   
-  # plot biplot graph with the top six contributing genes to PCA from RNA-Seq
+ #     plot biplot graph with the top six contributing genes to PCA from RNA-Seq
   percentVar <- round(100 * attr(pcaData, "percentVar"))
   pcaBiplot <-
     fviz_pca_biplot(res.pca,
@@ -336,21 +336,24 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 ## Ward criterion is used in the hierarchical clustering because it is based on the multidimensional variance like principal component analysis.
 .makeHierarchicalCluster <- function(res.pca, pcaData) {
   res.hcpc <- HCPC(res.pca, graph = FALSE)
-  fviz_dend(res.hcpc,
-            cex = 0.7,                     # Label size
-            palette = "jco",               # Color palette see ?ggpubr::ggpar
-            rect = TRUE, rect_fill = TRUE, # Add rectangle around groups
-            rect_border = "jco",           # Rectangle color
-            labels_track_height = 0.8      # Augment the room for labels
-  )
-  fviz_cluster(res.hcpc,
-               repel = TRUE,            # Avoid label overlapping
-               show.clust.cent = TRUE, # Show cluster centers
-               palette = "jco",         # Color palette see ?ggpubr::ggpar
-               ggtheme = theme_minimal(),
-               main = "Factor map"
-  )
-  
+  plot1 <-
+    fviz_dend(res.hcpc,
+              cex = 0.7,                     # Label size
+              palette = "jco",               # Color palette see ?ggpubr::ggpar
+              rect = TRUE, rect_fill = TRUE, # Add rectangle around groups
+              rect_border = "jco",           # Rectangle color
+              labels_track_height = 0.8      # Augment the room for labels
+    )
+  plot2 <-
+    fviz_cluster(res.hcpc,
+                 repel = TRUE,            # Avoid label overlapping
+                 show.clust.cent = TRUE, # Show cluster centers
+                 palette = "jco",         # Color palette see ?ggpubr::ggpar
+                 ggtheme = theme_minimal(),
+                 main = "Factor map"
+    )
+  print(plot1)
+  print(plot2)
   #Hierarchical Clustering
   #compute dissimilarity matrix for all data
   eu.d <- dist(pcaData, method = "euclidean")
