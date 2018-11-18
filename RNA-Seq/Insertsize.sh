@@ -218,7 +218,18 @@ java -jar /usr/share/java/picard.jar \
       H=test6_4_insert_size_histogram.pdf \
       M=0.5
 
-## checke the statistics saved in output metics file
+# Make a summary file from the tab-delimited summaries among all
+# *metrics.txt files.  This will generate a tab-separated file
+# that you can import into a spreadsheet program.  You will want
+# to remove the text in cell 1A of the resulting spreadsheet.  It
+# is spurious.
+ls *metrics.txt | sort | xargs grep -A 1 MEDIAN_INSERT_SIZE | grep -v '\-\-' \
+  | perl -e 'while(<>) { s/\.txt[:-]/\.txt\t/; print; } ' \
+  > /tmp/table.tab && \
+head -1 /tmp/table.tab > summary.tab && \
+grep -v MEDIAN_INSERT_SIZE /tmp/table.tab | sort >> summary.tab
+
+## check the statistics saved in output metics file
 ## head insert_size_metrics.txt
 ## htsjdk.samtools.metrics.StringHeader
 # CollectInsertSizeMetrics HISTOGRAM_FILE=insert_size_histogram.pdf MINIMUM_PCT=0.5 INPUT=test6_S1_L003Aligned.toTranscriptome.out.bam OUTPUT=insert_size_metrics.txt    DEVIATIONS=10.0 METRIC_ACCUMULATION_LEVEL=[ALL_READS] INCLUDE_DUPLICATES=false ASSUME_SORTED=true STOP_AFTER=0 VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_INDEX=false CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
