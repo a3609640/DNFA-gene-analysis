@@ -63,27 +63,31 @@ library(SummarizedExperiment)
 }
 
 
-doAll2 <- function() {
-testseq <- .readGeneCounts()
-
 ##################################################################################
 ## 3 Compare siNeg and siBF1 RNA-seq results for differentially expressed genes ##
 ##################################################################################
-## generate DESeq dataset for siRNA treatment
-testsiRNA <- data.frame(testseq[,c(5,6,7,8,9,10,11,12)])
-## check the read distribution by boxplot
-par(mar=c(3,12,2,1))
-boxplot(testsiRNA, outline=FALSE, horizontal=TRUE, las=1)
 
-## Prefiltering: by removing rows in which there are no reads or nearly no reads
-guideDatasiRNA <- testsiRNA[rowSums(testsiRNA)>1,]
-head(guideDatasiRNA)
-dim(guideDatasiRNA)
-## Lets see how the data looks in a box plot
-par(mar=c(3,12,2,1))
-boxplot(guideDatasiRNA, outline=FALSE, horizontal=TRUE, las=1)
+# TODO(dlroxe): again, this is exactly the same function as
+# found in FactoMineR
+.getGuideData <- function(testseq) {
+  ## check the distribution of RNA-Seq reads
+  par(mar=c(3,12,2,1))
+  boxplot(testseq, outline=FALSE, horizontal=TRUE, las=1)
+  ## Remove rows in which there are no reads or nearly no reads
+  guideData <- testseq[rowSums(testseq)>1,]
+  head(guideData)
+  dim(guideData)
+  ## check how the data distribution with boxplot after removing rows with no read
+  par(mar=c(3,12,2,1))
+  boxplot(guideData, outline=FALSE, horizontal=TRUE, las=1)
+  return(guideData)
+}
 
-# Time to create a design for our "modelling"
+doAll2 <- function() {
+testseq <- .readGeneCounts()
+guideDatasiRNA <- .getGuideData(
+  data.frame(testseq[,c(5,6,7,8,9,10,11,12)]))
+
 guideDesignsiRNA <- data.frame(row.names = colnames(guideDatasiRNA),
                                condition = c(rep("siNeg",4),rep("siBF1",4)))
 
