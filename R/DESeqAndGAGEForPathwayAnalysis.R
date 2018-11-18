@@ -83,20 +83,28 @@ library(SummarizedExperiment)
   return(guideData)
 }
 
+# TODO(dlroxe): again, same function as other file
+.getDDS <- function (guideData, guideDesign, condition) {
+  ## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
+  dds <- DESeqDataSetFromMatrix(countData = guideData,
+                                colData = guideDesign,
+                                design = ~ condition)
+  dds
+  head(assay(dds))
+  return(dds)  
+}
+
 doAll2 <- function() {
 testseq <- .readGeneCounts()
 guideDatasiRNA <- .getGuideData(
   data.frame(testseq[,c(5,6,7,8,9,10,11,12)]))
 
+condition <- c(rep("siNeg",4),rep("siBF1",4))
 guideDesignsiRNA <- data.frame(row.names = colnames(guideDatasiRNA),
-                               condition = c(rep("siNeg",4),rep("siBF1",4)))
+                               condition = condition)
 
-## object construction
-## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
-ddssiRNA <- DESeqDataSetFromMatrix(countData = guideDatasiRNA,
-                                   colData = guideDesignsiRNA,
-                                   design = ~ condition)
 ## specifying the reference level:
+ddssiRNA <- .getDDS(guideDatasiRNA, guideDesignsiRNA, condition)
 ddssiRNA$condition <- relevel(ddssiRNA$condition, ref = "siNeg")
 ddssiRNA
 
