@@ -1,26 +1,7 @@
-# The following script aim to find the differentially expressed genes between siSREBF1 and control siRNA treatment in melanoma HT-144 cells with DESeq package. And then perform pathway analysis on the differentially expressed genes.  
-
-dataRoot <- file.path("project-data")
-
-####################
-## 1 Preparations ##
-####################
-# set global chunk options and load the neccessary packages
-chooseCRANmirror()
-
-#BiocManager::install("genefilter")
-#BiocManager::install("apeglm")
-#BiocManager::install("ashr")
-#BiocManager::install("BiocStyle")
-#BiocManager::install("biomaRt")
-#BiocManager::install("DESeq2")
-#BiocManager::install("gage")
-#BiocManager::install("gageData")
-#BiocManager::install("pathview")
-#BiocManager::install("RcppArmadillo")
-#BiocManager::install("ReactomePA")
-#BiocManager::install("rmarkdown")
-#install.packages("https://cran.r-project.org/src/contrib/Archive/RcppArmadillo/RcppArmadillo_0.6.100.0.0.tar.gz", repos=NULL, type="source")
+# The following script aim to find the differentially expressed
+# genes between siSREBF1 and control siRNA treatment in melanoma
+# HT-144 cells with DESeq package. And then perform pathway
+# analysis on the differentially expressed genes.  
 
 library(ashr)
 library(apeglm)
@@ -58,22 +39,32 @@ library(GenomeInfoDb)
 library(GenomicRanges)
 library(ReactomePA)
 library(SummarizedExperiment)
-#######
 
-doAll2 <- function() {
 ################################
 ## 2 Preparing count matrices ##
 ################################
-# obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
-# The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
-# read processed RNA-seq read data from file testseq.csv.
-testseqCSV <- file.path(dataRoot, "gene-counts-from-Makefile.csv")
-testseq <- read.csv(testseqCSV)
-# Use the column one (Ensemble names) as columnn names.
-testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
-# Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
-testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
 
+# TODO(dlroxe): This function is copied from the FactoMineR file.
+# Find a single place to define it in common for all callers.
+.readGeneCounts <- function () {
+  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
+  # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
+  # read processed RNA-seq read data from file testseq.csv.
+  testseq <- read.csv(file.path("project-data", "gene-counts-from-Makefile.csv"))
+  # Use the column one (Ensemble names) as columnn names.
+  testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
+  # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
+  testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
+  
+  ## remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
+  testseq <- testseq[-25]
+  
+  return(testseq)
+}
+
+
+doAll2 <- function() {
+testseq <- .readGeneCounts()
 
 ##################################################################################
 ## 3 Compare siNeg and siBF1 RNA-seq results for differentially expressed genes ##
