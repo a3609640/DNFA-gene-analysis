@@ -72,18 +72,17 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
   return(guideData)
 }
 
-.getGuideDesign <- function(guideData) {
+.getGuideDesign <- function(guideData, condition) {
   ## create a design for our "modelling" 
   ## each sample contains four technical replicates
   return(data.frame(row.names = colnames(guideData),
-                            condition = c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
-                                          rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))))
+                            condition = condition))
 }
 
 #######################################################
 ### 3. Construct DESeqDataSet from the count matrix ###
 #######################################################
-.getDDS <- function (guideData) {
+.getDDS <- function (guideData, condition) {
   ## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
   dds <- DESeqDataSetFromMatrix(countData = guideData,colData = guideDesign,design = ~ condition)
   dds
@@ -445,8 +444,10 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 #doAll1 <- function() {
 testseq <- .readGeneCounts()
 guideData <- .getGuideData(testseq)
-guideDesign <- .getGuideDesign(guideData)
-dds <- .getDDS(guideData)
+condition <- c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
+               rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))
+guideDesign <- .getGuideDesign(guideData, condition)
+dds <- .getDDS(guideData, condition)
 ddsDE <- DESeq(dds)
 res <- .getDDSRES(ddsDE)
 rld <- .makeHeatMap(guideDesign, ddsDE)
