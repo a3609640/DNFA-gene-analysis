@@ -52,14 +52,15 @@ This software assumes that various tools are already available in your
 environment.  If you have not done so already, it will be useful for you to do
 the following (for Debian-based environments):
 
-* `sudo apt-get install bamtools`                                                                      
-* `sudo apt-get install bedtools`                                                                     
-* `sudo apt-get install git-lfs  # needed for large .fastq raw data files`                            
-* `sudo apt-get install libssl-dev  # needed by various R packages`                                   
-* `sudo apt-get install python-pip  # (note, use python 2.7)`                                          
-* `sudo apt-get install r-base`                                                                       
-* `sudo apt-get install r-recommended`                                                                
-* `sudo apt-get install samtools`                           
+* `sudo apt-get install bamtools`
+* `sudo apt-get install bedtools`
+* `sudo apt-get install git-lfs  # needed for large .fastq raw data files`
+* `sudo apt-get install libssl-dev  # needed by various R packages`
+* `sudo apt-get install picard-tools  # needed for insert size analysis`
+* `sudo apt-get install python-pip  # (note, use python 2.7)`
+* `sudo apt-get install r-base`
+* `sudo apt-get install r-recommended`
+* `sudo apt-get install samtools`
 
 ## Cloning this Package from Github
 

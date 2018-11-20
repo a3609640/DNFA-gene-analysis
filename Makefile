@@ -38,7 +38,7 @@ GUNZIP=gunzip -k
 MKDIR=mkdir -m 755 -p
 
 # in accord with usual conventions, the first target is named 'all'
-all: bamfiles $(extDataDir)/gene-counts.csv projectreadfiles
+all: bamfiles $(extDataDir)/gene-counts.csv projectreadfiles $(extDataDir)/insertsizesummary.tab
 
 #############################################
 # install the STAR aligner software package #
@@ -134,6 +134,28 @@ bamfiles: $(foreach id, $(testIDs), $(extDataDir)/test$(id)Aligned.sorted.bam)
 samfiles: $(foreach id, $(testIDs), $(extDataDir)/test$(id)Aligned.out.sam)
 readfiles: $(foreach id, $(testIDs), $(extDataDir)/test$(id)ReadsPerGene.out.tab)
 projectreadfiles: $(foreach id, $(testIDs), $(projectExtDataDir)/test$(id)ReadsPerGene.out.tab)
+insertmetrics: $(foreach id, $(testIDs), $(extDataDir)/test$(id)_insert_size_metrics.txt)
+
+# Make a summary file from the tab-delimited summaries among all
+# *metrics.txt files.  This will generate a tab-separated file
+# that you can import into a spreadsheet program.
+$(extDataDir)/insertsizesummary.tab: | insertmetrics
+	cd $(@D) && \
+        ls *metrics.txt | sort | xargs grep -A 1 MEDIAN_INSERT_SIZE | grep -v '\-\-' \
+          | perl -e 'while(<>) { s/\.txt[:-]/\.txt\t/; print; } ' \
+          > /tmp/table.tab && \
+        head -1 /tmp/table.tab \
+          | perl -e 'while (<>) { s/^.*?\t/x\t/; print; }' > insertsizesummary.tab && \
+        grep -v MEDIAN_INSERT_SIZE /tmp/table.tab | sort >> insertsizesummary.tab
+
+$(extDataDir)/%_insert_size_metrics.txt : $(extDataDir)/%Aligned.toTranscriptome.out.bam
+	java -jar /usr/share/java/picard.jar \
+	      CollectInsertSizeMetrics \
+	      I=$< \
+	      O=$@ \
+	      H=$(extDataDir)/$*_insert_size_histogram.pdf \
+	      M=0.5
+
 
 # Likewise, the full list of .fastq.gz files is generated here.  This also
 # permits all the .fastq.gz files to be extracted from the archive file with
@@ -189,7 +211,9 @@ $(extDataDir)/%.sorted.bam : $(extDataDir)/%.out.sam | $$(@D)
 # --quantMode GeneCounts option will count number reads per gene while mapping.
 # --quantMode TranscriptomeSAM GeneCounts option will get both the Aligned.toTranscriptome.out.bam and ReadsPerGene.out.tab output files.
 
-$(extDataDir)/%ReadsPerGene.out.tab $(extDataDir)/%Aligned.out.sam : $(starBinDir)/STAR \
+$(extDataDir)/%ReadsPerGene.out.tab \
+  $(extDataDir)/%Aligned.out.sam \
+  $(extDataDir)/%Aligned.toTranscriptome.out.bam: $(starBinDir)/STAR \
                              $(gtf) \
                              ${DNFA_raw_data_basedir}/*/%_R1_001.fastq.gz \
                              ${DNFA_raw_data_basedir}/*/%_R2_001.fastq.gz \
@@ -207,8 +231,8 @@ $(extDataDir)/%ReadsPerGene.out.tab $(extDataDir)/%Aligned.out.sam : $(starBinDi
 $(projectExtDataDir)/%ReadsPerGene.out.tab : $(extDataDir)/%ReadsPerGene.out.tab
 	ln -s $< $@
 
-$(extDataDir)/gene-counts.csv: R/DESeqDataPreparation.R readfiles
-	Rscript $<
+$(extDataDir)/gene-counts.csv: R/DESeqDataPreparation.R | readfiles
+	Rscript $< 
 
 # To make a given .fastq.gz file, first we need the .tar file that contains
 # it, and a directory in which to put it.  Given that, we can execute a tar
@@ -283,4 +307,5 @@ clean_fastqfiles:
 .PHONY: all \
         clean clean_starindex clean_refgenome \
         clean_samfiles clean_bamfiles \
-        reference_genome samfiles bamfiles
+        readfiles reference_genome samfiles bamfiles
+
