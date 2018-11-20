@@ -1,0 +1,21 @@
+This github repository was initially generated to support the academic publication of DNFA manuscript.
+
+There are several major pipelines used in the manuscript.
+
+1.	DNFA gene expression analysis in TCGA and GTEx databases.
+    Including the R script:   TCGA.R
+                              GTEx.R
+                              Xena.R
+
+2.	DNFA gene expression analysis in single cell RNA-seq dataset
+    Including the R script:   scRNA-Seq.R
+
+3.	RNA-seq analysis for ASO reagent specificity
+    Including the R scripts:  Makefile
+                              DESeqDataPreparation
+                              DESeqandFactoMineRforASOSpecificity.R
+
+4.	Pathway analyses for RNA-Seq and ChIP-Seq analyses
+    Including the scripts: 	  MACSandHOMERforChIP-Seq.sh
+			                        ChIPseeker.R
+			                        DESeqandGAGEforPathwayAnalysis.R
