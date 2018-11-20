@@ -145,8 +145,8 @@ $(extDataDir)/insertsizesummary.tab: | insertmetrics
           | perl -e 'while(<>) { s/\.txt[:-]/\.txt\t/; print; } ' \
           > /tmp/table.tab && \
         head -1 /tmp/table.tab \
-          | perl -e 'while (<>) { s/^.*?\t/x\t/; print; }' > insertsizesummary.tab && \
-        grep -v MEDIAN_INSERT_SIZE /tmp/table.tab | sort >> insertsizesummary.tab
+          | perl -e 'while (<>) { s/^.*?\t/x\t/; print; }' > $@ && \
+        grep -v MEDIAN_INSERT_SIZE /tmp/table.tab | sort >> $@
 
 $(extDataDir)/%_insert_size_metrics.txt : $(extDataDir)/%Aligned.toTranscriptome.out.bam
 	java -jar /usr/share/java/picard.jar \
