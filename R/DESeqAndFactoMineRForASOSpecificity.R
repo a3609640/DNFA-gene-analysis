@@ -40,7 +40,7 @@ black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
 lockBinding("black.bold.18.text", globalenv())
 
 .readGeneCounts <- function () {
-  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
+  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
   # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
   # read processed RNA-seq read data from file testseq.csv.
   testseq <- read.csv(file.path("project-data", "gene-counts-from-Makefile.csv"))
@@ -73,7 +73,7 @@ lockBinding("black.bold.18.text", globalenv())
 }
 
 .getGuideDesign <- function(guideData, condition) {
-  ## create a design for our "modelling" 
+  ## create a design for our "modelling"
   ## each sample contains four technical replicates
   return(data.frame(row.names = colnames(guideData),
                             condition = condition))
@@ -89,7 +89,7 @@ lockBinding("black.bold.18.text", globalenv())
                                 design = ~ condition)
   dds
   head(assay(dds))
-  return(dds)  
+  return(dds)
 }
 
 ######################################################
@@ -100,10 +100,10 @@ lockBinding("black.bold.18.text", globalenv())
 # (2) estimation of dispersion: estimateDispersions
 # (3) Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
 .getDDSRES <- function(ddsDE) {
-  ddsres <- results(ddsDE)  
+  ddsres <- results(ddsDE)
   summary(ddsres)
   res <- data.frame(ddsres)
-  return(ddsres)  
+  return(ddsres)
 }
 
 ########################################################
@@ -145,12 +145,12 @@ lockBinding("black.bold.18.text", globalenv())
   pcaPlot <- ggplot(
     data=pcaData,
     aes_string(x="PC1", y="PC2", color="condition")
-    ) + 
-    geom_point(size=3) + 
-    theme_bw() + 
-    xlim(-10, 6) + 
+    ) +
+    geom_point(size=3) +
+    theme_bw() +
+    xlim(-10, 6) +
     ylim(-6, 6) +
-    theme(text = black.bold.18.text, 
+    theme(text = black.bold.18.text,
           axis.text = black.bold.18.text,
           axis.line.x = element_line(color="black", size=1),
           axis.line.y = element_line(color="black", size=1),
@@ -214,23 +214,23 @@ lockBinding("black.bold.18.text", globalenv())
 .addGeneIdentifiers <- function(res) {
   columns(org.Hs.eg.db)
   res$symbol = mapIds(org.Hs.eg.db,
-                      keys=row.names(res), 
+                      keys=row.names(res),
                       column="SYMBOL",
                       keytype="ENSEMBL",
                       multiVals="first")
   res$entrez = mapIds(org.Hs.eg.db,
-                      keys=row.names(res), 
+                      keys=row.names(res),
                       column="ENTREZID",
                       keytype="ENSEMBL",
                       multiVals="first")
   res$name =   mapIds(org.Hs.eg.db,
-                      keys=row.names(res), 
+                      keys=row.names(res),
                       column="GENENAME",
                       keytype="ENSEMBL",
                       multiVals="first")
   summary(res)
   head(res, 10)
-  return(res)  
+  return(res)
 }
 
 ##################################################################
@@ -245,20 +245,20 @@ lockBinding("black.bold.18.text", globalenv())
   head(assay(rld))
   assayrld <- assay(rld)
   Pvars <- rowVars(assayrld)
-  select <- order(Pvars, decreasing = TRUE)[seq_len(min(500, 
+  select <- order(Pvars, decreasing = TRUE)[seq_len(min(500,
                                                         length(Pvars)))]
-  
+
   columns(org.Hs.eg.db)
   row.names(assayrld) = mapIds(org.Hs.eg.db,
-                               keys=row.names(assayrld), 
+                               keys=row.names(assayrld),
                                column="SYMBOL",
                                keytype="ENSEMBL",
                                multiVals="first")
-  
-  
+
+
   assayrld <-data.frame(t(assayrld[select, ]))
   assayrld$condition = guideDesign$condition
-  
+
   con = c("Mock-1", "Mock-2", "Mock-3", "Mock-4",
           "siNegative-1", "siNegative-2", "siNegative-3", "siNegative-4",
           "siSREBF1-1", "siSREBF1-2", "siSREBF1-3", "siSREBF1-4",
@@ -294,7 +294,7 @@ lockBinding("black.bold.18.text", globalenv())
           col ="steelblue")
   lines(x = 1:nrow(eigen), eigen[, 2],
         type="b", pch=19, col = "red")
-  
+
  #     plot biplot graph with the top six contributing genes to PCA from RNA-Seq
   percentVar <- round(100 * attr(pcaData, "percentVar"))
   pcaBiplot <-
@@ -419,8 +419,8 @@ lockBinding("black.bold.18.text", globalenv())
   quanti.correlation.dim1 = dim1$quanti.correlation
   names(quanti.correlation.dim1) = dim1$entrez
   head(quanti.correlation.dim1)
-  
-  
+
+
   res.desc$Dim.2
   dim2 <-data.frame(res.desc$Dim.2)
   columns(org.Hs.eg.db)
@@ -463,11 +463,11 @@ lockBinding("black.bold.18.text", globalenv())
   geneCounts$condition <- factor(
     geneCounts$condition,
     levels = c("Mock","siNegative","siSREBF1","ASO-Neg","ASO-1","ASO-4"))
-  return(geneCounts)  
+  return(geneCounts)
 }
 
 .makeGeneCountPlot <- function(countsAndConditions, title, ylim1, ylim2) {
-  normalizedGeneCountTheme <- 
+  normalizedGeneCountTheme <-
     theme_bw() +
     theme(text = black.bold.18.text,
           axis.text = black.bold.18.text,
@@ -502,67 +502,67 @@ main <- function() {
   ddsDE <- DESeq(dds)
   res <- .getDDSRES(ddsDE)
   rld <- .makeHeatMap(guideDesign, ddsDE)
-  
+
   pcaData <- .makePcaPlot(rld)
   .plotPCA3D(rld, intgroup = "condition", ntop = 5000, returnData = FALSE)
-  
+
   res <- .addGeneIdentifiers(res)
   assayrld <- .annotateRld(rld, guideDesign)
   res.pca <- .makeAnnotatedPcaPlot(assayrld)
-  
+
   .makeBiplot(assayrld, res.pca, pcaData)
-  
+
   .makeHierarchicalCluster(res.pca, pcaData)
-  
+
   .findTopPrincipalComponentContributors(res.pca)
-  
-  
+
+
   # TODO(dlroxe): Use a function to derive "ENSG.." from
   # gene name.  Then the following repeated calls can be
   # collapsed into a single function that iterates over
   # a list of SREBF1, SCD, etc.
   SREBF1 <- .getCountsAndConditions(dds, "ENSG00000072310")
   .makeGeneCountPlot(SREBF1, "SREBF1", 8, 10.5)
-  
+
   SCD <- .getCountsAndConditions(dds, "ENSG00000099194")
   .makeGeneCountPlot(SCD, "SCD", 13, 14.5)
-  
+
   FASN <- .getCountsAndConditions(dds, "ENSG00000169710")
   .makeGeneCountPlot(FASN, "FASN", 12, 13.25)
-  
+
   ACACA <- .getCountsAndConditions(dds, "ENSG00000278540")
   .makeGeneCountPlot(ACACA, "ACACA", 9.7, 10.5)
-  
+
   ACSL1 <- .getCountsAndConditions(dds, "ENSG00000169710")
   .makeGeneCountPlot(ACSL1, "ACSL1", 11.5, 13.5)
-  
+
   BRAF <- .getCountsAndConditions(dds, "ENSG00000157764")
   .makeGeneCountPlot(BRAF, "BRAF", 6, 9)
-  
+
   SPIRE1 <- .getCountsAndConditions(dds, "ENSG00000134278")
   .makeGeneCountPlot(SPIRE1, "SPIRE1", 4, 9)
-  
+
   USP9X <- .getCountsAndConditions(dds, "ENSG00000124486")
   .makeGeneCountPlot(USP9X, "USP9X", 7, 10)
-  
+
   INSIG1 <- .getCountsAndConditions(dds, "ENSG00000186480")
   .makeGeneCountPlot(INSIG1, "INSIG1", 10, 12)
-  
+
   YY1 <- .getCountsAndConditions(dds, "ENSG00000100811")
   .makeGeneCountPlot(YY1, "YY1", 8, 10.5)
-  
+
   FABP7 <- .getCountsAndConditions(dds, "ENSG00000164434")
   .makeGeneCountPlot(FABP7, "FABP7", 6, 9)
-  
+
   MITF <- .getCountsAndConditions(dds, "ENSG00000187098")
   .makeGeneCountPlot(MITF, "MITF", 10, 12)
-  
+
   SREBF2 <- .getCountsAndConditions(dds, "ENSG00000198911")
   .makeGeneCountPlot(SREBF2, "SREBF2", 10, 12)
-  
+
   HMGCR <- .getCountsAndConditions(dds, "ENSG00000113161")
   .makeGeneCountPlot(HMGCR, "HMGCR", 10, 12)
-  
+
   NRAS <- .getCountsAndConditions(dds, "ENSG00000213281")
   .makeGeneCountPlot(NRAS, "NRAS", 7, 9)
 }

@@ -1,7 +1,7 @@
 # The following script aim to find the differentially expressed
 # genes between siSREBF1 and control siRNA treatment in melanoma
 # HT-144 cells with DESeq package. And then perform pathway
-# analysis on the differentially expressed genes.  
+# analysis on the differentially expressed genes.
 
 library(ashr)
 library(apeglm)
@@ -47,7 +47,7 @@ library(SummarizedExperiment)
 # TODO(dlroxe): This function is copied from the FactoMineR file.
 # Find a single place to define it in common for all callers.
 .readGeneCounts <- function () {
-  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv. 
+  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
   # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
   # read processed RNA-seq read data from file testseq.csv.
   testseq <- read.csv(file.path("project-data", "gene-counts-from-Makefile.csv"))
@@ -55,10 +55,10 @@ library(SummarizedExperiment)
   testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
   # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
   testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
-  
+
   ## remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
   testseq <- testseq[-25]
-  
+
   return(testseq)
 }
 
@@ -91,7 +91,7 @@ library(SummarizedExperiment)
                                 design = ~ condition)
   dds
   head(assay(dds))
-  return(dds)  
+  return(dds)
 }
 
 doAll2 <- function() {
