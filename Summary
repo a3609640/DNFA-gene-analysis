@@ -2,12 +2,12 @@ This github repository was initially generated to support the academic publicati
 
 There are several major pipelines used in the manuscript.
 
-1.	DNFA gene expression analysis in TCGA and GTEx databases.
+1.	DNFA gene expression analysis with TCGA and GTEx databases.
     Including the R script:   TCGA.R
                               GTEx.R
                               Xena.R
 
-2.	DNFA gene expression analysis in single cell RNA-seq dataset
+2.	DNFA gene expression analysis on single cell RNA-seq dataset
     Including the R script:   scRNA-Seq.R
 
 3.	RNA-seq analysis for ASO reagent specificity
