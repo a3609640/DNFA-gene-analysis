@@ -46,7 +46,8 @@ getGeneTableFromFile <- function(geneDataFile) {
   geneDataTable <- read.csv(geneDataFile)
   geneDataTable <- geneDataTable[, -3:-4]
   #  remove (TCGA, Provisional) from the string, \\ to remove special character such as (), 
-  geneDataTable$Cancer.Study <- str_replace_all(geneDataTable$Cancer.Study, "\\(TCGA, Provisional\\)", "")
+  geneDataTable$Cancer.Study <- str_replace_all(geneDataTable$Cancer.Study, 
+                                                "\\(TCGA, Provisional\\)", "")
   return(geneDataTable)
 }
 ```
@@ -87,6 +88,10 @@ plotGene(geneDataFile="MITF.csv")
 
 ```{r, include = TRUE, echo = TRUE}
 gene.list <- list.files(dataDir, '.csv')
+## > list.files(dataDir, '.csv')
+##  [1] "ACACA.csv"  "ACLY.csv"   "ACSL1.csv"  "ACSS2.csv"  "FASN.csv"   "HMGCR.csv"  "HMGCS1.csv"
+##  [8] "LDLR.csv"   "MITF.csv"   "SCD.csv"    "SREBF1.csv" "SREBF2.csv"
+
 lapply(gene.list, plotGene)
 ```
 
