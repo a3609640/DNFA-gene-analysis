@@ -1,0 +1,21 @@
+Contributors so far are as follows:
+
+Dr. Su Wu, Ph.D.
+-----
+Dr. Wu developed all of the bioinformatic analysis, researched and selected
+the various R packages on which this project depends, and determined how to
+generate each figure, as part of her original academic research.  She is the
+github project owner.
+
+
+David Roxe
+-----
+Mr. Roxe supplies general software engineering expertise in a strictly
+supporting role.  He has contributed the Makefile, R code organization
+(strictly refactoring of original code by Dr. Wu), technical content
+in README.md, organization of files for overall project structure, and
+the like.
+
+
+Additional contributors are in principle welcome.  If you would like to
+contribute, the best first step is to contact Dr. Wu to discuss particulars.

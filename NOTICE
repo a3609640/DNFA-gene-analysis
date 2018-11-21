@@ -1,8 +1,14 @@
-2018 Oct 27
+DNFA-gene-analysis
 
-Initial version of this file.
+Copyright 2018 Su Wu
 
-This project contains original academic work by Su Wu
+This project contains original academic work by Dr. Su Wu, Ph.D.
 for bioinformatics analysis of sequencing data associated with her
-investigations of de novo fatty acid synthesis and its
-role in cancer.
+investigations at the Massachusetts General Hospital Center for
+Cancer Research of de novo fatty acid synthesis and its role in
+cancer.
+
+This project contains patches supplied by David Roxe under the
+open-source patching policy of his employer, who claims certain
+rights as part of that policy:
+https://opensource.google.com/docs/patching/#patches-that-dont-require-any-review
