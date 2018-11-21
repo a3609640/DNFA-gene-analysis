@@ -101,8 +101,11 @@ ensure that necessary shell environment variables are set.
 ## First Steps
 
 From the top-level directory of your Git project clone, the first command to
-invoke, after `source configuration`, is `make bamfiles`.
-That script will download the sources for a specific version of STAR, and
+invoke, after `source configuration`, is `make`.
+
+That will execute all workflows associated with the project (the workflows
+are described in detail below).  For the 'asospecificity' workflow in particular,
+it will download the sources for a specific version of STAR, and
 compile them on your machine.  Then it will download and sequence a reference
 human genome.  Then it will process various project-specific files against That
 reference genome, ultimately converting them from .fastq.gz to .bam format.
@@ -194,22 +197,50 @@ a time. Eventually you will find that your project has a gibberish Makefile
 too, but to your surprise it will work, and to your even greater surprise
 you will understand it. (Well, that's not a promise, on either count.  YMMV.)
 
-### Features Provided by This Project's Makefile
+# Workflows Provided by This Project
 
-This Makefile permits fine-grained control over the full processing pipeline.
-The only required input is a .tar file with that contains all the raw .fastq.gz
-data.  Everything else can be generated from scratch, given that file and an
+This Makefile permits fine-grained control over multiple full processing
+pipelines.  The only required input is a .tar file with that contains all
+the raw .fastq.gz data (which are now also archived with NIH GEO under
+accession number GSE122707).
+
+Everything else can be generated from scratch, given that file and an
 internet connection.
 
-Useful targets include:
+The commands `make` or `make all` will build everything, from soup to nuts.
 
-* `make` or `make all` or `make bamfiles` -- This will build everything, from
-    soup to nuts.  The generated .bam files (and their output directory) may
-    be removed with `make clean_bamfiles`.
+The following specific workflows are also supported:
+
+## DNFA gene expression analysis with TCGA and GTEx databases.
+(Automated workflow still under development.)
+
+This depends on R/TCGA.R, R/GTEx.R, R/Xena.R
+
+## DNFA gene expression analysis on single cell RNA-seq dataset
+(Automated workflow still under development.)
+
+This depends on R/scRNA-Seq.R
+
+## RNA-seq analysis for ASO reagent specificity
+This workflow depends upon Makefile, R/DESeqDataPreparation.R,
+and DESeqandFactoMineRforASOSpecificity.R.  The Makefile
+is capable of executing the workflow through the generation
+of a gene-counts.csv file.  That file is used as input for
+R scripts, which must (for the time being) be executed
+separately.  Note that two versions of the gene-counts.csv
+file are checked into GitHub under this project's project-data
+directory.
+
+Specific targets associated with this workflow include the following:
+
+* `make asoanalysis` -- executes the entire workflow
+
+* `make bamfiles` -- The generated .bam files (and their output directory)
+    may be removed with `make clean_bamfiles`.
 
 * `make samfiles` -- Build everything but stop short of the 'samtools sort'
-    step.  The generated .sam files (and their output directory) may be removed
-    with `make clean_samfiles`.
+    step.  The generated .sam files (and their output directory) may be
+    removed with `make clean_samfiles`.
 
 * `make reference_genome` -- Build STAR, then download human genome data and
     create a reference genome.  Do not attempt to process any .fastq.gz data
@@ -227,3 +258,9 @@ Useful targets include:
     be generated with `make [filename]`, provided that the full filename
     in the generated data directories specified in 'configuration' is
     known.
+
+## Pathway analyses for RNA-Seq and ChIP-Seq analyses
+(Automated workflow still under development.)
+
+This depends on: ChIP-Seq/MACSandHOMERforChIP-Seq.sh, R/ChIPseeker.R,
+R/DESeqandGAGEforPathwayAnalysis.R.

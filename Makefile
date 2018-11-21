@@ -1,12 +1,12 @@
 # This Makefile is designed for use with GNU Make.
-#
+# 
 # See also https://www.gnu.org/software/make/manual/make.html .
-#
+# 
 # For a discussion of "automatic variables" such as $@, $<,
 # $(@D), $(<F), and the like see in particular that section of the manual:
-#
+# 
 # https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html#Automatic-Variables
-#
+# 
 
 include configuration  # automatically grab environment variables for local env
 
@@ -38,7 +38,12 @@ GUNZIP=gunzip -k
 MKDIR=mkdir -m 755 -p
 
 # in accord with usual conventions, the first target is named 'all'
-all: bamfiles $(extDataDir)/gene-counts.csv projectreadfiles $(extDataDir)/insertsizesummary.tab
+all: asoanalysis
+
+asoanalysis: bamfiles \
+             $(extDataDir)/gene-counts.csv \
+             projectreadfiles \
+             $(extDataDir)/insertsizesummary.tab
 
 #############################################
 # install the STAR aligner software package #
