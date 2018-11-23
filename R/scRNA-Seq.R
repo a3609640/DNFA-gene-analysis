@@ -4,8 +4,6 @@ library(gplots)
 library(grid)
 library(data.table)
 
-singleRNAseq <- fread("GSE72056_melanoma_single_cell_revised_v2.txt")
-
 get_lipogenesis_data <- function(data) {
   # -----------------------------------------------------------------------------------------------
   #select the genes of interest
@@ -49,6 +47,8 @@ get_lipogenesis_data <- function(data) {
 
 doAll4 <- function() {
 
+# TODO(suwu): make the following .txt file available in GitHub
+singleRNAseq <- fread("GSE72056_melanoma_single_cell_revised_v2.txt")
 lipogenesis_data <- get_lipogenesis_data(singleRNAseq)
 
 # select RNA-seq data from malignant or non-malignant cells
