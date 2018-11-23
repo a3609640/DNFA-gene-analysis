@@ -226,8 +226,8 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF2)) +
 ggplot(totalgeneset, aes(x=factor(tumor), y=MITF)) +
   geom_boxplot(size = 1,
                outlier.colour=NA,
-               color="black",
-               aes(fill = malignancy)) +
+               color="black", # the lines for boxplot is in black color. 
+               aes(fill = malignancy)) +   
   labs(x = "tumor samples", y = "MITF mRNA counts") +
   theme_bw()+
   theme(axis.title=element_text(face="bold",size=18,color="black"),
