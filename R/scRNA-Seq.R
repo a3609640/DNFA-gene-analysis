@@ -4,6 +4,20 @@ library(gplots)
 library(grid)
 library(data.table)
 
+# Select specific lipogenesis genes from data
+#
+# The DATA parameter is expected to contain the raw RNAseq
+# data from rnaseq.rda.  This function modifies it as follows:
+#
+# 1. Transpose the data so that cells are rows rather than columns.
+# 2. Create a data frame from transposed data.
+# 3. Rename a column that describes malignant state to 'malignancy'.
+# 4. Renames numeric elements of the "malignancy" column with the
+#    English words "Unresolved", "Malignant", or "Non-malignant".
+#
+# The resulting data frame is returned to the caller.
+
+
 get_lipogenesis_data <- function(data) {
   # -----------------------------------------------------------------------------------------------
   #select the genes of interest
@@ -47,8 +61,11 @@ get_lipogenesis_data <- function(data) {
 
 doAll4 <- function() {
 
-# TODO(suwu): make the following .txt file available in GitHub
-singleRNAseq <- fread("GSE72056_melanoma_single_cell_revised_v2.txt")
+# Single cell RNA-seq data of melanomas were downloaded from GSE72056.
+# the downloaded txt file GSE72056_melanoma_single_cell_revised_v2.txt is saved in the project-data folder.
+# This data table is over 300 Mb, so we used the fread function in R package data.table to quickly import 
+# the dataset as a dataframe. (read.csv takes too long to read such a big file.)
+singleRNAseq <- fread("GSE72056_melanoma_single_cell_revised-2.txt")
 lipogenesis_data <- get_lipogenesis_data(singleRNAseq)
 
 # select RNA-seq data from malignant or non-malignant cells
@@ -257,3 +274,4 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=AXL)) +
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
 
 }
+ 
