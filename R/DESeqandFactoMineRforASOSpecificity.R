@@ -395,25 +395,10 @@ lockBinding("black.bold.18.text", globalenv())
   dim1 <-data.frame(res.desc$Dim.1)
   columns(org.Hs.eg.db)
   # TODO(dlroxe): Figure out why it is necessary to comment out
-  # the mapIDs calls, here and for Dim.2 below.  Perhaps they
-  # don't work (and are needless anyway) because the work was
-  # done when .addGeneIdentifiers() was called elsewhere?
+  # gene identifier assignment, here and for Dim.2 below.
 
-  #dim1$symbol = mapIds(org.Hs.eg.db,
-  #                     keys=row.names(dim1),
-  #                     column="SYMBOL",
-  #                     keytype="ENSEMBL",
-  #                     multiVals="first")
-  #dim1$entrez = mapIds(org.Hs.eg.db,
-  #                     keys=row.names(dim1),
-  #                     column="ENTREZID",
-  #                     keytype="ENSEMBL",
-  #                     multiVals="first")
-  #dim1$name =   mapIds(org.Hs.eg.db,
-  #                     keys=row.names(dim1),
-  #                     column="GENENAME",
-  #                     keytype="ENSEMBL",
-  #                     multiVals="first")
+  #head(dim1,10)
+  #dim1 <- .addGeneIdentifiers(dim1)
   summary(dim1)
   head(dim1,10)
   quanti.correlation.dim1 = dim1$quanti.correlation
@@ -424,21 +409,7 @@ lockBinding("black.bold.18.text", globalenv())
   res.desc$Dim.2
   dim2 <-data.frame(res.desc$Dim.2)
   columns(org.Hs.eg.db)
-  #dim2$symbol = mapIds(org.Hs.eg.db,
-  #                     keys=row.names(dim2),
-  #                     column="SYMBOL",
-  #                     keytype="ENSEMBL",
-  #                     multiVals="first")
-  #dim2$entrez = mapIds(org.Hs.eg.db,
-  #                     keys=row.names(dim2),
-  #                     column="ENTREZID",
-  #                     keytype="ENSEMBL",
-  #                     multiVals="first")
-  #dim2$name =   mapIds(org.Hs.eg.db,
-  #                     keys=row.names(dim2),
-  #                     column="GENENAME",
-  #                     keytype="ENSEMBL",
-  #                     multiVals="first")
+  # dim1 <- .addGeneIdentifiers(dim1)
   summary(dim2)
   head(dim2,10)
 }
@@ -492,7 +463,7 @@ lockBinding("black.bold.18.text", globalenv())
   print(plot)
 }
 
-main <- function() {
+analyze_aso_specificity <- function() {
   testseq <- .readGeneCounts()
   guideData <- .getGuideData(testseq)
   condition <- c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
@@ -567,4 +538,6 @@ main <- function() {
   .makeGeneCountPlot(NRAS, "NRAS", 7, 9)
 }
 
-main()
+if (interactive()) {
+  analyze_aso_specificity()
+}
