@@ -1,5 +1,5 @@
 library(plyr)
-library(ggplot2) 
+library(ggplot2)
 library(gplots)
 library(grid)
 library(data.table)
@@ -21,10 +21,10 @@ library(data.table)
 get_lipogenesis_data <- function(data) {
   # -----------------------------------------------------------------------------------------------
   #select the genes of interest
-  SREBF1 <- data[data$Cell=="SREBF1",] 
+  SREBF1 <- data[data$Cell=="SREBF1",]
   SREBF2 <- data[data$Cell=="SREBF2",]
-  FASN <- data[data$Cell=="FASN",] 
-  SCD <- data[data$Cell=="SCD",] 
+  FASN <- data[data$Cell=="FASN",]
+  SCD <- data[data$Cell=="SCD",]
   ACACA <- data[data$Cell=="ACACA",]
   ACSS2 <- data[data$Cell=="ACSS2",]
   ACSL1 <- data[data$Cell=="ACSL1",]
@@ -37,11 +37,11 @@ get_lipogenesis_data <- function(data) {
   AXL <- data[data$Cell=="AXL",]
   tumor <- data[data$Cell=="tumor",]
   malignant <- data[data$Cell=="malignant(1=no,2=yes,0=unresolved)",]
-  
+
   # -----------------------------------------------------------------------------------------------
   #combine them into a new table "geneset"
   geneset <- rbind(tumor,malignant,SREBF1,SREBF2,FASN,SCD,ACACA,ACSS2,ACLY,ACSL1,HMGCR,HMGCS1,PPARGC1A,PPARGC1B,MITF,AXL)
-  
+
   ## transpose the table
   # first remember the names
   n <- geneset$Cell
@@ -63,7 +63,7 @@ doAll4 <- function() {
 
 # Single cell RNA-seq data of melanomas were downloaded from GSE72056.
 # the downloaded txt file GSE72056_melanoma_single_cell_revised_v2.txt is saved in the project-data folder.
-# This data table is over 300 Mb, so we used the fread function in R package data.table to quickly import 
+# This data table is over 300 Mb, so we used the fread function in R package data.table to quickly import
 # the dataset as a dataframe. (read.csv takes too long to read such a big file.)
 singleRNAseq <- fread("GSE72056_melanoma_single_cell_revised-2.txt")
 lipogenesis_data <- get_lipogenesis_data(singleRNAseq)
@@ -75,15 +75,16 @@ levels(totalgeneset$tumor)
 malignantgeneset <- subset(lipogenesis_data, malignancy == "Malignant")
 nonmalignantgeneset <- subset(lipogenesis_data, malignancy == "Non-malignant")
 
-#############################################################################################################################
-#compare single cell SREBF1 expression level in malignant and non-malignant cells using boxplot graph within the same graph##
-#############################################################################################################################
-ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF1)) + 
-  geom_boxplot(size = 1, 
-               outlier.colour=NA, 
-               aes(fill = malignancy)) + 
-  labs(x = "tumor samples", y = "SREBF1 mRNA counts") + 
-  theme_bw()+ 
+#########################################################################################
+## compare DNFA gene expression in malignant and non-malignant single cell RNASeq data ##
+#########################################################################################
+ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF1)) +
+  geom_boxplot(size = 1,
+               outlier.colour=NA,
+               color="black",
+               aes(fill = malignancy)) +
+  labs(x = "tumor samples", y = "SREBF1 mRNA counts") +
+  theme_bw()+
   theme(axis.title=element_text(face="bold",size=18,color="black"),
         axis.text=element_text(size=18,face="bold",color="black"),
         axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
@@ -97,21 +98,22 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF1)) +
         panel.border = element_blank(),
         panel.background = element_blank(),
         legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1), 
-        legend.justification=c(-0.1,1.1), 
+        legend.position=c(0,1),
+        legend.justification=c(-0.1,1.1),
         legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) + 
-  guides(fill=guide_legend(title=NULL)) + 
+        legend.background = element_rect(fill = "white")) +
+  guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
 
 # -----------------------------------------------------------------------------------------------
-ggplot(totalgeneset, aes(x=factor(tumor), y=FASN)) + 
-  geom_boxplot(size = 1, 
-               outlier.colour=NA, 
-               aes(fill = malignancy)) + 
-  labs(x = "tumor samples", y = "FASN mRNA counts") + 
-  theme_bw()+ 
+ggplot(totalgeneset, aes(x=factor(tumor), y=FASN)) +
+  geom_boxplot(size = 1,
+               outlier.colour=NA,
+               color="black",
+               aes(fill = malignancy)) +
+  labs(x = "tumor samples", y = "FASN mRNA counts") +
+  theme_bw()+
   theme(axis.title=element_text(face="bold",size=18,color="black"),
         axis.text=element_text(size=18,face="bold",color="black"),
         axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
@@ -125,21 +127,22 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=FASN)) +
         panel.border = element_blank(),
         panel.background = element_blank(),
         legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1), 
-        legend.justification=c(-0.1,1.1), 
+        legend.position=c(0,1),
+        legend.justification=c(-0.1,1.1),
         legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) + 
-  guides(fill=guide_legend(title=NULL)) + 
+        legend.background = element_rect(fill = "white")) +
+  guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
 
 # -----------------------------------------------------------------------------------------------
-ggplot(totalgeneset, aes(x=factor(tumor), y=SCD)) + 
-  geom_boxplot(size = 1, 
-               outlier.colour=NA, 
-               aes(fill = malignancy)) + 
-  labs(x = "tumor samples", y = "SCD mRNA counts") + 
-  theme_bw()+ 
+ggplot(totalgeneset, aes(x=factor(tumor), y=SCD)) +
+  geom_boxplot(size = 1,
+               outlier.colour=NA,
+               color="black",
+               aes(fill = malignancy)) +
+  labs(x = "tumor samples", y = "SCD mRNA counts") +
+  theme_bw()+
   theme(axis.title=element_text(face="bold",size=18,color="black"),
         axis.text=element_text(size=18,face="bold",color="black"),
         axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
@@ -153,21 +156,22 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=SCD)) +
         panel.border = element_blank(),
         panel.background = element_blank(),
         legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1), 
-        legend.justification=c(-0.1,1.1), 
+        legend.position=c(0,1),
+        legend.justification=c(-0.1,1.1),
         legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) + 
-  guides(fill=guide_legend(title=NULL)) + 
+        legend.background = element_rect(fill = "white")) +
+  guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
 
 # -----------------------------------------------------------------------------------------------
-ggplot(totalgeneset, aes(x=factor(tumor), y=ACACA)) + 
-  geom_boxplot(size = 1, 
-               outlier.colour=NA, 
-               aes(fill = malignancy)) + 
-  labs(x = "tumor samples", y = "ACACA mRNA counts") + 
-  theme_bw()+ 
+ggplot(totalgeneset, aes(x=factor(tumor), y=ACACA)) +
+  geom_boxplot(size = 1,
+               outlier.colour=NA,
+               color="black",
+               aes(fill = malignancy)) +
+  labs(x = "tumor samples", y = "ACACA mRNA counts") +
+  theme_bw()+
   theme(axis.title=element_text(face="bold",size=18,color="black"),
         axis.text=element_text(size=18,face="bold",color="black"),
         axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
@@ -181,21 +185,22 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=ACACA)) +
         panel.border = element_blank(),
         panel.background = element_blank(),
         legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1), 
-        legend.justification=c(-0.1,1.1), 
+        legend.position=c(0,1),
+        legend.justification=c(-0.1,1.1),
         legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) + 
-  guides(fill=guide_legend(title=NULL)) + 
+        legend.background = element_rect(fill = "white")) +
+  guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
 
 # -----------------------------------------------------------------------------------------------
-ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF2)) + 
-  geom_boxplot(size = 1, 
-               outlier.colour=NA, 
-               aes(fill = malignancy)) + 
-  labs(x = "tumor samples", y = "SREBF2 mRNA counts") + 
-  theme_bw()+ 
+ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF2)) +
+  geom_boxplot(size = 1,
+               outlier.colour=NA,
+               color="black",
+               aes(fill = malignancy)) +
+  labs(x = "tumor samples", y = "SREBF2 mRNA counts") +
+  theme_bw()+
   theme(axis.title=element_text(face="bold",size=18,color="black"),
         axis.text=element_text(size=18,face="bold",color="black"),
         axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
@@ -209,21 +214,22 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF2)) +
         panel.border = element_blank(),
         panel.background = element_blank(),
         legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1), 
-        legend.justification=c(-0.1,1.1), 
+        legend.position=c(0,1),
+        legend.justification=c(-0.1,1.1),
         legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) + 
-  guides(fill=guide_legend(title=NULL)) + 
+        legend.background = element_rect(fill = "white")) +
+  guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
 
 # -----------------------------------------------------------------------------------------------
-ggplot(totalgeneset, aes(x=factor(tumor), y=MITF)) + 
-  geom_boxplot(size = 1, 
-               outlier.colour=NA, 
-               aes(fill = malignancy)) + 
-  labs(x = "tumor samples", y = "MITF mRNA counts") + 
-  theme_bw()+ 
+ggplot(totalgeneset, aes(x=factor(tumor), y=MITF)) +
+  geom_boxplot(size = 1,
+               outlier.colour=NA,
+               color="black",
+               aes(fill = malignancy)) +
+  labs(x = "tumor samples", y = "MITF mRNA counts") +
+  theme_bw()+
   theme(axis.title=element_text(face="bold",size=18,color="black"),
         axis.text=element_text(size=18,face="bold",color="black"),
         axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
@@ -237,21 +243,22 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=MITF)) +
         panel.border = element_blank(),
         panel.background = element_blank(),
         legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1), 
-        legend.justification=c(-0.1,1.1), 
+        legend.position=c(0,1),
+        legend.justification=c(-0.1,1.1),
         legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) + 
-  guides(fill=guide_legend(title=NULL)) + 
+        legend.background = element_rect(fill = "white")) +
+  guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
 
 # -----------------------------------------------------------------------------------------------
-ggplot(totalgeneset, aes(x=factor(tumor), y=AXL)) + 
-  geom_boxplot(size = 1, 
-               outlier.colour=NA, 
-               aes(fill = malignancy)) + 
-  labs(x = "tumor samples", y = "AXL mRNA counts") + 
-  theme_bw()+ 
+ggplot(totalgeneset, aes(x=factor(tumor), y=AXL)) +
+  geom_boxplot(size = 1,
+               outlier.colour=NA,
+               color="black",
+               aes(fill = malignancy)) +
+  labs(x = "tumor samples", y = "AXL mRNA counts") +
+  theme_bw()+
   theme(axis.title=element_text(face="bold",size=18,color="black"),
         axis.text=element_text(size=18,face="bold",color="black"),
         axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
@@ -265,13 +272,12 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=AXL)) +
         panel.border = element_blank(),
         panel.background = element_blank(),
         legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1), 
-        legend.justification=c(-0.1,1.1), 
+        legend.position=c(0,1),
+        legend.justification=c(-0.1,1.1),
         legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) + 
-  guides(fill=guide_legend(title=NULL)) + 
+        legend.background = element_rect(fill = "white")) +
+  guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
 
 }
- 
