@@ -2,7 +2,7 @@
 library(readxl)
 library(ggfortify)
 
-DNFASKCMandGTEX <- read_excel("7DNFASKCMandGTEX.xls")
+DNFASKCMandGTEX <- read_excel(file.path("project-data", "7DNFASKCMandGTEX.xls"))
 View(DNFASKCMandGTEX)
 str(DNFASKCMandGTEX)
 DNFASKCMandGTEX<-as.data.frame(DNFASKCMandGTEX)
