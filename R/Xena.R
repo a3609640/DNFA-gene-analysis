@@ -87,3 +87,4 @@ model <- self(DNFASKCMandGTEX[-8], DNFASKCMandGTEX[, 8], beta = 1.0, r = 7, metr
               minObsPerLabel = 5)
 autoplot(model, data = DNFASKCMandGTEX, frame = TRUE, frame.colour = 'sample_type')
 }
+
