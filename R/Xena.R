@@ -18,20 +18,20 @@ list(DNFASKCMandGTEX)
 df <- DNFASKCMandGTEX[c(1, 2, 3, 4, 5, 6, 7)]
 autoplot(prcomp(df), data = DNFASKCMandGTEX, colour = 'sample_type')
 # we can color each data point in the plot according to their cancer category: colour = 'sample_type'
-# Use loadings = TRUE, we draw eigenvector for each DNFA gene on the plot. 
+# Use loadings = TRUE, we draw eigenvector for each DNFA gene on the plot.
 bp = autoplot(prcomp(df), data = DNFASKCMandGTEX, colour = 'sample_type',
          loadings = TRUE, loadings.colour = 'black',
          loadings.label.vjust = -1,
          loadings.label = TRUE, loadings.label.size = 4)+
   theme(plot.background=element_blank(),
         panel.background=element_rect(fill='transparent',color='black',size=1),
-        axis.title = element_text(colour="black", size=12, 
+        axis.title = element_text(colour="black", size=12,
                                     face="bold"),
-        axis.text = element_text(colour="black", size=12, 
+        axis.text = element_text(colour="black", size=12,
                                  face="bold"),
-        legend.title = element_text(colour="black", size=12, 
+        legend.title = element_text(colour="black", size=12,
                                      face="bold"),
-        legend.text=element_text(colour="black", size=12, 
+        legend.text=element_text(colour="black", size=12,
                                  face="bold",hjust=1),
         legend.key=element_blank())
 
