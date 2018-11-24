@@ -94,7 +94,7 @@ nonmalignantgeneset <- subset(lipogenesis_data, malignancy == "Non-malignant")
 # compare single cell SREBF1 expression level in malignant and non-malignant
 # cells using boxplot graph within the same graph##
 ###############################################################################
-ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF1)) +
+plot1 <- ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF1)) +
   geom_boxplot(size = 1,
                outlier.colour = NA,
                color = "black",  # the line for boxplot is in black color. 
@@ -122,8 +122,9 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF1)) +
   scale_y_continuous(breaks = seq(0, 10, 2)) +
   scale_fill_discrete(labels = c("Nonmalignant cells", "Malignant cells"))
 
+print(plot1)
 # -----------------------------------------------------------------------------------------------
-ggplot(totalgeneset, aes(x=factor(tumor), y = FASN)) +
+plot2 <- ggplot(totalgeneset, aes(x=factor(tumor), y = FASN)) +
   geom_boxplot(size = 1,
                outlier.colour = NA,
                color = "black",
@@ -151,8 +152,10 @@ ggplot(totalgeneset, aes(x=factor(tumor), y = FASN)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
 
+print(plot2)
 # -----------------------------------------------------------------------------------------------
-ggplot(totalgeneset, aes(x=factor(tumor), y=SCD)) +
+
+plot3 <- ggplot(totalgeneset, aes(x=factor(tumor), y=SCD)) +
   geom_boxplot(size = 1,
                outlier.colour=NA,
                color="black",
@@ -179,9 +182,9 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=SCD)) +
   guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
-
+print(plot3)
 # -----------------------------------------------------------------------------------------------
-ggplot(totalgeneset, aes(x=factor(tumor), y=ACACA)) +
+plot4 <- ggplot(totalgeneset, aes(x=factor(tumor), y=ACACA)) +
   geom_boxplot(size = 1,
                outlier.colour=NA,
                color="black",
@@ -208,9 +211,9 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=ACACA)) +
   guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
-
+print(plot4)
 # -----------------------------------------------------------------------------------------------
-ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF2)) +
+plot5 <- ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF2)) +
   geom_boxplot(size = 1,
                outlier.colour=NA,
                color="black",
@@ -237,9 +240,9 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF2)) +
   guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
-
+print(plot5)
 # -----------------------------------------------------------------------------------------------
-ggplot(totalgeneset, aes(x=factor(tumor), y=MITF)) +
+plot6 <- ggplot(totalgeneset, aes(x=factor(tumor), y=MITF)) +
   geom_boxplot(size = 1,
                outlier.colour=NA,
                color="black", # the line for boxplot is in black color. 
@@ -266,9 +269,9 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=MITF)) +
   guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
-
+print(plot6)
 # -----------------------------------------------------------------------------------------------
-ggplot(totalgeneset, aes(x=factor(tumor), y=AXL)) +
+plot7 <- ggplot(totalgeneset, aes(x=factor(tumor), y=AXL)) +
   geom_boxplot(size = 1,
                outlier.colour=NA,
                color="black",
@@ -295,5 +298,6 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=AXL)) +
   guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
-
+print(plot7)
 }
+doAll4()
