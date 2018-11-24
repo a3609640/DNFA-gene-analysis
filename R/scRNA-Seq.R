@@ -257,3 +257,4 @@ ggplot(totalgeneset, aes(x=factor(tumor), y=AXL)) +
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
 
 }
+
