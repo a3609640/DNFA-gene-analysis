@@ -4,6 +4,7 @@ library(ggfortify)
 library(lfda)
 library(readxl)
 
+doAllXena <- function() {
 DNFASKCMandGTEX <- read_excel(file.path("project-data", "7DNFASKCMandGTEX.xls"))
 
 # eliminate unique row with "Solid Tissue Normal"
@@ -86,3 +87,4 @@ autoplot(model, data = DNFASKCMandGTEX, frame = TRUE, frame.colour = 'sample_typ
 model <- self(DNFASKCMandGTEX[-8], DNFASKCMandGTEX[, 8], beta = 1.0, r = 7, metric="plain",
               minObsPerLabel = 5)
 autoplot(model, data = DNFASKCMandGTEX, frame = TRUE, frame.colour = 'sample_type')
+}
