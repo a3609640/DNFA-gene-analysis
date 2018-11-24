@@ -13,8 +13,12 @@ doAll3 <- function() {
 tx38 <- TxDb.Hsapiens.UCSC.hg38.knownGene
 promoter <- getPromoters(TxDb = tx38, upstream = 3000, downstream = 3000)
 
-setwd("~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS")
+# setwd("~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS")
 
+# TODO(suwu): Update a comment somewhere to explain how big these files are
+# and how they were generated; make a plan to get something checked in that
+# is capable of generating them (but take care not to exceed any GitHub
+# size limits).
 files <- list(A549.SREBP1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/A549-SREBP1/MACS/A549-merged-SREBP1-Input_peaks.narrowPeak",
               MCF7.SREBP1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS/MCF7-merged-SREBP1-Input_peaks.narrowPeak",
               K562.SREBP1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS/K562-merged-SREBP1-Input_peaks.narrowPeak")
