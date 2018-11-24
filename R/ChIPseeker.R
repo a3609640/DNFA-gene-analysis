@@ -1,28 +1,24 @@
 ## This R script uses ChIPseeker package to analyze the SREBP1 ChIP-seq data
 ## from A549 and MCF7 cell lines load packages and get annotations
 
-# BiocManager::install("openssl")
-# BiocManager::install("GenomicFeatures")
-# BiocManager::install("ChIPseeker")
-# BiocManager::install("TxDb.Hsapiens.UCSC.hg38.knownGene")
-# BiocManager::install("clusterProfiler")
-# BiocManager::install("org.Hs.eg.db")
-# BiocManager::install
-
 library(ChIPseeker)
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
-library(clusterProfiler)
+#library(clusterProfiler)
 library(org.Hs.eg.db)
 library(ReactomePA)
 
 doAll3 <- function() {
-tx19 <- TxDb.Hsapiens.UCSC.hg19.knownGene
+# tx19 <- TxDb.Hsapiens.UCSC.hg19.knownGene
 tx38 <- TxDb.Hsapiens.UCSC.hg38.knownGene
-promoter <- getPromoters(TxDb=tx38, upstream=3000, downstream=3000)
+promoter <- getPromoters(TxDb = tx38, upstream = 3000, downstream = 3000)
 
-setwd("~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS")
+# setwd("~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS")
 
+# TODO(suwu): Update a comment somewhere to explain how big these files are
+# and how they were generated; make a plan to get something checked in that
+# is capable of generating them (but take care not to exceed any GitHub
+# size limits).
 files <- list(A549.SREBP1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/A549-SREBP1/MACS/A549-merged-SREBP1-Input_peaks.narrowPeak",
               MCF7.SREBP1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS/MCF7-merged-SREBP1-Input_peaks.narrowPeak",
               K562.SREBP1 = "~/Documents/Bioinformatics_analysis/ChIP analysis/MCF7-SREBP1/MACS/K562-merged-SREBP1-Input_peaks.narrowPeak")
@@ -91,7 +87,6 @@ enrichAnnoOverlap(files[[1]], unlist(files[1:3]), TxDb = NULL, pAdjustMethod = "
                   chainFile = NULL, distanceToTSS_cutoff = NULL)
 files <- getSampleFiles()
 
-require(clusterProfiler)
 data(gcSample)
 res <- compareCluster(gcSample, fun="enrichPathway")
 plot(res)

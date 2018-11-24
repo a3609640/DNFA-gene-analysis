@@ -1,24 +1,39 @@
 ## the following script perform PCA on RNA-Seq data of seven DNFA genes from SKCM amd GTEX dataset with R package "ggfortify".  
-library(readxl)
+library(cluster)
 library(ggfortify)
+library(lfda)
+library(readxl)
 
-DNFASKCMandGTEX <- read_excel("7DNFASKCMandGTEX.xls")
+doAllXena <- function() {
+DNFASKCMandGTEX <- read_excel(file.path("project-data", "7DNFASKCMandGTEX.xls"))
+
+# eliminate unique row with "Solid Tissue Normal"
+DNFASKCMandGTEX <- DNFASKCMandGTEX[-nrow(DNFASKCMandGTEX),]
+
+
 View(DNFASKCMandGTEX)
 str(DNFASKCMandGTEX)
 DNFASKCMandGTEX<-as.data.frame(DNFASKCMandGTEX)
 DNFASKCMandGTEX$sample_type<-as.factor(DNFASKCMandGTEX$sample_type)
+
 DNFASKCMandGTEX$sample_type <- factor(DNFASKCMandGTEX$sample_type, 
-                                      levels = c("Normal Tissue", "Primary Tumor", "Metastatic", "Solid Tissue Normal"))
+                                      levels = c("Normal Tissue",
+                                                 "Primary Tumor",
+                                                 "Metastatic"))
+                                                 # "Solid Tissue Normal"))
 
 levels(DNFASKCMandGTEX$sample_type)
 length(DNFASKCMandGTEX)
 list(DNFASKCMandGTEX)
-# DNFASKCMandGTEX data table contain the RNA-Seq results for 7 DNFA genes, and 8th columns shows the cancer category for each sample.
-# data.frame for prcomp() function should only contains numeric values, so we remove the 8th column from DNFASKCMandGTEX data
-df <- DNFASKCMandGTEX[c(1, 2, 3, 4, 5, 6, 7)]
+# DNFASKCMandGTEX data table contain the RNA-Seq results for 7 DNFA genes,
+# and 8th column shows the cancer category for each sample.
+# data.frame for prcomp() function should only contains numeric values, so
+# we remove the 8th column from DNFASKCMandGTEX data
+df <- DNFASKCMandGTEX[-8]
 autoplot(prcomp(df), data = DNFASKCMandGTEX, colour = 'sample_type')
-# we can color each data point in the plot according to their cancer category: colour = 'sample_type'
-# Use loadings = TRUE, we draw eigenvector for each DNFA gene on the plot. 
+# we can color each data point in the plot according to their cancer category:
+# colour = 'sample_type'
+# Using loadings = TRUE, we draw eigenvector for each DNFA gene on the plot. 
 bp = autoplot(prcomp(df), data = DNFASKCMandGTEX, colour = 'sample_type',
          loadings = TRUE, loadings.colour = 'black',
          loadings.label.vjust = -1,
@@ -45,28 +60,31 @@ ggplot(PCi,aes(x=PC1,y=PC2,col=Species))+
   scale_color_manual(values = c("#FF1BB3","#A7FF5B","#99554D","#CC0000"))+ #choose colors here
   theme_classic()
 
-
-library(cluster)
 # clara: Clustering Large Applications, we chose the number of clusters as "3". 
 # tumor tissues and healthy tissus samples are clearly seperated,
 # However, metastatic and primary tumor samples can not be seperated by clustering method
 # It is required that 0 < k < n where n is the number of factors. Here 4 categories of tissues
-autoplot(clara(DNFASKCMandGTEX[-7], 2))
+autoplot(clara(df, 2))
 # fanny: Fuzzy Analysis Clustering, to compute a fuzzy clustering of the data into k clusters.
-autoplot(fanny(DNFASKCMandGTEX[-7], 2), frame = TRUE)
+autoplot(fanny(df, 2), frame = TRUE)
 # pam Partitioning Around Medoids, , a more robust version of K-means.
-autoplot(pam(DNFASKCMandGTEX[-7], 2), frame = TRUE, frame.type = 'norm')
+autoplot(pam(df, 2), frame = TRUE, frame.type = 'norm')
 
-library(lfda)
-# Local Fisher Discriminant Analysis (LFDA)
-model <- lfda(DNFASKCMandGTEX[,-7], DNFASKCMandTGEX[,7], r = 3, metric="plain")
+# Dimensionality (r) is set to 7 because there are 7 DNFA genes to consider.
+
+# Note, set knn = 1 and minObsPerLabel = 1 if there is a label in the data that only
+# occurs once.  However, still expect errors; lfda has strong assumptions that there
+# are multiple observations per label.
+model <- lfda(DNFASKCMandGTEX[-8], DNFASKCMandGTEX[, 8], r = 7, metric="plain",
+              knn = 5)
 autoplot(model, data = DNFASKCMandGTEX, frame = TRUE, frame.colour = 'sample_type')
 
-model <- self(DNFASKCMandGTEX[-7], DNFASKCMandTGEX[, 7], beta = 0.1, r = 3, metric="plain")
+# A beta value of 0 indicates totally supervised learning; 1 is totally unsupervised.
+model <- self(DNFASKCMandGTEX[-8], DNFASKCMandGTEX[, 8], beta = 0.0, r = 7, metric="plain",
+              minObsPerLabel = 5)
 autoplot(model, data = DNFASKCMandGTEX, frame = TRUE, frame.colour = 'sample_type')
 
-model <- lfda(iris[-5], iris[, 5], r = 3, metric="plain")
-autoplot(model, data = iris, frame = TRUE, frame.colour = 'Species')
-
-model <- self(iris[-5], iris[, 5], beta = 0.1, r = 3, metric="plain")
-autoplot(model, data = iris, frame = TRUE, frame.colour = 'Species')
+model <- self(DNFASKCMandGTEX[-8], DNFASKCMandGTEX[, 8], beta = 1.0, r = 7, metric="plain",
+              minObsPerLabel = 5)
+autoplot(model, data = DNFASKCMandGTEX, frame = TRUE, frame.colour = 'sample_type')
+}

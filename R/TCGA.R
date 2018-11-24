@@ -6,19 +6,19 @@
 # to compare the correlation between indicated genes across
 # different tumor types in TCGA 
 
-```{r, echo=TRUE}
-library(stringr)
-library(reshape2)
+#```{r, echo=TRUE}
 library(ggplot2)
-```
+library(reshape2)
+# library(plyr)
+library(stringr)
+#```
 
-```{r, echo=TRUE}
-dataDir <- "~/TCGA cBioportal"
-setwd("~/TCGA cBioportal")
-```
+#```{r, echo=TRUE}
+dataDir <- file.path("project-data", "TCGA-cBioportal")
+#```
 
 # Extract the name of a gene from that gene's data file.
-```{r}
+#```{r}
 getGeneName <- function(geneDataFile) {
   # The gene name is part of the data file name, so we just
   # discard the parts of the file name that we don't need.
@@ -27,11 +27,11 @@ getGeneName <- function(geneDataFile) {
   geneDataFile <- str_replace_all(geneDataFile, "/", "");
   return(geneDataFile);
 }
-```
+#```
 
-```{r}
+#```{r}
 
-```
+#```
 # This function does the following:
 # 1. Given the name of a CSV file for a particular gene,
 #    read a data table from that file.
@@ -41,7 +41,7 @@ getGeneName <- function(geneDataFile) {
 # 4. Return the modified data table (with removed
 #    and renamed columns) to the caller.
 
-```{r}
+#```{r}
 getGeneTableFromFile <- function(geneDataFile) {
   geneDataTable <- read.csv(geneDataFile)
   geneDataTable <- geneDataTable[, -3:-4]
@@ -50,7 +50,7 @@ getGeneTableFromFile <- function(geneDataFile) {
                                                 "\\(TCGA, Provisional\\)", "")
   return(geneDataTable)
 }
-```
+#```
 
 # This function does the following:
 # 1. Given the name of a CSV file containing data for a gene,
@@ -60,7 +60,7 @@ getGeneTableFromFile <- function(geneDataFile) {
 # 3. Generate a box plot of the re-ordered data, supplying
 #    axis and legend labels as appropriate.
 
-```{r}
+#```{r}
 plotGene <- function(geneDataFile) {
   geneName <- getGeneName(geneDataFile)
   geneDataTable <- getGeneTableFromFile(geneDataFile)
@@ -82,18 +82,7 @@ plotGene <- function(geneDataFile) {
           panel.grid = element_blank(),
           strip.text = element_text(face = "bold", size = 9, colour = "black"),
           legend.position = "none")}
-```
-
-plotGene(geneDataFile="MITF.csv")
-
-```{r, include = TRUE, echo = TRUE}
-gene.list <- list.files(dataDir, '.csv')
-## > list.files(dataDir, '.csv')
-##  [1] "ACACA.csv"  "ACLY.csv"   "ACSL1.csv"  "ACSS2.csv"  "FASN.csv"   "HMGCR.csv"  "HMGCS1.csv"
-##  [8] "LDLR.csv"   "MITF.csv"   "SCD.csv"    "SREBF1.csv" "SREBF2.csv"
-
-lapply(gene.list, plotGene)
-```
+#```
 
 # This function creates a dataset, and merges data
 # from each file in fileList into it.  The data are
@@ -101,8 +90,8 @@ lapply(gene.list, plotGene)
 # merged data set is renamed with the name of its
 # gene.
 
-```{r}
-mergeGeneDataFiles <- function(fileList) {
+#```{r}
+mergeGeneDataFiles <- function(gene.list) {
 
   # TODO(su) find the right way to initialize 'dataset'
   dataset <- NULL
@@ -119,43 +108,53 @@ mergeGeneDataFiles <- function(fileList) {
     geneName <- getGeneName(geneDataFile)
     geneData <- getGeneTableFromFile(geneDataFile)
     colnames(geneData) <- str_replace_all(colnames(geneData), "Value", geneName)
-    # library(plyr)
     # dataset <- rbind.fill(dataset, geneData)
     # dataset<-cbind(dataset, geneData)
   }
   return(dataset)
 }
-```
+#```
 
 if(interactive()) {
-## Use list.files to obtain all CSV files in 'dataDir'
-## (these were downloaded from cbioportal website),
-## then generate box plots for all of them.
-gene.list <- list.files(dataDir, '.csv')
-lapply(gene.list, plotGene)
+  plotGene(geneDataFile="MITF.csv")
 
-mergedDataSet <- mergeGeneDataFiles(gene.list)
+  #```{r, include = TRUE, echo = TRUE}
+  # TODO(suwu): Check in these CSV files under project-data/TCGA-cBioportal.
+  # Provide a README file there that explains how they were obtained.
+  gene.list <- list.files(dataDir, '.csv')
+  ## > list.files(dataDir, '.csv')
+  ##  [1] "ACACA.csv"  "ACLY.csv"   "ACSL1.csv"  "ACSS2.csv"  "FASN.csv"   "HMGCR.csv"  "HMGCS1.csv"
+  ##  [8] "LDLR.csv"   "MITF.csv"   "SCD.csv"    "SREBF1.csv" "SREBF2.csv"
 
-### Below this line are some code snippets being used for manual
-### inspection of the data.
+  lapply(gene.list, plotGene)
+  #```
 
-cor.test(mergedDataSet$FASN,mergedDataSet$SCD, method = "pearson")
-cor.test(mergedDataSet$FASN,mergedDataSet$SREBF1, method = "pearson")
-cor.test(mergedDataSet$MITF,mergedDataSet$SCD, method = "pearson")
-p <- ggplot(mergedDataSet, aes(FASN, SCD))  
-p + geom_point()
-p + geom_point(aes(colour= factor(Cancer.Study)))+ facet_wrap(~Cancer.Study)  
+  ## Use list.files to obtain all CSV files in 'dataDir'
+  ## (these were downloaded from cbioportal website),
+  ## then generate box plots for all of them.
+  gene.list <- list.files(dataDir, '.csv')
+  lapply(gene.list, plotGene)
 
-dataset.skin <- subset(dataset, Cancer.Study=='Skin Cutaneous Melanoma (TCGA, Provisional)')
-cor.test(mergedDataSet.skin$FASN,mergedDataSet.skin$SCD, method = "pearson")
-cor.test(mergedDataSet.skin$FASN,mergedDataSet.skin$SREBF1, method = "pearson")
-cor.test(mergedDataSet.skin$MITF,mergedDataSet.skin$SCD, method = "pearson")
+  mergedDataSet <- mergeGeneDataFiles(gene.list)
 
-p <- ggplot(mergedDataSet.skin, aes(log2(FASN), log2(SCD)))  
-p + geom_point()
+  ### Below this line are some code snippets being used for manual
+  ### inspection of the data.
 
-p <- ggplot(mergedDataSet.skin, aes(log2(MITF), log2(SCD)))  
-p + geom_point()
+  cor.test(mergedDataSet$FASN,mergedDataSet$SCD, method = "pearson")
+  cor.test(mergedDataSet$FASN,mergedDataSet$SREBF1, method = "pearson")
+  cor.test(mergedDataSet$MITF,mergedDataSet$SCD, method = "pearson")
+  p <- ggplot(mergedDataSet, aes(FASN, SCD))  
+  p + geom_point()
+  p + geom_point(aes(colour= factor(Cancer.Study)))+ facet_wrap(~Cancer.Study)  
 
+  dataset.skin <- subset(dataset, Cancer.Study=='Skin Cutaneous Melanoma (TCGA, Provisional)')
+  cor.test(mergedDataSet.skin$FASN,mergedDataSet.skin$SCD, method = "pearson")
+  cor.test(mergedDataSet.skin$FASN,mergedDataSet.skin$SREBF1, method = "pearson")
+  cor.test(mergedDataSet.skin$MITF,mergedDataSet.skin$SCD, method = "pearson")
 
+  p <- ggplot(mergedDataSet.skin, aes(log2(FASN), log2(SCD)))  
+  p + geom_point()
+
+  p <- ggplot(mergedDataSet.skin, aes(log2(MITF), log2(SCD)))  
+  p + geom_point()
 }
