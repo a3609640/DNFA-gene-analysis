@@ -3,7 +3,7 @@ library(ggplot2)
 
 
 ######################################################################################################
-plotGene <- function(goi) {
+.plotGene <- function(goi) {
   go <- gene[gene$Description==goi,]
   go<-t(go)
   ## SREBP1 is generated as a matrix somehow, and it needs to be converted into data frame
@@ -40,11 +40,11 @@ Annotations <- fread("GTEx_Data_V6_Annotations_SampleAttributesDS.txt",showProgr
 Annotations <-Annotations[,c(1,7)]
 ## showProgress = T is necessary, otherwise "Error: isLOGICAL(showProgress) is not TRUE"
 
-plotGene(goi="FASN")
-plotGene(goi="SCD")
-plotGene(goi="SREBF1")
-plotGene(goi="HMGCR")
-plotGene(goi="HMGCS1")
-plotGene(goi="SREBF2")
-plotGene(goi="MITF")
+.plotGene(goi="FASN")
+.plotGene(goi="SCD")
+.plotGene(goi="SREBF1")
+.plotGene(goi="HMGCR")
+.plotGene(goi="HMGCS1")
+.plotGene(goi="SREBF2")
+.plotGene(goi="MITF")
 }  
