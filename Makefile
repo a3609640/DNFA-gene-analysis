@@ -38,12 +38,19 @@ GUNZIP=gunzip -k
 MKDIR=mkdir -m 755 -p
 
 # in accord with usual conventions, the first target is named 'all'
-all: asoanalysis
+all: singlecellanalysis asoanalysis
+
+singlecellanalysis: $(extDataDir)/GSE72056_melanoma_single_cell_revised_v2.txt.gz
+
+$(extDataDir)/GSE72056_melanoma_single_cell_revised_v2.txt.gz: | $$(@D)
+	cd $(@D) && wget -nc ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE72nnn/GSE72056/suppl/$(@F)
 
 asoanalysis: bamfiles \
              $(extDataDir)/gene-counts.csv \
              projectreadfiles \
              $(extDataDir)/insertsizesummary.tab
+
+
 
 #############################################
 # install the STAR aligner software package #
