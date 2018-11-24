@@ -237,7 +237,7 @@ $(projectExtDataDir)/%ReadsPerGene.out.tab : $(extDataDir)/%ReadsPerGene.out.tab
 	ln -s $< $@
 
 $(extDataDir)/gene-counts.csv: R/DESeqDataPreparation.R | readfiles
-	Rscript $< 
+	Rscript --vanilla -e 'source("$<"); prepare_data()' 
 
 # To make a given .fastq.gz file, first we need the .tar file that contains
 # it, and a directory in which to put it.  Given that, we can execute a tar

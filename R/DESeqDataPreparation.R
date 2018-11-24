@@ -125,7 +125,7 @@ mergeFiles <- function(files) {
   return(file.path(.getDataDir(), name))
 }
 
-main <- function() {
+prepare_data <- function() {
   stems <- c(
     "1_S2_L001", "1_S2_L002", "1_S2_L003", "1_S2_L004",
     "2_S3_L001", "2_S3_L002", "2_S3_L003", "2_S3_L004",
@@ -138,7 +138,3 @@ main <- function() {
   write.csv(mergeFiles(lapply(stems, .getFile)),
             file = file.path(.getDataDir(), "r-extdata", 'gene-counts.csv'))
 }
-
-#if (interactive()) {
-#  main() 
-#}
