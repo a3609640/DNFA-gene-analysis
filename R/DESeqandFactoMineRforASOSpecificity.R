@@ -7,6 +7,7 @@ library(colorspace)
 library(DESeq2)
 library(Biobase)
 library(BiocGenerics)
+library(plyr)  # deliberately out of sorted order; must precede dplyr
 library(dplyr)
 library(factoextra)
 library(FactoMineR)
@@ -25,7 +26,6 @@ library(org.Hs.eg.db)
 library(parallel)
 library(pheatmap)
 library(plotly)
-library(plyr)
 library(rmarkdown)
 library(Rcpp)
 library(RcppArmadillo)
@@ -36,8 +36,9 @@ library(stats4)
 library(stringr)
 library(survival)
 
-black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
-lockBinding("black.bold.18.text", globalenv())
+.getTitleFont <- function() {
+  return(element_text(face = "bold", color = "black", size = 18))
+}
 
 .readGeneCounts <- function () {
   # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
@@ -118,7 +119,7 @@ lockBinding("black.bold.18.text", globalenv())
 ## The assay function is used to extract the matrix of normalized value
 .makeHeatMap <- function(guideDesign, ddsDE) {
   vsd <- vst(ddsDE, blind=FALSE)
-  rld <- rlog(ddsDE,blind=FALSE)
+  rld <- rlog(ddsDE, blind=FALSE)
   # Hierarchical clustering using rlog transformation
   dists=dist(t(assay(rld)))
   plot(hclust(dists), labels=guideDesign$condition)
@@ -150,8 +151,8 @@ lockBinding("black.bold.18.text", globalenv())
     theme_bw() +
     xlim(-10, 6) +
     ylim(-6, 6) +
-    theme(text = black.bold.18.text,
-          axis.text = black.bold.18.text,
+    theme(text = .getTitleFont(),
+          axis.text = .getTitleFont(),
           axis.line.x = element_line(color="black", size=1),
           axis.line.y = element_line(color="black", size=1),
           axis.ticks = element_line(size = 1),
@@ -309,8 +310,8 @@ lockBinding("black.bold.18.text", globalenv())
       theme_bw() +
       xlim(-8, 4) +
       ylim(-5, 5) +
-      theme(text = black.bold.18.text,
-            axis.text = black.bold.18.text,
+      theme(text = .getTitleFont(),
+            axis.text = .getTitleFont(),
             axis.line.x = element_line(color="black", size=1),
             axis.line.y = element_line(color="black", size=1),
             axis.ticks = element_line(size = 1),
@@ -440,8 +441,8 @@ lockBinding("black.bold.18.text", globalenv())
 .makeGeneCountPlot <- function(countsAndConditions, title, ylim1, ylim2) {
   normalizedGeneCountTheme <-
     theme_bw() +
-    theme(text = black.bold.18.text,
-          axis.text = black.bold.18.text,
+    theme(text = .getTitleFont(),
+          axis.text = .getTitleFont(),
           axis.text.x = element_text(angle = 45, hjust = 1),
           axis.line.x = element_line(color="black", size=1),
           axis.line.y = element_line(color="black", size=1),
@@ -538,6 +539,6 @@ analyze_aso_specificity <- function() {
   .makeGeneCountPlot(NRAS, "NRAS", 7, 9)
 }
 
-if (interactive()) {
-  analyze_aso_specificity()
-}
+#if (interactive()) {
+#  analyze_aso_specificity()
+#}

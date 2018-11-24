@@ -25,7 +25,7 @@ Imports: AnnotationDbi, Biobase, BiocGenerics,
     org.Hs.eg.db, parallel, pathview, pheatmap, plotly, plyr,
     readxl, shiny, stats4, stringr, survival
 LazyData: true
-License: Apache-2.0
+License: Apache License 2.0 + file LICENSE
 Maintainer: Su Wu <SWU16@mgh.harvard.edu>
 Package: DNFAGeneAnalysis
 RoxygenNote: 6.1.1

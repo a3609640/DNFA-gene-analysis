@@ -67,49 +67,65 @@
 # ENSG00000278267 ... MIR6859-1
 # ...
 
-library("org.Hs.eg.db")
+library("AnnotationDbi")
+library("base")
 library("dplyr")
-# Reframe a data file with desired row and column names.
-processFile <- function(fullFileName) {
-  fileName <- basename(fullFileName)
-  table <- read.table(fullFileName, stringsAsFactors=T)
+library("org.Hs.eg.db")
+library("utils")
 
-  # Reframe the data, taking row names from first column.
-  table.with.rownames <- data.frame(table[,-1], row.names=table[,1])
-
+makeColumnBaseNameFromFileName <- function(fileName) {
   # Generate 'test6.1.' from 'test6_S4_L001ReadsPerGene.out.tab'.
   newColBaseName <- paste(substring(fileName, 1, 5),
                           substring(fileName, 13, 13),
                           '',  # gives us a trailing '.'
-                          sep='.')
+                          sep = '.')
   print(paste("name", newColBaseName))
+  return(newColBaseName)
+}
+
+# Reframe a data file with desired row and column names.
+processReadsFile <- function(fullFileName) {
+  print(paste("processReadsFile(): ", fullFileName))
+  table <- read.table(fullFileName, stringsAsFactors = T)
+
+  # Reframe the data, taking row names from first column.
+  table.with.rownames <- data.frame(table[,-1], row.names = table[,1])
+
+  newColBaseName <- makeColumnBaseNameFromFileName(basename(fullFileName))
+  
   # Rename the columns as test6.4.1, test6.4.2, test6.4.3.
   colnames(table.with.rownames) <- paste0(newColBaseName, 1:3)
 
   ## ...but then preserve only column 3
-  name3 = paste(newColBaseName, 3, sep='')
-  print(paste("name3", name3))
-  table.with.rownames <- select(table.with.rownames, name3)
-
-
+  name3 <- paste(newColBaseName, 3, sep = '')
+  table.with.rownames <- dplyr::select(table.with.rownames, name3)
   print(head(table.with.rownames))
   return(table.with.rownames)
 }
 
 # Merge reframed data from all input files, and add 'symbol' column.
 mergeFiles <- function(files) {
-  processedData <- lapply(files, processFile)
+  processedData <- lapply(files, processReadsFile)
   test <- do.call(cbind.data.frame, processedData)
 
   test$symbol <- mapIds(org.Hs.eg.db,
-                        keys=row.names(test),
-                        column="SYMBOL",
-                        keytype="ENSEMBL",
-                        multiVals="first")
+                        keys = row.names(test),
+                        column = "SYMBOL",
+                        keytype = "ENSEMBL",
+                        multiVals = "first")
   return(test)
 }
 
-main <- function () {
+.getDataDir <- function() {
+  return(Sys.getenv("DNFA_generatedDataRoot", unset = "/usr/local/DNFA-genfiles/data"))
+}
+
+.getFile <- function(stem) {
+  name <- paste('test', stem, 'ReadsPerGene.out.tab', sep = "")
+  return(file.path(.getDataDir(), name))
+}
+
+main <- function() {
   stems <- c(
     "1_S2_L001", "1_S2_L002", "1_S2_L003", "1_S2_L004",
     "2_S3_L001", "2_S3_L002", "2_S3_L003", "2_S3_L004",
@@ -119,17 +135,10 @@ main <- function () {
     "6_S1_L001", "6_S1_L002", "6_S1_L003", "6_S1_L004"
   )
 
-  root = Sys.getenv("DNFA_generatedDataRoot", unset="/usr/local/DNFA-genfiles/data")
-  dataDir <- file.path(root, "r-extdata")
-
-  getFile <- function(stem) {
-    name <- paste ('test', stem, 'ReadsPerGene.out.tab', sep = "")
-    file.path(dataDir, name)
-  }
-
-  files <- lapply(stems, getFile)
-  write.csv(mergeFiles(files),
-            file = file.path(dataDir, 'gene-counts.csv'))
+  write.csv(mergeFiles(lapply(stems, .getFile)),
+            file = file.path(.getDataDir(), "r-extdata", 'gene-counts.csv'))
 }
 
-main()
+#if (interactive()) {
+#  main() 
+#}
