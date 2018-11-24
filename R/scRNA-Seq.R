@@ -4,6 +4,12 @@ library(gplots)
 library(grid)
 library(plyr)
 
+# TODO(dlroxe): unify this with identical function in data prep .R file.
+.getDataDir2 <- function() {
+  return(Sys.getenv("DNFA_generatedDataRoot", unset = "/usr/local/DNFA-genfiles/data"))
+}
+
+
 # Select specific lipogenesis genes from data
 # This function modifies it as follows:
 #
@@ -58,12 +64,22 @@ get_lipogenesis_data <- function(data) {
 
 doAll4 <- function() {
 
-# TODO(suwu): make the following .txt file available in GitHub
 # Single cell RNA-seq data of melanomas were downloaded from GSE72056.
-# the downloaded txt file GSE72056_melanoma_single_cell_revised_v2.txt is saved in the project-data folder.
-# This data table is over 300 Mb, so we used the fread function in R package data.table to quickly import
-# the dataset as a dataframe. (read.csv takes too long to read such a big file.)
-singleRNAseq <- fread("GSE72056_melanoma_single_cell_revised-2.txt")
+# the downloaded txt file GSE72056_melanoma_single_cell_revised_v2.txt is
+# produced locally by the Makefile.
+#
+# This data table is over 300 Mb, so it seems better to use the fread
+# function in R package data.table to quickly import the dataset as a dataframe.
+#
+melanomaSingleCellFile <- file.path(
+  .getDataDir2(), "r-extdata", "GSE72056_melanoma_single_cell_revised_v2.txt.gz")
+
+# singleRNAseq <- read.table(gzfile(melanomaSingleCellFile), header = T)
+singleRNAseq <- fread(paste('gzcat ', melanomaSingleCellFile), header = T)
+sampleSingleRNAseq <- head(singleRNAseq)[,c(1,2,3,4,5,6,7)]
+View(sampleSingleRNAseq)
+
+#singleRNAseq <- fread("GSE72056_melanoma_single_cell_revised-2.txt")
 #singleRNAseq <- fread("GSE72056_melanoma_single_cell_revised_v2.txt")
 lipogenesis_data <- get_lipogenesis_data(singleRNAseq)
 
