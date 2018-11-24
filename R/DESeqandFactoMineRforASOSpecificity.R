@@ -7,6 +7,7 @@ library(colorspace)
 library(DESeq2)
 library(Biobase)
 library(BiocGenerics)
+library(plyr)  # deliberately out of sorted order; must precede dplyr
 library(dplyr)
 library(factoextra)
 library(FactoMineR)
@@ -25,7 +26,6 @@ library(org.Hs.eg.db)
 library(parallel)
 library(pheatmap)
 library(plotly)
-library(plyr)
 library(rmarkdown)
 library(Rcpp)
 library(RcppArmadillo)
@@ -36,8 +36,9 @@ library(stats4)
 library(stringr)
 library(survival)
 
-black.bold.18.text <- element_text(face = "bold", color = "black", size = 18)
-lockBinding("black.bold.18.text", globalenv())
+.getTitleFont <- function() {
+  return(element_text(face = "bold", color = "black", size = 18))
+}
 
 .readGeneCounts <- function () {
   # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
@@ -118,7 +119,7 @@ lockBinding("black.bold.18.text", globalenv())
 ## The assay function is used to extract the matrix of normalized value
 .makeHeatMap <- function(guideDesign, ddsDE) {
   vsd <- vst(ddsDE, blind=FALSE)
-  rld <- rlog(ddsDE,blind=FALSE)
+  rld <- rlog(ddsDE, blind=FALSE)
   # Hierarchical clustering using rlog transformation
   dists=dist(t(assay(rld)))
   plot(hclust(dists), labels=guideDesign$condition)
@@ -150,8 +151,8 @@ lockBinding("black.bold.18.text", globalenv())
     theme_bw() +
     xlim(-10, 6) +
     ylim(-6, 6) +
-    theme(text = black.bold.18.text,
-          axis.text = black.bold.18.text,
+    theme(text = .getTitleFont(),
+          axis.text = .getTitleFont(),
           axis.line.x = element_line(color="black", size=1),
           axis.line.y = element_line(color="black", size=1),
           axis.ticks = element_line(size = 1),
@@ -309,8 +310,8 @@ lockBinding("black.bold.18.text", globalenv())
       theme_bw() +
       xlim(-8, 4) +
       ylim(-5, 5) +
-      theme(text = black.bold.18.text,
-            axis.text = black.bold.18.text,
+      theme(text = .getTitleFont(),
+            axis.text = .getTitleFont(),
             axis.line.x = element_line(color="black", size=1),
             axis.line.y = element_line(color="black", size=1),
             axis.ticks = element_line(size = 1),
@@ -395,25 +396,10 @@ lockBinding("black.bold.18.text", globalenv())
   dim1 <-data.frame(res.desc$Dim.1)
   columns(org.Hs.eg.db)
   # TODO(dlroxe): Figure out why it is necessary to comment out
-  # the mapIDs calls, here and for Dim.2 below.  Perhaps they
-  # don't work (and are needless anyway) because the work was
-  # done when .addGeneIdentifiers() was called elsewhere?
+  # gene identifier assignment, here and for Dim.2 below.
 
-  #dim1$symbol = mapIds(org.Hs.eg.db,
-  #                     keys=row.names(dim1),
-  #                     column="SYMBOL",
-  #                     keytype="ENSEMBL",
-  #                     multiVals="first")
-  #dim1$entrez = mapIds(org.Hs.eg.db,
-  #                     keys=row.names(dim1),
-  #                     column="ENTREZID",
-  #                     keytype="ENSEMBL",
-  #                     multiVals="first")
-  #dim1$name =   mapIds(org.Hs.eg.db,
-  #                     keys=row.names(dim1),
-  #                     column="GENENAME",
-  #                     keytype="ENSEMBL",
-  #                     multiVals="first")
+  #head(dim1,10)
+  #dim1 <- .addGeneIdentifiers(dim1)
   summary(dim1)
   head(dim1,10)
   quanti.correlation.dim1 = dim1$quanti.correlation
@@ -424,21 +410,7 @@ lockBinding("black.bold.18.text", globalenv())
   res.desc$Dim.2
   dim2 <-data.frame(res.desc$Dim.2)
   columns(org.Hs.eg.db)
-  #dim2$symbol = mapIds(org.Hs.eg.db,
-  #                     keys=row.names(dim2),
-  #                     column="SYMBOL",
-  #                     keytype="ENSEMBL",
-  #                     multiVals="first")
-  #dim2$entrez = mapIds(org.Hs.eg.db,
-  #                     keys=row.names(dim2),
-  #                     column="ENTREZID",
-  #                     keytype="ENSEMBL",
-  #                     multiVals="first")
-  #dim2$name =   mapIds(org.Hs.eg.db,
-  #                     keys=row.names(dim2),
-  #                     column="GENENAME",
-  #                     keytype="ENSEMBL",
-  #                     multiVals="first")
+  # dim1 <- .addGeneIdentifiers(dim1)
   summary(dim2)
   head(dim2,10)
 }
@@ -469,8 +441,8 @@ lockBinding("black.bold.18.text", globalenv())
 .makeGeneCountPlot <- function(countsAndConditions, title, ylim1, ylim2) {
   normalizedGeneCountTheme <-
     theme_bw() +
-    theme(text = black.bold.18.text,
-          axis.text = black.bold.18.text,
+    theme(text = .getTitleFont(),
+          axis.text = .getTitleFont(),
           axis.text.x = element_text(angle = 45, hjust = 1),
           axis.line.x = element_line(color="black", size=1),
           axis.line.y = element_line(color="black", size=1),
@@ -492,7 +464,7 @@ lockBinding("black.bold.18.text", globalenv())
   print(plot)
 }
 
-main <- function() {
+analyze_aso_specificity <- function() {
   testseq <- .readGeneCounts()
   guideData <- .getGuideData(testseq)
   condition <- c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
@@ -567,4 +539,6 @@ main <- function() {
   .makeGeneCountPlot(NRAS, "NRAS", 7, 9)
 }
 
-main()
+#if (interactive()) {
+#  analyze_aso_specificity()
+#}

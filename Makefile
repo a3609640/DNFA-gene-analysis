@@ -38,12 +38,19 @@ GUNZIP=gunzip -k
 MKDIR=mkdir -m 755 -p
 
 # in accord with usual conventions, the first target is named 'all'
-all: asoanalysis
+all: singlecellanalysis asoanalysis
+
+singlecellanalysis: $(extDataDir)/GSE72056_melanoma_single_cell_revised_v2.txt.gz
+
+$(extDataDir)/GSE72056_melanoma_single_cell_revised_v2.txt.gz: | $$(@D)
+	cd $(@D) && wget -nc ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE72nnn/GSE72056/suppl/$(@F)
 
 asoanalysis: bamfiles \
              $(extDataDir)/gene-counts.csv \
              projectreadfiles \
              $(extDataDir)/insertsizesummary.tab
+
+
 
 #############################################
 # install the STAR aligner software package #
@@ -237,7 +244,7 @@ $(projectExtDataDir)/%ReadsPerGene.out.tab : $(extDataDir)/%ReadsPerGene.out.tab
 	ln -s $< $@
 
 $(extDataDir)/gene-counts.csv: R/DESeqDataPreparation.R | readfiles
-	Rscript $< 
+	Rscript --vanilla -e 'source("$<"); prepare_data()' 
 
 # To make a given .fastq.gz file, first we need the .tar file that contains
 # it, and a directory in which to put it.  Given that, we can execute a tar

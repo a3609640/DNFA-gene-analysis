@@ -23,6 +23,7 @@ library(ashr)
 library(apeglm)
 library(biomaRt)
 library(colorspace)
+library(plyr)  # deliberately out of sorted order; must precede dplyr
 library(dplyr)
 library(lattice)
 library(geneplotter)
@@ -34,7 +35,6 @@ library(gplots)
 library(org.Hs.eg.db)
 library(parallel)
 library(pathview)
-library(plyr)
 library(readxl)
 library(rmarkdown)
 library(stats4)
@@ -189,7 +189,7 @@ data(kegg.gs)
 # Differential expression testing asks whether the difference across group is large relative to the within-group variance.
 # So these are different ways of ranking genes.
 # calculate the variance for each gene, # select the top 50 genes by variance
-.makeHeatMap <- function(ddsDEsiRNA) {
+.makeHeatMap2 <- function(ddsDEsiRNA) {
   rldsiRNA <- rlog(ddsDEsiRNA,blind=TRUE)
   vdsiRNA <- varianceStabilizingTransformation(ddsDEsiRNA, blind=TRUE)
   topVarGenes <- head(order(rowVars(assay(vdsiRNA)), decreasing=TRUE), 500)
@@ -288,7 +288,7 @@ ressiRNA <- .addGeneIdentifiers(ressiRNA)
 
 .exportCSV(ressiRNA)
 
-.makeHeatMap(ddsDEsiRNA)
+.makeHeatMap2(ddsDEsiRNA)
 
 foldchanges <- .keggAnalysis(ressiRNA)
 
