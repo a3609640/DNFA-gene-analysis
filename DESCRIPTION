@@ -12,7 +12,7 @@ Encoding: UTF-8
 Imports: AnnotationDbi, Biobase, BiocGenerics,
     BiocStyle, ChIPseeker, DESeq2, FactoMineR,
     GenomeInfoDb, GenomicRanges, IRanges,
-    KEGGREST, Matrix, RColorBrewer, RODBC,
+    KEGGREST, Matrix, R.utils, RColorBrewer, RODBC,
     Rcpp, RcppArmadillo, ReactomePA, S4Vectors,
     SummarizedExperiment,
     TxDb.Hsapiens.UCSC.hg19.knownGene,
