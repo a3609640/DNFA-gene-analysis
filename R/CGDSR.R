@@ -13,17 +13,26 @@ allcancerstudies = getCancerStudies(mycgds)
 tcga_provisional_studies = allcancerstudies[grep("(TCGA, Provisional)", allcancerstudies$name), ]
 # or the following gives the same output
 tcga_provisional_studies = getCancerStudies(mycgds)[grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
+# "tcag_study_list" is a vector containing all the tcga cancer studies that I would to analyze for DNFA gene expression
+tcag_study_list = tcga_provisional_studies$cancer_study_id
+
+caselist = function (x) getCaseLists(mycgds, x)
+geneticprofile = function (x) getGeneticProfiles(mycgds,x)
+mycaselist = lapply (tcag_study_list, caselist)
+mygeneticprofile = lapply (tcag_study_list, geneticprofile)
+
 
 ######################example#################################################
-# Get available case lists (collection of samples) for a given cancer study  
-mycancerstudy = getCancerStudies(mycgds)[194,1]
+# Get available case lists (collection of samples) for a single cancer study  
+mycancerstudy = getCancerStudies(mycgds)[193,1]
 mycaselist = getCaseLists(mycgds,mycancerstudy)[1,1]
 # Get available genetic profiles
 mygeneticprofile = getGeneticProfiles(mycgds,mycancerstudy)[1,1]
 # Get data slices for a specified list of genes, genetic profile and case list
-getProfileData(mycgds,c('BRCA1','BRCA2'),mygeneticprofile,mycaselist)
+getProfileData(mycgds,c('BRCA1','BRCA2'), mygeneticprofile, mycaselist)
 ######################example#################################################
 
+## get DNFA gene expression from SKCM group only
 skcm_case = getCaseLists(mycgds,'skcm_tcga')
 skcm_case = getCaseLists(mycgds,'skcm_tcga')
 skcm_tcga_all = getCaseLists(mycgds,'skcm_tcga')[2,1]
