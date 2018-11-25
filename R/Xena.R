@@ -4,7 +4,6 @@ library(ggfortify)
 library(ggplot2)
 library(lfda)
 library(readxl)
-library(survMisc)  # for autoplot
 
 doAllXena <- function() {
 DNFASKCMandGTEX <- readxl::read_excel(file.path("project-data", "7DNFASKCMandGTEX.xls"))
@@ -36,7 +35,7 @@ plot1 <- ggplot2::autoplot(prcomp(df), data = DNFASKCMandGTEX, colour = 'sample_
 print(plot1)
 # we can color each data point in the plot according to their cancer category: colour = 'sample_type'
 # Use loadings = TRUE, we draw eigenvector for each DNFA gene on the plot.
-bp <- ggplot2::autoplot(stats::prcomp(df), data = DNFASKCMandGTEX, colour = 'sample_type',
+bp <- ggplot2::autoplot(prcomp(df), data = DNFASKCMandGTEX, colour = 'sample_type',
          loadings = TRUE, loadings.colour = 'black',
          loadings.label.vjust = -1,
          loadings.label = TRUE, loadings.label.size = 4) +
