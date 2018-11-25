@@ -90,6 +90,25 @@ levels(totalgeneset$tumor)
 malignantgeneset <- subset(lipogenesis_data, malignancy == "Malignant")
 nonmalignantgeneset <- subset(lipogenesis_data, malignancy == "Non-malignant")
 
+singleCellTheme <- theme(
+  axis.title = element_text(face = "bold", size = 18, color = "black"),
+  axis.text = element_text(size = 18,face = "bold", color = "black"),
+  axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
+  axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
+  axis.line.x = element_line(color = "black", size = 1),
+  axis.line.y = element_line(color = "black", size = 1),
+  axis.ticks = element_line(size = 1),
+  axis.ticks.length = unit(.25, "cm"),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  legend.text = element_text(size = 18, face = "bold", colour = 'black'),
+  legend.position = c(0,1),
+  legend.justification = c(-0.1,1.1),
+  legend.key.height = unit(2.2, 'lines'),
+  legend.background = element_rect(fill = "white"))
+  
 ###############################################################################
 # compare single cell SREBF1 expression level in malignant and non-malignant
 # cells using boxplot graph within the same graph##
@@ -101,23 +120,7 @@ plot1 <- ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF1)) +
                aes(fill = malignancy)) +
   labs(x = "tumor samples", y = "SREBF1 mRNA counts") +
   theme_bw() +
-  theme(axis.title = element_text(face = "bold", size = 18, color = "black"),
-        axis.text = element_text(size = 18,face = "bold", color = "black"),
-        axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
-        axis.line.x = element_line(color = "black", size = 1),
-        axis.line.y = element_line(color = "black", size = 1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
-        legend.text = element_text(size = 18, face = "bold", colour = 'black'),
-        legend.position = c(0,1),
-        legend.justification = c(-0.1,1.1),
-        legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) +
+  singleCellTheme +
   guides(fill=guide_legend(title = NULL)) +
   scale_y_continuous(breaks = seq(0, 10, 2)) +
   scale_fill_discrete(labels = c("Nonmalignant cells", "Malignant cells"))
@@ -131,23 +134,7 @@ plot2 <- ggplot(totalgeneset, aes(x=factor(tumor), y = FASN)) +
                aes(fill = malignancy)) +
   labs(x = "tumor samples", y = "FASN mRNA counts") +
   theme_bw() +
-  theme(axis.title=element_text(face = "bold", size = 18, color = "black"),
-        axis.text=element_text(size=18,face="bold",color="black"),
-        axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
-        legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1),
-        legend.justification=c(-0.1,1.1),
-        legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) +
+  singleCellTheme +
   guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
@@ -161,24 +148,8 @@ plot3 <- ggplot(totalgeneset, aes(x=factor(tumor), y=SCD)) +
                color="black",
                aes(fill = malignancy)) +
   labs(x = "tumor samples", y = "SCD mRNA counts") +
-  theme_bw()+
-  theme(axis.title=element_text(face="bold",size=18,color="black"),
-        axis.text=element_text(size=18,face="bold",color="black"),
-        axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
-        legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1),
-        legend.justification=c(-0.1,1.1),
-        legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) +
+  theme_bw() +
+  singleCellTheme +
   guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
@@ -191,23 +162,7 @@ plot4 <- ggplot(totalgeneset, aes(x=factor(tumor), y=ACACA)) +
                aes(fill = malignancy)) +
   labs(x = "tumor samples", y = "ACACA mRNA counts") +
   theme_bw()+
-  theme(axis.title=element_text(face="bold",size=18,color="black"),
-        axis.text=element_text(size=18,face="bold",color="black"),
-        axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
-        legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1),
-        legend.justification=c(-0.1,1.1),
-        legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) +
+  singleCellTheme +
   guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
@@ -220,23 +175,7 @@ plot5 <- ggplot(totalgeneset, aes(x=factor(tumor), y=SREBF2)) +
                aes(fill = malignancy)) +
   labs(x = "tumor samples", y = "SREBF2 mRNA counts") +
   theme_bw()+
-  theme(axis.title=element_text(face="bold",size=18,color="black"),
-        axis.text=element_text(size=18,face="bold",color="black"),
-        axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
-        legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1),
-        legend.justification=c(-0.1,1.1),
-        legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) +
+  singleCellTheme +
   guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
@@ -249,23 +188,7 @@ plot6 <- ggplot(totalgeneset, aes(x=factor(tumor), y=MITF)) +
                aes(fill = malignancy)) +   
   labs(x = "tumor samples", y = "MITF mRNA counts") +
   theme_bw()+
-  theme(axis.title=element_text(face="bold",size=18,color="black"),
-        axis.text=element_text(size=18,face="bold",color="black"),
-        axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
-        legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1),
-        legend.justification=c(-0.1,1.1),
-        legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) +
+  singleCellTheme +
   guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
@@ -277,24 +200,8 @@ plot7 <- ggplot(totalgeneset, aes(x=factor(tumor), y=AXL)) +
                color="black",
                aes(fill = malignancy)) +
   labs(x = "tumor samples", y = "AXL mRNA counts") +
-  theme_bw()+
-  theme(axis.title=element_text(face="bold",size=18,color="black"),
-        axis.text=element_text(size=18,face="bold",color="black"),
-        axis.title.x = element_text(margin = unit(c(5, 0, 0, 0), "mm")),
-        axis.title.y = element_text(margin = unit(c(0, 5, 0, 0), "mm")),
-        axis.line.x = element_line(color="black", size=1),
-        axis.line.y = element_line(color="black", size=1),
-        axis.ticks = element_line(size = 1),
-        axis.ticks.length = unit(.25, "cm"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.background = element_blank(),
-        legend.text = element_text(size=18,face="bold",colour = 'black'),
-        legend.position=c(0,1),
-        legend.justification=c(-0.1,1.1),
-        legend.key.height = unit(2.2, 'lines'),
-        legend.background = element_rect(fill = "white")) +
+  theme_bw() +
+  singleCellTheme +
   guides(fill=guide_legend(title=NULL)) +
   scale_y_continuous(breaks=seq(0, 10, 2))+
   scale_fill_discrete(labels=c("Nonmalignant cells", "Malignant cells"))
