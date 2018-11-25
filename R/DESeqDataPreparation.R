@@ -73,6 +73,18 @@ library("dplyr")
 library("org.Hs.eg.db")
 library("utils")
 
+#' Generate a base table column name from a file name.
+#'
+#' For example, transform 'test6_S4_L001ReadsPerGene.out.tab' to 'test6.1.'.
+#'
+#' It is assumed that the file itself contains multiple columns, and that
+#' the column index for each will be appended (by the caller) to the base
+#' name provided by this function, to determine the column's full name in the
+#' table.
+#'
+#' @param fileName the name of a file containing test data.
+#' @return the base name of a table column corresponding to fileName.
+#'
 makeColumnBaseNameFromFileName <- function(fileName) {
   # Generate 'test6.1.' from 'test6_S4_L001ReadsPerGene.out.tab'.
   newColBaseName <- paste(substring(fileName, 1, 5),
@@ -83,7 +95,12 @@ makeColumnBaseNameFromFileName <- function(fileName) {
   return(newColBaseName)
 }
 
-# Reframe a data file with desired row and column names.
+#' Reframe a data file with desired row and column names.
+#'
+#' @param fullFileName fully-qualified single data file name
+#'
+#' @return reframed data file
+#'
 processReadsFile <- function(fullFileName) {
   print(paste("processReadsFile(): ", fullFileName))
   table <- read.table(fullFileName, stringsAsFactors = T)
@@ -103,7 +120,12 @@ processReadsFile <- function(fullFileName) {
   return(table.with.rownames)
 }
 
-# Merge reframed data from all input files, and add 'symbol' column.
+#' Merge reframed data from all input files, and add 'symbol' column.
+#'
+#' @param files list of fully-qualified data files
+#'
+#' @return processed and merged data files, consolidated to one frame
+#'
 mergeFiles <- function(files) {
   processedData <- lapply(files, processReadsFile)
   test <- do.call(cbind.data.frame, processedData)
@@ -125,6 +147,7 @@ mergeFiles <- function(files) {
   return(file.path(.getDataDir(), name))
 }
 
+#' main entry point for calling this file from Rscript
 prepare_data <- function() {
   stems <- c(
     "1_S2_L001", "1_S2_L002", "1_S2_L003", "1_S2_L004",
