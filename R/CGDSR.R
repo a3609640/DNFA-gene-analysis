@@ -7,10 +7,7 @@ test(mycgds)
 
 # Get list of cancer studies at server
 getCancerStudies(mycgds)
-# Get available case lists (collection of samples) for a given cancer study
-allcancerstudies = getCancerStudies(mycgds)
 # Get all cases from TCGA provisional studies 
-tcga_provisional_studies = allcancerstudies[grep("(TCGA, Provisional)", allcancerstudies$name), ]
 # or the following gives the same output
 tcga_provisional_studies = getCancerStudies(mycgds)[grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
 # "tcag_study_list" is a vector containing all the tcga cancer studies that I would to analyze for DNFA gene expression
@@ -18,8 +15,8 @@ tcag_study_list = tcga_provisional_studies$cancer_study_id
 
 caselist = function (x) getCaseLists(mycgds, x)
 geneticprofile = function (x) getGeneticProfiles(mycgds,x)
-mycaselist = lapply (tcag_study_list, caselist)
-mygeneticprofile = lapply (tcag_study_list, geneticprofile)
+tcag_provisional_caselist = lapply (tcag_study_list, caselist)
+tcag_provisional_geneticprofile = lapply (tcag_study_list, geneticprofile)
 
 
 ######################example#################################################
