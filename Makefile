@@ -38,7 +38,17 @@ GUNZIP=gunzip -k
 MKDIR=mkdir -m 755 -p
 
 # in accord with usual conventions, the first target is named 'all'
-all: singlecellanalysis asoanalysis
+all: genedbanalysis singlecellanalysis asoanalysis
+
+genedbanalysis: \
+  $(extDataDir)/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz \
+  $(extDataDir)/GTEx_Data_V6_Annotations_SampleAttributesDS.txt
+
+$(extDataDir)/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz: | $$(@D)
+	cd $(@D) && wget -nc http://storage.googleapis.com/gtex_analysis_v6p/rna_seq_data/$(@F)
+
+$(extDataDir)/GTEx_Data_V6_Annotations_SampleAttributesDS.txt: | $$(@D)
+	cd $(@D) && wget -nc http://storage.googleapis.com/gtex_analysis_v6p/annotations/$(@F)
 
 singlecellanalysis: $(extDataDir)/GSE72056_melanoma_single_cell_revised_v2.txt.gz
 
