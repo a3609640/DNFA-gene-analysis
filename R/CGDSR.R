@@ -1,6 +1,7 @@
 install.packages('cgdsr')
 library(cgdsr)
-
+library(ggplot2)
+library(reshape2)
 # Create CGDS object
 mycgds = CGDS("http://www.cbioportal.org/public-portal/")
 test(mycgds)
@@ -30,12 +31,10 @@ tcag_provisional_geneticprofile = lapply (tcag_study_list, geneticprofile)
 # how do we do this for all study groups from [[1]] to  [[32]]?
 caselist_RNAseq = function(x)
 {tcag_provisional_caselist[[x]][grep("tcga_rna_seq_v2_mrna",
-                                       tcag_provisional_caselist[[x]]$case_list_id),
-                                ][1,1]}
+                                       tcag_provisional_caselist[[x]]$case_list_id), ][1,1]}
 geneticprofile_RNAseq = function(x)
   {tcag_provisional_geneticprofile[[x]][grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
-                                             tcag_provisional_geneticprofile[[x]]$genetic_profile_name), 
-                                        ][1,1]}
+                                             tcag_provisional_geneticprofile[[x]]$genetic_profile_name), ][1,1]}
 # test the functions: caselist_RNAseq () and geneticprofile_RNAseq ()
     # caselist_RNAseq = caselist_RNAseq ('acc_tcga')
     # geneticprofile_RNAseq = geneticprofile_RNAseq ('acc_tcga')
@@ -45,13 +44,12 @@ TCGA_RNAseq = function(x) {TCGA_ProfileData_RNAseq(geneticprofile_RNAseq(x), cas
 # test the wrapping function
   # data5 = TCGA_RNAseq ('acc_tcga')
 TCGA_RNAseq_all_Studies = lapply (tcag_study_list, TCGA_RNAseq)
-library(ggplot2)
-library(reshape2)
-#In a melting pot
+
+# use the melt function from reshape2 package. 
 df <- melt(TCGA_RNAseq_all_Studies)
-#Separate boxplots for each data.frame
+# Separate boxplots for each data.frame
 qplot(factor(L1), log2(value), data = df, geom = "boxplot")
-# violin graph for FASN gene expression across all tumor types
+# violin graph for FASN gene expression across all tumor types, and order the X axis based on the gene expression level
 mean <- within(df, L1 <-  reorder(L1, log2(value), median))
 ggplot(mean, aes(x=L1, y=log2(value), fill=L1)) + 
   geom_violin(alpha = .5, trim=FALSE)+
