@@ -212,14 +212,29 @@ The commands `make` or `make all` will build everything, from soup to nuts.
 The following specific workflows are also supported:
 
 ## DNFA gene expression analysis with TCGA and GTEx databases.
-(Automated workflow still under development.)
+This depends on Makefile, R/TCGA.R, R/GTEx.R, R/Xena.R
 
-This depends on R/TCGA.R, R/GTEx.R, R/Xena.R
+Specific targets associated with this workflow include the following:
+* `make genedbanalysis` -- downloads public GTEX data and annotations
+    to the r-extdata directory under the directory named by they
+    configured environment variable `DNFA_generatedDataRoot`.
+
+For the time being, the R scripts must still be manually invoked after
+the data is downloaded.
 
 ## DNFA gene expression analysis on single cell RNA-seq dataset
-(Automated workflow still under development.)
+This depends on Makefile and R/scRNA-Seq.R.
 
-This depends on R/scRNA-Seq.R
+Specific targets associated with this workflow include the following:
+
+* `make singlecellanalysis` -- downloads a public single-cell data
+    set to the r-extdata directory under the directory named by the
+    configured environment variable `DNFA_generatedDataRoot`.
+    
+The script R/scRNA-Seq.R will search for the file in the same location
+where the Makefile deposits it, provided that it is executed with the
+same environment.  For the time being, the .R file must be evaluated
+independently of any Makefile target.
 
 ## RNA-seq analysis for ASO reagent specificity
 This workflow depends upon Makefile, R/DESeqDataPreparation.R,
