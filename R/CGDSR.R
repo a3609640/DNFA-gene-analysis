@@ -2,10 +2,10 @@ install.packages('cgdsr')
 library(cgdsr)
 library(ggplot2)
 library(reshape2)
+
 # Create CGDS object
 mycgds = CGDS("http://www.cbioportal.org/public-portal/")
 test(mycgds)
-
 # Get list of cancer studies at server
 getCancerStudies(mycgds)
 # Get cases from TCGA provisional studies only
@@ -56,7 +56,7 @@ ggplot(mean, aes(x=L1, y=log2(value), fill=L1)) +
   geom_boxplot(alpha = .01, width = .1, position = position_dodge(width = .9))+
   theme_bw()+
   labs(x = "Tumor types (TCGA)",
-       y = paste("log2(", "FASN", "RNA counts)")) +
+       y = paste("log2(FASN RNA counts)")) +
   theme(axis.title=element_text(face="bold",size=9,color="black"),
         axis.text=element_text(size=9,angle = 45, hjust = 1, face="bold",color="black"),
         axis.line.x = element_line(color="black"),
@@ -65,8 +65,9 @@ ggplot(mean, aes(x=L1, y=log2(value), fill=L1)) +
         strip.text = element_text(face = "bold", size = 9, colour = "black"),
         legend.position = "none")
 
-
-##################################################################################################################
+##############################################################################################################
+## To be continued here
+####
 ## get DNFA gene expression from SKCM group only
 skcm_case = getCaseLists(mycgds,'skcm_tcga')
 skcm_case = getCaseLists(mycgds,'skcm_tcga')
