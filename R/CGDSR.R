@@ -14,9 +14,20 @@ tcga_provisional_studies = getCancerStudies(mycgds)[grep("(TCGA, Provisional)", 
 tcag_study_list = tcga_provisional_studies$cancer_study_id
 
 caselist = function (x) getCaseLists(mycgds, x)
-geneticprofile = function (x) getGeneticProfiles(mycgds,x)
-tcag_provisional_caselist = lapply (tcag_study_list, caselist)
+geneticprofile = function (x) getGeneticProfiles(mycgds, x)
+# use lappy to pull out all the caselists within tcag_study_list
+# lappy will return a large list, each element in that list is a dataframe
+tcag_provisional_caselist = lapply (tcag_study_list, caselist) 
 tcag_provisional_geneticprofile = lapply (tcag_study_list, geneticprofile)
+# for example, tcag_provisional_caselist[[1]] shows the dataframe of caselist in laml study group.
+# we want to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna, tcag_provisional_caselist[[1][8,1]
+x =tcag_provisional_caselist[[1]][grep("tcga_rna_seq_v2_mrna", tcag_provisional_caselist[[1]]$case_list_id), ]
+# how do we do this for all study groups from [[1]] to  [[32]]?
+caselist_RNAseq = function (x) {tcag_provisional_caselist[[x]][grep("tcga_rna_seq_v2_mrna", tcag_provisional_caselist[[x]]$case_list_id), ]}
+# test the function caselist_RNAseq ()
+y =caselist_RNAseq (1)
+# the following script has a bug inside. need to fix
+tcag_provisional_caselist_RNAseq = lapply (tcag_provisional_caselist, caselist_RNAseq)
 
 
 ######################example#################################################
