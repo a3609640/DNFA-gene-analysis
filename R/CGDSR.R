@@ -7,39 +7,68 @@ test(mycgds)
 
 # Get list of cancer studies at server
 getCancerStudies(mycgds)
-# Get all cases from TCGA provisional studies
-# or the following gives the same output
-tcga_provisional_studies = getCancerStudies(mycgds)[grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
+# Get cases from TCGA provisional studies only
+tcga_provisional_studies = getCancerStudies(mycgds)[grep("(TCGA, Provisional)", 
+                                                         getCancerStudies(mycgds)$name), ]
 # "tcag_study_list" is a vector containing all the tcga cancer studies that I would to analyze for DNFA gene expression
 tcag_study_list = tcga_provisional_studies$cancer_study_id
+names(tcag_study_list) <- tcag_study_list
 
 caselist = function (x) getCaseLists(mycgds, x)
 geneticprofile = function (x) getGeneticProfiles(mycgds, x)
 # use lappy to pull out all the caselists within tcag_study_list
-# lappy will return a large list, each element in that list is a dataframe
+# lappy will return a large list, each element in that list is a data-table
 tcag_provisional_caselist = lapply (tcag_study_list, caselist)
 tcag_provisional_geneticprofile = lapply (tcag_study_list, geneticprofile)
 # for example, tcag_provisional_caselist[[1]] shows the dataframe of caselist in laml study group.
 # we want to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna, tcag_provisional_caselist[[1][8,1]
-x =tcag_provisional_caselist[[1]][grep("tcga_rna_seq_v2_mrna", tcag_provisional_caselist[[1]]$case_list_id), ]
+  # a =tcag_provisional_caselist[[1]][grep("tcga_rna_seq_v2_mrna",
+  #                                       tcag_provisional_caselist[[1]]$case_list_id), ][1,1]
+  # b =tcag_provisional_geneticprofile[[1]][grep("mRNA expression \\(RNA Seq V2 RSEM\\)", 
+  # double backslash \\ suppress the special meaning of ( ) in regular expression
+  #                                             tcag_provisional_geneticprofile[[1]]$genetic_profile_name), ][1,1]
 # how do we do this for all study groups from [[1]] to  [[32]]?
-caselist_RNAseq = function (x) {tcag_provisional_caselist[[x]][grep("tcga_rna_seq_v2_mrna", tcag_provisional_caselist[[x]]$case_list_id), ]}
-# test the function caselist_RNAseq ()
-y = caselist_RNAseq (1)
-# the following script has a bug inside. need to fix
-tcag_provisional_caselist_RNAseq = lapply (tcag_provisional_caselist, caselist_RNAseq)
+caselist_RNAseq = function(x)
+{tcag_provisional_caselist[[x]][grep("tcga_rna_seq_v2_mrna",
+                                       tcag_provisional_caselist[[x]]$case_list_id),
+                                ][1,1]}
+geneticprofile_RNAseq = function(x)
+  {tcag_provisional_geneticprofile[[x]][grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
+                                             tcag_provisional_geneticprofile[[x]]$genetic_profile_name), 
+                                        ][1,1]}
+# test the functions: caselist_RNAseq () and geneticprofile_RNAseq ()
+    # caselist_RNAseq = caselist_RNAseq ('acc_tcga')
+    # geneticprofile_RNAseq = geneticprofile_RNAseq ('acc_tcga')
+# We wrap two functions: geneticprofile_RNAseq(x), caselist_RNAseq(x) within TCGA_ProfileData_RNAseq(x)
+TCGA_ProfileData_RNAseq = function(geneticprofile, caselist) {getProfileData(mycgds, 'FASN', geneticprofile, caselist)}
+TCGA_RNAseq = function(x) {TCGA_ProfileData_RNAseq(geneticprofile_RNAseq(x), caselist_RNAseq(x))}  
+# test the wrapping function
+  # data5 = TCGA_RNAseq ('acc_tcga')
+TCGA_RNAseq_all_Studies = lapply (tcag_study_list, TCGA_RNAseq)
+library(ggplot2)
+library(reshape2)
+#In a melting pot
+df <- melt(TCGA_RNAseq_all_Studies)
+#Separate boxplots for each data.frame
+qplot(factor(L1), log2(value), data = df, geom = "boxplot")
+# violin graph for FASN gene expression across all tumor types
+mean <- within(df, L1 <-  reorder(L1, log2(value), median))
+ggplot(mean, aes(x=L1, y=log2(value), fill=L1)) + 
+  geom_violin(alpha = .5, trim=FALSE)+
+  geom_boxplot(alpha = .01, width = .1, position = position_dodge(width = .9))+
+  theme_bw()+
+  labs(x = "Tumor types (TCGA)",
+       y = paste("log2(", "FASN", "RNA counts)")) +
+  theme(axis.title=element_text(face="bold",size=9,color="black"),
+        axis.text=element_text(size=9,angle = 45, hjust = 1, face="bold",color="black"),
+        axis.line.x = element_line(color="black"),
+        axis.line.y = element_line(color="black"),
+        panel.grid = element_blank(),
+        strip.text = element_text(face = "bold", size = 9, colour = "black"),
+        legend.position = "none")
 
 
-######################example#################################################
-# Get available case lists (collection of samples) for a single cancer study
-mycancerstudy = getCancerStudies(mycgds)[193,1]
-mycaselist = getCaseLists(mycgds,mycancerstudy)[1,1]
-# Get available genetic profiles
-mygeneticprofile = getGeneticProfiles(mycgds,mycancerstudy)[1,1]
-# Get data slices for a specified list of genes, genetic profile and case list
-getProfileData(mycgds,c('BRCA1','BRCA2'), mygeneticprofile, mycaselist)
-######################example#################################################
-
+##################################################################################################################
 ## get DNFA gene expression from SKCM group only
 skcm_case = getCaseLists(mycgds,'skcm_tcga')
 skcm_case = getCaseLists(mycgds,'skcm_tcga')
