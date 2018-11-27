@@ -37,8 +37,13 @@ Note that WSL is still evolving and rough around the edges.  For example,
 the "atom" editor has some bugs that prevent plug-in installation under WSL.
 
 In Q4 2018, Apple announced a new Mac Mini lineup.  A fully upgraded Mini
-would appear to have comparable specs and in theory should be suitable, but
-no attempt has been made to evaluate this.
+would appear to specs comparable to the development systems and in theory
+should be suitable, but no attempt has been made to evaluate this.  Note
+that some adjustments to workflows may be necessary on MacOS.  For example,
+Mac OS does not make the 'wget' utility available by default, nor do they
+make it trivially easy to install (there are several options for
+installing it, but they are not trivial in the sense that 'sudo apt-get install'
+is trvial).
 
 ### Performance of Development Systems
 
@@ -74,7 +79,6 @@ the following (for Debian-based environments):
 * `sudo apt-get install git-lfs  # needed for large .fastq raw data files`
 * `sudo apt-get install libssl-dev  # needed by various R packages`
 * `sudo apt-get install picard-tools  # needed for insert size analysis`
-* `sudo apt-get install python-pip  # (note, use python 2.7)`
 * `sudo apt-get install r-base`
 * `sudo apt-get install r-recommended`
 * `sudo apt-get install samtools`
@@ -210,13 +214,27 @@ R/DESeqandGAGEforPathwayAnalysis.R.
 
 # Software Engineering Discussion for Biologists
 
-## Build Systems
+As a friend of one of the authors who was a member of the US Marine Corps
+once related, there is a saying in the military:  "Amateurs talk tactics;
+professionals talk logistics."  In a way, the same is true for software
+engineering.  If you have managed to coax R into producing a
+publication-quality graph, congratulations... but from a software engineering
+standpoint, you are far from done.  Is your code correct?  If you adjust it,
+how can you be sure that it remains correct?  Can your software run in a fully
+automated fashion with no manual steps?  What recipe must others follow to see
+your code work in their own environments?  These and related questions touch
+upon the logistical considerations for well-engineered software.  This section
+will consider them from the standpoint of build automation, unit testing, and
+documentation.
+
+## Build Automation
 
 One aspect of this project is a file named `Makefile`.  To a non-initiate,
 its contents undoubtedly appear as though, periodically during its creation,
 a cat walked across a keyboard with a stuck `shift` key, taking particular
-care to step only on the number keys.  However the file in fact specifies
-many specific buildable units, and the relationships between them.
+care to step only on the number keys.  However the file in fact defines
+many specific buildable units, the relationships between them, and precise
+recipes to follow in order to build them.
 
 ### A Primer on Makefiles
 
@@ -254,7 +272,7 @@ hierarchy, and rebuild other targets as needed.  When targets are well
 specified, it is often possible to delete and regenerate a very specific output
 in isolation.
 
-### The Wider World of Build Systems
+### The Wider World of Build Automation
 
 In fact, 'make' is just one of many things like 'make'.  It is one of the
 oldest, and its Makefile syntax produces some of the most arcane project
@@ -282,9 +300,20 @@ too, but to your surprise it will work, and to your even greater surprise
 you will understand it. (Well, that's not a promise, on either count.  YMMV.)
 
 ## Unit Tests
-
 (this section is under construction)
 
-## Documentation
+### A Primer on testthat
+(this section is under construction)
 
+### The World of Unit Test Systems
+(this section is under construction)
+
+
+## Documentation
+(this section is under construction)
+
+## A Primer on Roxygen2
+(this section is under construction)
+
+## The Wider World of Documentation Systems
 (this section is under construction)
