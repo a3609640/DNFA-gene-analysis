@@ -78,6 +78,7 @@ the following (for Debian-based environments):
 * `sudo apt-get install bedtools`
 * `sudo apt-get install git-lfs  # needed for large .fastq raw data files`
 * `sudo apt-get install libssl-dev  # needed by various R packages`
+* `sudo apt-get install macs`
 * `sudo apt-get install picard-tools  # needed for insert size analysis`
 * `sudo apt-get install r-base`
 * `sudo apt-get install r-recommended`
@@ -207,10 +208,22 @@ Specific targets associated with this workflow include the following:
     known.
 
 ## Pathway analyses for RNA-Seq and ChIP-Seq analyses
-(Automated workflow still under development.)
 
 This depends on: ChIP-Seq/MACSandHOMERforChIP-Seq.sh, R/ChIPseeker.R,
 R/DESeqandGAGEforPathwayAnalysis.R.
+
+Specific targets associated with this workflow include the following:
+
+* `make chipseqanalysis` -- downloads multiple data files from existing
+    public data sets, and processes them into various .sam, .bam, and .bed
+    files
+* `make <download_dir/download_filename>` -- for various files (see the
+    Makefile itself), this not only downloads a specific ENCFF*.bam file,
+    but also verifies its md5 checksum.
+
+For the time being, R scripts must be manually invoked to generate plots
+from the downloaded and processed data.
+
 
 # Software Engineering Discussion for Biologists
 

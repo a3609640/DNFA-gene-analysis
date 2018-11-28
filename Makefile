@@ -38,7 +38,9 @@ GUNZIP=gunzip -k
 MKDIR=mkdir -m 755 -p
 
 # in accord with usual conventions, the first target is named 'all'
-all: genedbanalysis singlecellanalysis asoanalysis
+all: genedbanalysis singlecellanalysis asoanalysis chipseqanalysis
+
+## Targets associated with workflow 1
 
 genedbanalysis: \
   $(extDataDir)/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz \
@@ -50,10 +52,16 @@ $(extDataDir)/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz: | $$(@D
 $(extDataDir)/GTEx_Data_V6_Annotations_SampleAttributesDS.txt: | $$(@D)
 	cd $(@D) && wget -nc http://storage.googleapis.com/gtex_analysis_v6p/annotations/$(@F)
 
+
+# Targets associated with Workflow 2
+
 singlecellanalysis: $(extDataDir)/GSE72056_melanoma_single_cell_revised_v2.txt.gz
 
 $(extDataDir)/GSE72056_melanoma_single_cell_revised_v2.txt.gz: | $$(@D)
 	cd $(@D) && wget -nc ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE72nnn/GSE72056/suppl/$(@F)
+
+
+# Targets associated with Workflow 3
 
 asoanalysis: bamfiles \
              $(extDataDir)/gene-counts.csv \
@@ -119,7 +127,11 @@ reference_genome: ${DNFA_generatedDataRoot}/STARIndex/SA
 # we can 'cd' to STARIndex and execute STAR to build the reference genome.
 
 # Notes about the parameters
-# --sjdbOverhang species the length of the genomic sequence around the annotated junction to be used in constructing the splice junctions database. Ideally, this length should be equal to the ReadLength-1, where ReadLength is the length of the reads. We used 2x76b paired-end reads, the ideal value is 76-1=75.
+# --sjdbOverhang specifies the length of the genomic sequence around the
+#   annotated junction to be used in constructing the splice junctions
+#   database. Ideally, this length should be equal to the ReadLength-1,
+#   where ReadLength is the length of the reads. We used 2x76b paired-end
+#   reads, the ideal value is 76-1=75.
 
 ${DNFA_generatedDataRoot}/STARIndex/SA: $(starBinDir)/STAR $(fa) $(gtf) | $$(@D)
 	cd $(@D) && $< \
@@ -227,11 +239,20 @@ $(extDataDir)/%.sorted.bam : $(extDataDir)/%.out.sam | $$(@D)
 # Perform STAR alignment on the FASTQ files #
 #############################################
 # parameters used for STAR alignment #
-# --readFilesCommand zcat option inputs readfiles that are compressed as gzipped files (*.gz))
-# default output files include Aligned.out.sam (alignments in standard SAM format)
-# --quantMode TranscriptomeSAM optionwill output alignments translated into transcript coordinates in the Aligned.toTranscriptome.out.bamfile (in addition to alignments in genomic coordinates in Aligned.*.sam
-# --quantMode GeneCounts option will count number reads per gene while mapping.
-# --quantMode TranscriptomeSAM GeneCounts option will get both the Aligned.toTranscriptome.out.bam and ReadsPerGene.out.tab output files.
+# --readFilesCommand zcat option handles input files that are
+#   compressed as gzipped files (*.gz))
+#
+# default output files include Aligned.out.sam (alignments in
+# standard SAM format)
+# --quantMode TranscriptomeSAM option will output alignments
+#   translated into transcript coordinates in the
+#   Aligned.toTranscriptome.out.bam file (in addition to
+#   alignments in genomic coordinates in Aligned.*.sam
+# --quantMode GeneCounts option will count number reads per
+#   gene while mapping in the same manner as HTSeq.
+# --quantMode TranscriptomeSAM GeneCounts option will get
+#   both the Aligned.toTranscriptome.out.bam and
+#   ReadsPerGene.out.tab output files.
 
 $(extDataDir)/%ReadsPerGene.out.tab \
   $(extDataDir)/%Aligned.out.sam \
@@ -294,13 +315,98 @@ ${DNFA_generatedDataRoot}/referenceGenome ${DNFA_generatedDataRoot}/STARIndex:
 $(extDataDir):
 	$(MKDIR) $@
 
+
+# Targets Associated with Workflow 4
+
+chipseqanalysis: A549files MCF7files  #  K562files # script seems confused between IgG and Input
+
+A549files: $(foreach name, SREBP1 Input, $(extDataDir)/A549-$(name).merged.sorted.bam)
+K562files: $(foreach name, SREBP1 Input, $(extDataDir)/K562-$(name).merged.sorted.bam)
+MCF7files: $(foreach name, SREBP1 Input, $(extDataDir)/MCF7-$(name).merged.sorted.bam)
+
+$(extDataDir)/%.merged.sorted.bam: $(extDataDir)/%-1.sorted.bam $(extDataDir)/%-2.sorted.bam 
+	cd $(@D) && samtools merge $(@F) $^
+
+$(extDataDir)/%.sorted.bam: $(extDataDir)/%.bam
+	cd $(@D) && samtools sort $(<F) -o $(@F) -@ 12 && samtools index $(@F)
+
+$(extDataDir)/%.bed: $(extDataDir)/%.bam
+	cd $(@D) && bedtools bamtobed -i $(<F) > $(@F)
+
+$(extDataDir)/A549-SREBP1-1.bam: $(extDataDir)/ENCFF224BFU.bam
+	cd $(@D) && ln -s $(<F) $(@F)
+
+$(extDataDir)/A549-SREBP1-2.bam: $(extDataDir)/ENCFF788IFN.bam
+	cd $(@D) && ln -s $(<F) $(@F)
+
+$(extDataDir)/A549-Input-1.bam: $(extDataDir)/ENCFF189KJV.bam
+	cd $(@D) && ln -s $(<F) $(@F)
+
+$(extDataDir)/A549-Input-2.bam: $(extDataDir)/ENCFF419UIG.bam
+	cd $(@D) && ln -s $(<F) $(@F)
+
+$(extDataDir)/MCF7-SREBP1-1.bam: $(extDataDir)/ENCFF774XPS.bam
+	cd $(@D) && ln -s $(<F) $(@F)
+
+$(extDataDir)/MCF7-SREBP1-2.bam: $(extDataDir)/ENCFF008QCI.bam
+	cd $(@D) && ln -s $(<F) $(@F)
+
+$(extDataDir)/MCF7-Input-1.bam: $(extDataDir)/ENCFF426RDP.bam
+	cd $(@D) && ln -s $(<F) $(@F)
+
+$(extDataDir)/MCF7-Input-2.bam: $(extDataDir)/ENCFF291AFY.bam
+	cd $(@D) && ln -s $(<F) $(@F)
+
+$(extDataDir)/ENCFF224BFU.bam:
+	cd $(@D) && \
+	wget -c https://www.encodeproject.org/files/ENCFF224BFU/@@download/$(@F) && \
+	echo "963f1d263ab581902c394ccfebd1c293 $(@F)" | md5sum --check
+
+$(extDataDir)/ENCFF788IFN.bam:
+	cd $(@D) && \
+	wget -c https://www.encodeproject.org/files/ENCFF788IFN/@@download/$(@F) && \
+	echo "8c8124d093d66edcc9c319cd2defc9bb $(@F)" | md5sum --check
+
+$(extDataDir)/ENCFF189KJV.bam:
+	cd $(@D) && \
+	wget -c https://www.encodeproject.org/files/ENCFF189KJV/@@download/$(@F) && \
+	echo "64ac01c84b90eb1838ef558e5e504dbc $(@F)" | md5sum --check
+
+$(extDataDir)/ENCFF419UIG.bam:
+	cd $(@D) && \
+	wget -c https://www.encodeproject.org/files/ENCFF419UIG/@@download/$(@F) && \
+	echo "2c8a0d8e2ffc7ca65ade9f8fe9f0dfe1 $(@F)" | md5sum --check
+
+$(extDataDir)/ENCFF774XPS.bam:
+	cd $(@D) && \
+	wget -c https://www.encodeproject.org/files/ENCFF774XPS/@@download/$(@F) && \
+	echo "e97bde1230c59824fad36d80e8ed9adc $(@F)" | md5sum --check
+
+$(extDataDir)/ENCFF008QCI.bam:
+	cd $(@D) && \
+	wget -c https://www.encodeproject.org/files/ENCFF008QCI/@@download/$(@F) && \
+	echo "6c2e59e7531eb2f6cf2855010f3cb22f $(@F)" | md5sum --check
+
+$(extDataDir)/ENCFF426RDP.bam:
+	cd $(@D) && \
+	wget -c https://www.encodeproject.org/files/ENCFF426RDP/@@download/$(@F) && \
+	echo "b7b5004c4d1de084e602fdd2166f420d $(@F)" | md5sum --check
+
+$(extDataDir)/ENCFF291AFY.bam:
+	cd $(@D) && \
+	wget -c https://www.encodeproject.org/files/ENCFF291AFY/@@download/$(@F) && \
+	echo "84a7385de97ebc87cf22d1745fe03425 $(@F)" | md5sum --check
+
+
+# Miscellaneous Targets
+
 # Use "make clean" to remove all generated output.
 # Use sub-targets (e.g. "make clean_star") to remove selected
 # generated output.
 clean: clean_starindex clean_refgenome clean_samfiles clean_bamfiles
 
-# Oops -- that's a dangerous directive that will delete the whole system
-# if run with root permissions and the environment variable is not set.
+# Oops -- that's a dangerous directive that could delete the whole system
+# if run with root permissions and the environment variable is set unwisely.
 #
 #
 #clean_star:
