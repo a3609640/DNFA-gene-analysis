@@ -37,7 +37,7 @@ Note that WSL is still evolving and rough around the edges.  For example,
 the "atom" editor has some bugs that prevent plug-in installation under WSL.
 
 In Q4 2018, Apple announced a new Mac Mini lineup.  A fully upgraded Mini
-would appear to specs comparable to the development systems and in theory
+seems to have specs comparable to the development systems and in theory
 should be suitable, but no attempt has been made to evaluate this.  Note
 that some adjustments to workflows may be necessary on MacOS.  For example,
 Mac OS does not make the 'wget' utility available by default, nor do they
