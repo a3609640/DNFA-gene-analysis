@@ -144,7 +144,7 @@ mergeFiles <- function(files) {
 
 .getFile <- function(stem) {
   name <- paste('test', stem, 'ReadsPerGene.out.tab', sep = "")
-  return(file.path(.getDataDir(), name))
+  return(file.path(.getDataDir(), 'r-extdata', name))
 }
 
 #' main entry point for calling this file from Rscript
