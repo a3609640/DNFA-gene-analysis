@@ -12,15 +12,16 @@ getCancerStudies(mycgds)
 tcga_provisional_studies <- getCancerStudies(mycgds)[grep("(TCGA, Provisional)", 
                                                          getCancerStudies(mycgds)$name), ]
 # "tcag_study_list" is a vector containing all the tcga cancer studies that I would to analyze for DNFA gene expression
-tcag_study_list <- tcga_provisional_studies$cancer_study_id
-names(tcag_study_list) <- tcag_study_list
+tcga_study_list <- tcga_provisional_studies$cancer_study_id
+names(tcga_study_list) <- tcga_study_list
 
 caselist <- function (x) getCaseLists(mycgds, x)
 geneticprofile <- function (x) getGeneticProfiles(mycgds, x)
 # use lappy to pull out all the caselists within tcag_study_list
-# lappy will return a large list, each element in that list is a data-table
-tcag_provisional_caselist <- lapply (tcag_study_list, caselist)
-tcag_provisional_geneticprofile <- lapply (tcag_study_list, geneticprofile)
+# because we named each elements in tcga_study_list (names(tcag_study_list) <- tcag_study_list), 
+# lappy will return a large list, each element (with a cancer study name) in that list is a data-table
+tcga_provisional_caselist <- lapply (tcga_study_list, caselist)
+tcga_provisional_geneticprofile <- lapply (tcga_study_list, geneticprofile)
 # for example, tcag_provisional_caselist[[1]] shows the dataframe of caselist in laml study group.
 # we want to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna, tcag_provisional_caselist[[1][8,1]
   # a =tcag_provisional_caselist[[1]][grep("tcga_rna_seq_v2_mrna",
@@ -30,39 +31,41 @@ tcag_provisional_geneticprofile <- lapply (tcag_study_list, geneticprofile)
   #                                             tcag_provisional_geneticprofile[[1]]$genetic_profile_name), ][1,1]
 # how do we do this for all study groups from [[1]] to  [[32]]?
 caselist_RNAseq <- function(x) {
-  tcag_provisional_caselist[[x]][grep("tcga_rna_seq_v2_mrna", 
-                                      tcag_provisional_caselist[[x]]$case_list_id), ][1,1]
-  }
+                                tcga_provisional_caselist[[x]][grep("tcga_rna_seq_v2_mrna", 
+                                                                    tcga_provisional_caselist[[x]]$case_list_id),
+                                                               ][1,1]
+                                }
 
 geneticprofile_RNAseq <- function(x) {
-  tcag_provisional_geneticprofile[[x]][grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
-                                             tcag_provisional_geneticprofile[[x]]$genetic_profile_name), ][1,1]
-  }
+                                      tcga_provisional_geneticprofile[[x]][grep("mRNA expression \\(RNA Seq V2 RSEM\\)", 
+                                                                                tcga_provisional_geneticprofile[[x]]$genetic_profile_name),
+                                                                           ][1,1]
+                                      }
 # test the functions: caselist_RNAseq () and geneticprofile_RNAseq ()
     # caselist_RNAseq = caselist_RNAseq ('acc_tcga')
     # geneticprofile_RNAseq = geneticprofile_RNAseq ('acc_tcga')
 # We wrap two functions: geneticprofile_RNAseq(x), caselist_RNAseq(x) within TCGA_ProfileData_RNAseq(x)
 TCGA_ProfileData_RNAseq <- function(genename, geneticprofile, caselist) {
-  getProfileData(mycgds, 
-                 genename, 
-                 geneticprofile, 
-                 caselist)
-}
+                                                                         getProfileData(mycgds, 
+                                                                                        genename, 
+                                                                                        geneticprofile, 
+                                                                                        caselist)
+                                                                         }
 
 SCD_TCGA_RNAseq <- function(x) {
-  TCGA_ProfileData_RNAseq('SCD', 
-                          geneticprofile_RNAseq(x), 
-                          caselist_RNAseq(x))
-  }  
-# test the wrapping function
+                                TCGA_ProfileData_RNAseq('SCD', 
+                                geneticprofile_RNAseq(x), 
+                                caselist_RNAseq(x))
+                                }  
+# test the wrapping function, then use each element in tcga_study_list vector as the x in SCD_TCGA_RNAseq(x)
   # data5 = TCGA_RNAseq ('acc_tcga')
-SCD_TCGA_RNAseq_all_Studies <- lapply (tcag_study_list, SCD_TCGA_RNAseq)
+SCD_TCGA_RNAseq_all_Studies <- lapply (tcga_study_list, SCD_TCGA_RNAseq)
 
 # use the melt function from reshape2 package. 
 df <- melt(SCD_TCGA_RNAseq_all_Studies)
 # Separate boxplots for each data.frame
 qplot(factor(L1), log2(value), data = df, geom = "boxplot")
-# violin graph for FASN gene expression across all tumor types, and order the X axis based on the gene expression level
+# boxplot graph for SCD gene expression across all tumor types, and order the X axis based on the gene expression level
 mean <- within(df, L1 <- reorder(L1, log2(value), median))
 ggplot(mean, aes(x    = L1, 
                  y    = log2(value), 
@@ -114,8 +117,7 @@ ggplot(BRAF.mutations.DNFA.RNAseq,
            color = BRAF.mutations)) + 
   geom_boxplot(alpha = .01, 
                width = .5) +
-# binaxis = "y" stack the dots along the y-axis and group them along x-axis
-  geom_dotplot(binaxis  = "y", 
+  geom_dotplot(binaxis  = "y", # stack the dots along the y-axis and group them along x-axis
                binwidth = .1, 
                stackdir = "center", 
                fill     = NA)
@@ -149,7 +151,6 @@ ggplot(NRAS.mutations.DNFA.RNAseq,
            color = NRAS.mutations)) + 
   geom_boxplot(alpha = .01, 
                width = .5) +
-  # binaxis = "y" stack the dots along the y-axis and group them along x-axis
   geom_dotplot(binaxis  = "y", 
                binwidth = .1, 
                stackdir = "center", 
@@ -184,7 +185,6 @@ ggplot(AKT.mutations.DNFA.RNAseq,
            color = AKT.mutations)) + 
   geom_boxplot(alpha = .01, 
                width = .5) +
-  # binaxis = "y" stack the dots along the y-axis and group them along x-axis
   geom_dotplot(binaxis  = "y", 
                binwidth = .1, 
                stackdir = "center", 
@@ -221,7 +221,6 @@ ggplot(TP53.mutations.DNFA.RNAseq,
            color = TP53.mutations)) + 
   geom_boxplot(alpha = .01, 
                width = .5) +
-  # binaxis = "y" stack the dots along the y-axis and group them along x-axis
   geom_dotplot(binaxis  = "y", 
                binwidth = .1, 
                stackdir = "center", 
@@ -264,7 +263,6 @@ ggplot(BRAF.CNV.DNFA.RNAseq,
            color = BRAF.CNV)) + 
   geom_boxplot(alpha = .01, 
                width = .5) +
-  # binaxis = "y" stack the dots along the y-axis and group them along x-axis
   geom_dotplot(binaxis  = "y", 
                binwidth = .1, 
                stackdir = "center", 
@@ -281,7 +279,6 @@ ggplot(BRAF.CNV.DNFA.RNAseq,
            color = BRAF.CNV)) + 
   geom_boxplot(alpha = .01, 
                width = .5) +
-  # binaxis = "y" stack the dots along the y-axis and group them along x-axis
   geom_dotplot(binaxis  = "y", 
                binwidth = .1, 
                stackdir = "center", 
@@ -290,6 +287,7 @@ ggplot(BRAF.CNV.DNFA.RNAseq,
                    labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"), 
                    drop   = FALSE) +
   theme(legend.position   = "none")
+
 # compare the variance among different groups using a nonparametri test
 fligner.test(SCD~BRAF.CNV, data=BRAF.CNV.DNFA.RNAseq) # p-value = 0.179
 fligner.test(BRAF~BRAF.CNV, data=BRAF.CNV.DNFA.RNAseq) # p-value = 0.02785
@@ -303,6 +301,7 @@ NRAS.CNV.DNFA.RNAseq <- cbind(NRAS.CNV, DNFA.RNAseq)
 NRAS.CNV.DNFA.RNAseq <- NRAS.CNV.DNFA.RNAseq[!is.nan(NRAS.CNV.DNFA.RNAseq$NRAS.CNV), ]
 NRAS.CNV.DNFA.RNAseq$NRAS.CNV <- as.factor(NRAS.CNV.DNFA.RNAseq$NRAS.CNV)
 levels(NRAS.CNV.DNFA.RNAseq$NRAS.CNV) <- c( "-2", "-1",  "0",  "1", "2")
+
 # plot SCD RNAseq ~ NRAS CNV
 ggplot(NRAS.CNV.DNFA.RNAseq, 
        aes(x     = NRAS.CNV, 
@@ -310,7 +309,6 @@ ggplot(NRAS.CNV.DNFA.RNAseq,
            color = NRAS.CNV)) + 
   geom_boxplot(alpha = .01, 
                width = .5) +
-  # binaxis = "y" stack the dots along the y-axis and group them along x-axis
   geom_dotplot(binaxis  = "y", 
                binwidth = .1, 
                stackdir = "center", 
@@ -319,6 +317,7 @@ ggplot(NRAS.CNV.DNFA.RNAseq,
                    labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"), 
                    drop   = FALSE) +
   theme(legend.position   = "none")
+
 # plot NRAS RNAseq ~ NRAS CNV: positive control
 ggplot(NRAS.CNV.DNFA.RNAseq, 
        aes(x     = NRAS.CNV, 
@@ -326,7 +325,6 @@ ggplot(NRAS.CNV.DNFA.RNAseq,
            color = NRAS.CNV)) + 
   geom_boxplot(alpha = .01, 
                width = .5) +
-  # binaxis = "y" stack the dots along the y-axis and group them along x-axis
   geom_dotplot(binaxis  = "y", 
                binwidth = .1, 
                stackdir = "center", 
@@ -335,6 +333,7 @@ ggplot(NRAS.CNV.DNFA.RNAseq,
                    labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"), 
                    drop   = FALSE) +
   theme(legend.position   = "none")
+
 # compare the variance among different groups using a nonparametri test
 fligner.test(SCD~NRAS.CNV, data=NRAS.CNV.DNFA.RNAseq) # p-value = 0.1973
 fligner.test(NRAS~NRAS.CNV, data=NRAS.CNV.DNFA.RNAseq) # p-value = 1.9e-08
@@ -354,7 +353,6 @@ ggplot(PTEN.CNV.DNFA.RNAseq,
            color = PTEN.CNV)) + 
   geom_boxplot(alpha = .01, 
                width = .5) +
-  # binaxis = "y" stack the dots along the y-axis and group them along x-axis
   geom_dotplot(binaxis  = "y", 
                binwidth = .1, 
                stackdir = "center", 
@@ -363,6 +361,7 @@ ggplot(PTEN.CNV.DNFA.RNAseq,
                    labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"), 
                    drop   = FALSE) +
   theme(legend.position   = "none")
+
 # plot PTEN RNAseq ~ PTEN CNV: positive control
 ggplot(PTEN.CNV.DNFA.RNAseq, 
        aes(x     = PTEN.CNV, 
@@ -370,7 +369,6 @@ ggplot(PTEN.CNV.DNFA.RNAseq,
            color = PTEN.CNV)) + 
   geom_boxplot(alpha = .01, 
                width = .5) +
-  # binaxis = "y" stack the dots along the y-axis and group them along x-axis
   geom_dotplot(binaxis  = "y", 
                binwidth = .1, 
                stackdir = "center", 
@@ -379,6 +377,7 @@ ggplot(PTEN.CNV.DNFA.RNAseq,
                    labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"), 
                    drop   = FALSE) +
   theme(legend.position   = "none")
+
 # compare the variance among different groups using a nonparametri test
 fligner.test(SCD~PTEN.CNV, data=PTEN.CNV.DNFA.RNAseq) # p-value = 0.0004647 (pten loss correlates with scd decrease?)
 fligner.test(PTEN~PTEN.CNV, data=PTEN.CNV.DNFA.RNAseq) # p-value = p-value = 5.948e-08
