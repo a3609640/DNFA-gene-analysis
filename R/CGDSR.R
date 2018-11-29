@@ -106,41 +106,16 @@ DNFA.RNAseq <- getProfileData(mycgds,
 
 #################################################################################################
 # Get data slices for a specified list of genes, genetic profile and case list
-BRAF.mutations <- getProfileData(mycgds, 
-                                 "BRAF", 
-                                 "skcm_tcga_mutations", 
-                                 "skcm_tcga_all")
-colnames(BRAF.mutations) <- c("BRAF.mutations")
-
-NRAS.mutations <- getProfileData(mycgds, 
-                                 "NRAS", 
-                                 "skcm_tcga_mutations", 
-                                 "skcm_tcga_all")
-colnames(NRAS.mutations) <- c("NRAS.mutations")
-
-AKT.mutations <- getProfileData(mycgds,
-                                "AKT",
-                                "skcm_tcga_mutations",
-                                "skcm_tcga_all")
-colnames(AKT.mutations) <- c("AKT.mutations")
-
-TP53.mutations <- getProfileData(mycgds,
-                                  "TP53",
-                                  "skcm_tcga_mutations",
-                                  "skcm_tcga_all")
-colnames(TP53.mutations) <- c("TP53.mutations")
-
-mutations <- cbind(BRAF.mutations, 
-                   NRAS.mutations, 
-                   AKT.mutations, 
-                   TP53.mutations)
-
-levels(mutations$BRAF.mutations) <- c(levels(mutations$BRAF.mutations), 
+mutations <- getProfileData(mycgds, 
+                            c("BRAF","NRAS","AKT","TP53"), 
+                            "skcm_tcga_mutations", 
+                            "skcm_tcga_all")
+colnames(mutations) <- paste0(colnames(mutations), '.mutations')
+levels(mutations$BRAF) <- c(levels(mutations$BRAF), 
                                       "Mutated", 
                                       "Wildtype")
-mutations$BRAF.mutations[mutations$BRAF.mutations != "NA"] <- "Mutated"
-mutations$BRAF.mutations[is.na(mutations$BRAF.mutations)] <- "Wildtype"
-
+mutations$BRAF[mutations$BRAF != "NA"] <- "Mutated"
+mutations$BRAF[is.na(mutations$BRAF)] <- "Wildtype"
 
 
 mutations.DNFA.RNAseq <- cbind(mutations, DNFA.RNAseq)
