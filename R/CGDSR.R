@@ -111,12 +111,22 @@ mutations <- getProfileData(mycgds,
                             "skcm_tcga_mutations", 
                             "skcm_tcga_all")
 colnames(mutations) <- paste0(colnames(mutations), '.mutations')
-levels(mutations$BRAF) <- c(levels(mutations$BRAF), 
-                                      "Mutated", 
-                                      "Wildtype")
-mutations$BRAF[mutations$BRAF != "NA"] <- "Mutated"
-mutations$BRAF[is.na(mutations$BRAF)] <- "Wildtype"
 
+levels(mutations$BRAF.mutations) <- c(levels(mutations$BRAF.mutations), "Mutated", "Wildtype")
+mutations$BRAF.mutations[mutations$BRAF.mutations != "NA"] <- "Mutated"
+mutations$BRAF.mutations[is.na(mutations$BRAF.mutations)] <- "Wildtype"
+
+levels(mutations$NRAS.mutations) <- c(levels(mutations$NRAS.mutations), "Mutated", "Wildtype")
+mutations$NRAS.mutations[mutations$NRAS.mutations != "NA"] <- "Mutated"
+mutations$NRAS.mutations[is.na(mutations$NRAS.mutations)] <- "Wildtype"
+
+levels(mutations$AKT.mutations) <- c(levels(mutations$AKT.mutations), "Mutated", "Wildtype")
+mutations$AKT.mutations[mutations$AKT.mutations != "NA"] <- "Mutated"
+mutations$AKT.mutations[is.na(mutations$AKT.mutations)] <- "Wildtype"
+
+levels(mutations$TP53.mutations) <- c(levels(mutations$TP53.mutations), "Mutated", "Wildtype")
+mutations$TP53.mutations[mutations$TP53.mutations != "NA"] <- "Mutated"
+mutations$TP53.mutations[is.na(mutations$TP53.mutations)] <- "Wildtype"
 
 mutations.DNFA.RNAseq <- cbind(mutations, DNFA.RNAseq)
 mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
