@@ -91,7 +91,7 @@ ggplot(mean,
         legend.position = "none")
 
 ##############################################
-## get DNFA gene expression from SKCM group ##
+## Get DNFA gene expression from SKCM group ##
 ##############################################
 skcm_case <- getCaseLists(mycgds, "skcm_tcga")
 skcm_tcga_all <- getCaseLists(mycgds, "skcm_tcga")[2, 1]
@@ -107,19 +107,54 @@ DNFA.RNAseq <- getProfileData(mycgds,
 ################################################
 ## Get oncogene mutation data from SKCM group ##
 ################################################
-mutations <- getProfileData(mycgds, 
+getmutations <- function (x) {
+  mutations <- getProfileData(mycgds, 
                             c("BRAF","NRAS","AKT","TP53"), 
                             "skcm_tcga_mutations", 
                             "skcm_tcga_all")
-colnames(mutations) <- paste0(colnames(mutations), '.mutations')
-mutationlist <- colnames(mutations)
-# each mutation column contains three types of data: 
-# mutation (V600E), NAN (wildtype), NA (not sequenced).
-rename.mutations = function(gene) {mutations[, gene] <- ifelse(mutations[, gene] == "NaN", "Wildtype", "Mutated")}
+  colnames(mutations) <- paste0(colnames(mutations), '.mutations')
+  v <- rownames(mutations)
+  # each mutation column contains three types of data: 
+  # mutation (V600E), NAN (wildtype), NA (not sequenced).
+  relabel.mutations <- function(gene) {
+    mutations[, gene] <- ifelse(mutations[, gene] == "NaN", "Wildtype", "Mutated")
+    }
 # use sapply , input as a matrix, and output as a matrix too.
-mutations <- sapply(mutationlist, rename.mutations)
-mutations <- as.data.frame(mutations)
+  mutations <- sapply(colnames(mutations), relabel.mutations)
+  mutations <- as.data.frame(mutations)
+# the sapply function return a new matrix lacking row names. need to add that back
+  mutations2 <- cbind(Row.Names = v, mutations)
+# mutations <- mutations2[ , -1]
+  rownames(mutations) <- mutations2[ , 1]
+  return (mutations)
+  }
+mutations <- getmutations (c("BRAF", "NRAS", "AKT", "TP53"))
 attributes(mutations)
+
+###########################################
+## Get oncogene CNV data from SKCM group ##
+###########################################
+getCNV <- function (x) {
+  CNV <- getProfileData(mycgds, 
+                        x, 
+                        "skcm_tcga_gistic", 
+                        "skcm_tcga_all")
+  v <- rownames(CNV)
+  colnames(CNV) <- paste0(colnames(CNV), '.CNV')
+  # change CNV column from numeric to factor
+  factor.CNV <- function(gene) {
+    CNV[, gene] <- as.factor(CNV[, gene])
+  }
+  # use sapply , input as a matrix, and output as a matrix too.
+  CNV <- sapply(colnames(CNV), factor.CNV)
+  CNV <- as.data.frame(CNV)
+  CNV2 <- cbind(Row.Names = v, CNV)
+  # mutations <- mutations2[ , -1]
+  rownames(CNV) <- CNV2[ , 1]
+  return (CNV)
+}
+CNV <- getCNV (c("BRAF", "NRAS", "PTEN"))
+attributes(CNV)
 
 ###############################################################################
 ## examine the correlation between mutation status and DNFA expression level ##
@@ -127,31 +162,41 @@ attributes(mutations)
 mutations.DNFA.RNAseq <- cbind(mutations, DNFA.RNAseq)
 mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
 
-plot <- function (genemutations) {
+plot.mutations.RNAseq <- function (genemutations) {
   ggplot(mutations.DNFA.RNAseq, 
          aes(x     = mutations.DNFA.RNAseq[ ,genemutations], # refer variable in a function
              y     = log2(SCD), 
              color = mutations.DNFA.RNAseq[ ,genemutations])) + 
     geom_boxplot(alpha = .01, 
-               width = .5) +
+                 width = .5) +
     labs(x = genemutations, 
          y = paste("log2(", "SCD", "RNA counts)"))+ 
-    theme(axis.title=element_text(face="bold",size=9,color="black"),
-          axis.text=element_text(size=9, hjust = 1, face="bold",color="black"),
-          axis.line.x = element_line(color="black"),
-          axis.line.y = element_line(color="black"),
-          panel.grid = element_blank(),
-          strip.text = element_text(face = "bold", size = 9, colour = "black"),
+    theme(axis.title      = element_text(face   = "bold", 
+                                         size   = 9, 
+                                         color  = "black"),
+          axis.text       = element_text(size   = 9, 
+                                         hjust  = 1, 
+                                         face   = "bold", 
+                                         color  = "black"),
+          axis.line.x     = element_line(color  = "black"),
+          axis.line.y     = element_line(color  = "black"),
+          panel.grid      = element_blank(),
+          strip.text      = element_text(face   = "bold", 
+                                         size   = 9, 
+                                         colour = "black"),
           legend.position = "none")+
     geom_dotplot(binaxis  = "y", # stack the dots along the y-axis and group them along x-axis
-               binwidth = .1,
-               stackdir = "center",
-               fill     = NA)}
-plot("NRAS.mutations")
-lapply(mutationlist, plot)
+               binwidth   = .1,
+               stackdir   = "center",
+               fill       = NA)
+  }
 
-###############################################################################################
-# density plot to first check the distribution of RNA-seq, then we choose the stastics comparison method
+plot.mutations.RNAseq("NRAS.mutations")
+lapply(colnames(mutations), plot.mutations.RNAseq)
+
+########################################################################################
+##  check the distribution of RNA-seq, then we choose the stastics comparison methods ##
+########################################################################################
 BRAF.Mutated <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$BRAF.mutations == "Mutated"]
 BRAF.Wildtype <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$BRAF.mutations == "Wildtype"]
 plot(density(BRAF.Mutated))
@@ -162,10 +207,8 @@ shapiro.test(BRAF.Wildtype) # p-value < 2.2e-16
 # Welch two sample t-test
 t.test(BRAF.Mutated, BRAF.Wildtype) # p-value = 0.5361
 
-###############################################################################################
-# density plot to first check the distribution of RNA-seq, then we choose the stastics comparison method
-NRAS.Mutated <- NRAS.mutations.DNFA.RNAseq$SCD[NRAS.mutations.DNFA.RNAseq$NRAS.mutations == "Mutated"]
-NRAS.Wildtype <- NRAS.mutations.DNFA.RNAseq$SCD[NRAS.mutations.DNFA.RNAseq$NRAS.mutations == "Wildtype"]
+NRAS.Mutated <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$NRAS.mutations == "Mutated"]
+NRAS.Wildtype <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$NRAS.mutations == "Wildtype"]
 plot(density(NRAS.Mutated))
 plot(density(NRAS.Wildtype))
 # Normality test
@@ -173,10 +216,8 @@ shapiro.test(NRAS.Mutated) # p-value = 2.279e-13
 shapiro.test(NRAS.Wildtype) # p-value < 2.2e-16
 t.test(NRAS.Mutated, NRAS.Wildtype) # p-value = 0.9444
 
-#################################################################################################
-# density plot to first check the distribution of RNA-seq, then we choose the stastics comparison method
-AKT.Mutated <- AKT.mutations.DNFA.RNAseq$SCD[AKT.mutations.DNFA.RNAseq$AKT.mutations == "Mutated"]
-AKT.Wildtype <- AKT.mutations.DNFA.RNAseq$SCD[AKT.mutations.DNFA.RNAseq$AKT.mutations == "Wildtype"]
+AKT.Mutated <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$AKT.mutations == "Mutated"]
+AKT.Wildtype <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$AKT.mutations == "Wildtype"]
 plot(density(AKT.Mutated))
 plot(density(AKT.Wildtype))
 # Normality test
@@ -186,8 +227,6 @@ shapiro.test(AKT.Wildtype) # p-value < 2.2e-16
 # use non-parametric test
 wilcox.test(AKT.Mutated, AKT.Wildtype) # p-value = 0.434
 
-#################################################################################################
-# density plot to first check the distribution of RNA-seq, then we choose the stastics comparison method
 TP53.Mutated <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$TP53.mutations == "Mutated"]
 TP53.Wildtype <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$TP53.mutations == "Wildtype"]
 plot(density(TP53.Mutated))
@@ -203,147 +242,61 @@ wilcox.test(TP53.Mutated, TP53.Wildtype) # p-value = 0.761
 #############################################################################
 ## compare the correlation between oncogene CNV and DNFA gene RNA-seq data ##
 #############################################################################
-BRAF.CNV <- getProfileData(
-  mycgds,
-  "BRAF",
-  "skcm_tcga_gistic",
-  "skcm_tcga_all"
-)
-colnames(BRAF.CNV) <- c("BRAF.CNV")
-BRAF.CNV.DNFA.RNAseq <- cbind(BRAF.CNV, DNFA.RNAseq)
-# there are three different ways to remove NaN in the dataset
-BRAF.CNV.DNFA.RNAseq <- BRAF.CNV.DNFA.RNAseq[!is.nan(BRAF.CNV.DNFA.RNAseq$BRAF.CNV), ]
-# BRAF.CNV.DNFA.RNAseq = BRAF.CNV.DNFA.RNAseq[complete.cases(BRAF.CNV.DNFA.RNAseq), ]
-# BRAF.CNV.DNFA.RNAseq = na.omit(BRAF.CNV.DNFA.RNAseq)
-# change $BRAF column from numeric to factor
-BRAF.CNV.DNFA.RNAseq$BRAF.CNV <- as.factor(BRAF.CNV.DNFA.RNAseq$BRAF.CNV)
-# some data set might miss one or two CNV categery, but we want to present all
-levels(BRAF.CNV.DNFA.RNAseq$BRAF.CNV) <- c("2", "1", "0", "-1", "-2")
-# plot SCD RNAseq ~ BRAF CNV
-ggplot(BRAF.CNV.DNFA.RNAseq, 
-       aes(x     = BRAF.CNV, 
-           y     = log2(SCD), 
-           color = BRAF.CNV)) + 
-  geom_boxplot(alpha      = .01, 
-               width      = .5) +
-  geom_dotplot(binaxis    = "y", 
-               binwidth   = .1, 
-               stackdir   = "center", 
-               fill       = NA) +
-  scale_x_discrete(breaks = c("-2", "-1", "0", "1", "2"), 
-                   labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"), 
-                   drop   = FALSE) +
-  theme(legend.position   = "none")
+CNV.DNFA.RNAseq <- cbind(CNV, DNFA.RNAseq)
+# na.omit will eleminate NaN as well
+CNV.DNFA.RNAseq <- na.omit(CNV.DNFA.RNAseq)
+# make a large function to plot all genes
+plot.CNV.RNAseq <- function (geneCNV, RNAseq) {
+  print(ggplot(CNV.DNFA.RNAseq, 
+               aes(x     = CNV.DNFA.RNAseq[ ,geneCNV], 
+                   y     = log2(CNV.DNFA.RNAseq[ ,RNAseq]), 
+                   color = CNV.DNFA.RNAseq[ ,geneCNV])) + 
+          geom_boxplot(alpha      = .01, 
+                       width      = .5) + 
+          geom_dotplot(binaxis    = "y", 
+                       binwidth   = .1, 
+                       stackdir   = "center", 
+                       fill       = NA) + 
+          scale_x_discrete(limits = c("-2", "-1", "0", "1", "2"), # do not show NaN data
+                           labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"), 
+                           drop   = FALSE) + 
+          labs(x = geneCNV, 
+               y = paste("log2(", RNAseq, "RNA counts)"))+ 
+          theme(axis.title      = element_text(face   = "bold", 
+                                         size   = 9, 
+                                         color  = "black"), 
+                axis.text       = element_text(size   = 9, 
+                                         hjust  = 1, 
+                                         face   = "bold", 
+                                         color  = "black"), 
+                axis.line.x     = element_line(color  = "black"), 
+                axis.line.y     = element_line(color  = "black"), 
+                panel.grid      = element_blank(), 
+                strip.text      = element_text(face   = "bold", 
+                                               size   = 9, 
+                                               colour = "black"), 
+                legend.position = "none"))
+  }
 
-# plot BRAF RNAseq ~ BRAF CNV: positive control
-ggplot(BRAF.CNV.DNFA.RNAseq, 
-       aes(x         = BRAF.CNV, 
-           y         = log2(BRAF), 
-           color     = BRAF.CNV)) + 
-  geom_boxplot(alpha      = .01, 
-               width      = .5) +
-  geom_dotplot(binaxis    = "y", 
-               binwidth   = .1, 
-               stackdir   = "center", 
-               fill       = NA) +
-  scale_x_discrete(breaks = c("-2", "-1", "0", "1", "2"), 
-                   labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"), 
-                   drop   = FALSE) +
-  theme(legend.position   = "none")
+plot.CNV.RNAseq ("NRAS.CNV", "BRAF")
+plot.CNV.RNAseq ("NRAS.CNV", "SCD")
+# however, mapply function only works with print function in ggplot.
+# three combinations: BRAF.CNV, BRAF; NRAS.CNV, NRAS; PTEN.CNV, PTEN
+mapply(plot.CNV.RNAseq, 
+       geneCNV = c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"), 
+       RNAseq = c("BRAF", "NRAS", "PTEN"))
+# use all combinations of geneCNV and RNAseq
+sapply(c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"), function(x) mapply(plot.CNV.RNAseq,x,c("BRAF", "NRAS", "PTEN", "SCD")))
 
 # compare the variance among different groups using a nonparametri test
 fligner.test(SCD ~ BRAF.CNV, data = BRAF.CNV.DNFA.RNAseq) # p-value = 0.179
 fligner.test(BRAF ~ BRAF.CNV, data = BRAF.CNV.DNFA.RNAseq) # p-value = 0.02785
 #################################################################################################
-NRAS.CNV <- getProfileData(
-  mycgds,
-  "NRAS",
-  "skcm_tcga_gistic",
-  "skcm_tcga_all"
-)
-colnames(NRAS.CNV) <- c("NRAS.CNV")
-NRAS.CNV.DNFA.RNAseq <- cbind(NRAS.CNV, DNFA.RNAseq)
-NRAS.CNV.DNFA.RNAseq <- NRAS.CNV.DNFA.RNAseq[!is.nan(NRAS.CNV.DNFA.RNAseq$NRAS.CNV), ]
-NRAS.CNV.DNFA.RNAseq$NRAS.CNV <- as.factor(NRAS.CNV.DNFA.RNAseq$NRAS.CNV)
-levels(NRAS.CNV.DNFA.RNAseq$NRAS.CNV) <- c("-2", "-1", "0", "1", "2")
-
-# plot SCD RNAseq ~ NRAS CNV
-ggplot(NRAS.CNV.DNFA.RNAseq, 
-       aes(x     = NRAS.CNV, 
-           y     = log2(SCD), 
-           color = NRAS.CNV)) + 
-  geom_boxplot(alpha      = .01, 
-               width      = .5) +
-  geom_dotplot(binaxis    = "y", 
-               binwidth   = .1, 
-               stackdir   = "center", 
-               fill       = NA) +
-  scale_x_discrete(breaks = c("-2", "-1", "0", "1", "2"), 
-                   labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"), 
-                   drop   = FALSE) +
-  theme(legend.position   = "none")
-
-# plot NRAS RNAseq ~ NRAS CNV: positive control
-ggplot(NRAS.CNV.DNFA.RNAseq, 
-       aes(x     = NRAS.CNV, 
-           y     = log2(NRAS), 
-           color = NRAS.CNV)) + 
-  geom_boxplot(alpha      = .01, 
-               width      = .5) +
-  geom_dotplot(binaxis    = "y", 
-               binwidth   = .1, 
-               stackdir   = "center", 
-               fill       = NA) +
-  scale_x_discrete(breaks = c("-2", "-1", "0", "1", "2"), 
-                   labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"), 
-                   drop   = FALSE) +
-  theme(legend.position   = "none")
 
 # compare the variance among different groups using a nonparametri test
 fligner.test(SCD ~ NRAS.CNV, data = NRAS.CNV.DNFA.RNAseq) # p-value = 0.1973
 fligner.test(NRAS ~ NRAS.CNV, data = NRAS.CNV.DNFA.RNAseq) # p-value = 1.9e-08
 #################################################################################################
-PTEN.CNV <- getProfileData(
-  mycgds,
-  "PTEN",
-  "skcm_tcga_gistic",
-  "skcm_tcga_all"
-)
-colnames(PTEN.CNV) <- c("PTEN.CNV")
-PTEN.CNV.DNFA.RNAseq <- cbind(PTEN.CNV, DNFA.RNAseq)
-PTEN.CNV.DNFA.RNAseq <- PTEN.CNV.DNFA.RNAseq[!is.nan(PTEN.CNV.DNFA.RNAseq$PTEN.CNV), ]
-PTEN.CNV.DNFA.RNAseq$PTEN.CNV <- as.factor(PTEN.CNV.DNFA.RNAseq$PTEN.CNV)
-levels(PTEN.CNV.DNFA.RNAseq$PTEN.CNV) <- c("-2", "-1", "0", "1", "2")
-ggplot(PTEN.CNV.DNFA.RNAseq, 
-       aes(x     = PTEN.CNV, 
-           y     = log2(SCD), 
-           color = PTEN.CNV)) + 
-  geom_boxplot(alpha      = .01, 
-               width      = .5) +
-  geom_dotplot(binaxis    = "y", 
-               binwidth   = .1, 
-               stackdir   = "center", 
-               fill       = NA) +
-  scale_x_discrete(breaks = c("-2", "-1", "0", "1", "2"), 
-                   labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"), 
-                   drop   = FALSE) +
-  theme(legend.position   = "none")
-
-# plot PTEN RNAseq ~ PTEN CNV: positive control
-ggplot(PTEN.CNV.DNFA.RNAseq, aes(x     = PTEN.CNV, 
-                                 y     = log2(PTEN), 
-                                 color = PTEN.CNV)) + 
-  geom_boxplot(alpha      = .01, 
-               width      = .5) +
-  geom_dotplot(binaxis    = "y", 
-               binwidth   = .1, 
-               stackdir   = "center", 
-               fill       = NA) +
-  scale_x_discrete(breaks = c("-2", "-1", "0", "1", "2"), 
-                   labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"), 
-                   drop   = FALSE) +
-  theme(legend.position   = "none")
-
 # compare the variance among different groups using a nonparametri test
 fligner.test(SCD ~ PTEN.CNV, data = PTEN.CNV.DNFA.RNAseq) # p-value = 0.0004647 (pten loss correlates with scd decrease?)
 fligner.test(PTEN ~ PTEN.CNV, data = PTEN.CNV.DNFA.RNAseq) # p-value = p-value = 5.948e-08
