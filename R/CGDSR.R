@@ -90,9 +90,9 @@ ggplot(mean,
                                    colour = "black"), 
         legend.position = "none")
 
-#################################################################################################
-## get DNFA gene expression from SKCM group and check the correlation with oncogenic mutations ##
-#################################################################################################
+##############################################
+## get DNFA gene expression from SKCM group ##
+##############################################
 skcm_case <- getCaseLists(mycgds, "skcm_tcga")
 skcm_tcga_all <- getCaseLists(mycgds, "skcm_tcga")[2, 1]
 
@@ -104,43 +104,53 @@ DNFA.RNAseq <- getProfileData(mycgds,
                               "skcm_tcga_rna_seq_v2_mrna",
                               "skcm_tcga_all")
 
-#################################################################################################
-# Get data slices for a specified list of genes, genetic profile and case list
+################################################
+## Get oncogene mutation data from SKCM group ##
+################################################
 mutations <- getProfileData(mycgds, 
                             c("BRAF","NRAS","AKT","TP53"), 
                             "skcm_tcga_mutations", 
                             "skcm_tcga_all")
 colnames(mutations) <- paste0(colnames(mutations), '.mutations')
+mutationlist <- colnames(mutations)
+# each mutation column contains three types of data: 
+# mutation (V600E), NAN (wildtype), NA (not sequenced).
+rename.mutations = function(gene) {mutations[, gene] <- ifelse(mutations[, gene] == "NaN", "Wildtype", "Mutated")}
+# use sapply , input as a matrix, and output as a matrix too.
+mutations <- sapply(mutationlist, rename.mutations)
+mutations <- as.data.frame(mutations)
+attributes(mutations)
 
-levels(mutations$BRAF.mutations) <- c(levels(mutations$BRAF.mutations), "Mutated", "Wildtype")
-mutations$BRAF.mutations[mutations$BRAF.mutations != "NA"] <- "Mutated"
-mutations$BRAF.mutations[is.na(mutations$BRAF.mutations)] <- "Wildtype"
-
-levels(mutations$NRAS.mutations) <- c(levels(mutations$NRAS.mutations), "Mutated", "Wildtype")
-mutations$NRAS.mutations[mutations$NRAS.mutations != "NA"] <- "Mutated"
-mutations$NRAS.mutations[is.na(mutations$NRAS.mutations)] <- "Wildtype"
-
-levels(mutations$AKT.mutations) <- c(levels(mutations$AKT.mutations), "Mutated", "Wildtype")
-mutations$AKT.mutations[mutations$AKT.mutations != "NA"] <- "Mutated"
-mutations$AKT.mutations[is.na(mutations$AKT.mutations)] <- "Wildtype"
-
-levels(mutations$TP53.mutations) <- c(levels(mutations$TP53.mutations), "Mutated", "Wildtype")
-mutations$TP53.mutations[mutations$TP53.mutations != "NA"] <- "Mutated"
-mutations$TP53.mutations[is.na(mutations$TP53.mutations)] <- "Wildtype"
-
+###############################################################################
+## examine the correlation between mutation status and DNFA expression level ##
+###############################################################################
 mutations.DNFA.RNAseq <- cbind(mutations, DNFA.RNAseq)
 mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
-ggplot(mutations.DNFA.RNAseq, 
-       aes(x     = BRAF.mutations, 
-           y     = log2(SCD), 
-           color = BRAF.mutations)) + 
-  geom_boxplot(alpha = .01, 
+
+plot <- function (genemutations) {
+  ggplot(mutations.DNFA.RNAseq, 
+         aes(x     = mutations.DNFA.RNAseq[ ,genemutations], # refer variable in a function
+             y     = log2(SCD), 
+             color = mutations.DNFA.RNAseq[ ,genemutations])) + 
+    geom_boxplot(alpha = .01, 
                width = .5) +
-  geom_dotplot(binaxis  = "y", # stack the dots along the y-axis and group them along x-axis
+    labs(x = genemutations, 
+         y = paste("log2(", "SCD", "RNA counts)"))+ 
+    theme(axis.title=element_text(face="bold",size=9,color="black"),
+          axis.text=element_text(size=9, hjust = 1, face="bold",color="black"),
+          axis.line.x = element_line(color="black"),
+          axis.line.y = element_line(color="black"),
+          panel.grid = element_blank(),
+          strip.text = element_text(face = "bold", size = 9, colour = "black"),
+          legend.position = "none")+
+    geom_dotplot(binaxis  = "y", # stack the dots along the y-axis and group them along x-axis
                binwidth = .1,
                stackdir = "center",
-               fill     = NA)
+               fill     = NA)}
+plot("NRAS.mutations")
+lapply(mutationlist, plot)
 
+###############################################################################################
 # density plot to first check the distribution of RNA-seq, then we choose the stastics comparison method
 BRAF.Mutated <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$BRAF.mutations == "Mutated"]
 BRAF.Wildtype <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$BRAF.mutations == "Wildtype"]
@@ -152,31 +162,7 @@ shapiro.test(BRAF.Wildtype) # p-value < 2.2e-16
 # Welch two sample t-test
 t.test(BRAF.Mutated, BRAF.Wildtype) # p-value = 0.5361
 
-#################################################################################################
-NRAS.mutations <- getProfileData(mycgds, 
-                                 "NRAS", 
-                                 "skcm_tcga_mutations", 
-                                 "skcm_tcga_all")
-colnames(NRAS.mutations) <- c("NRAS.mutations")
-NRAS.mutations.DNFA.RNAseq <- cbind(NRAS.mutations, 
-                                    DNFA.RNAseq)
-levels(NRAS.mutations.DNFA.RNAseq$NRAS.mutations) <- c(levels(NRAS.mutations.DNFA.RNAseq$NRAS.mutations),
-                                                       "Mutated", 
-                                                       "Wildtype")
-NRAS.mutations.DNFA.RNAseq$NRAS.mutations[NRAS.mutations.DNFA.RNAseq$NRAS.mutations != "NA"] <- "Mutated"
-NRAS.mutations.DNFA.RNAseq$NRAS.mutations[is.na(NRAS.mutations.DNFA.RNAseq$NRAS.mutations)] <- "Wildtype"
-NRAS.mutations.DNFA.RNAseq <- na.omit(NRAS.mutations.DNFA.RNAseq)
-ggplot(NRAS.mutations.DNFA.RNAseq, 
-       aes(x     = NRAS.mutations, 
-           y     = log2(SCD), 
-           color = NRAS.mutations)) + 
-  geom_boxplot(alpha    = .01, 
-               width    = .5) +
-  geom_dotplot(binaxis  = "y", 
-               binwidth = .1, 
-               stackdir = "center", 
-               fill     = NA)
-
+###############################################################################################
 # density plot to first check the distribution of RNA-seq, then we choose the stastics comparison method
 NRAS.Mutated <- NRAS.mutations.DNFA.RNAseq$SCD[NRAS.mutations.DNFA.RNAseq$NRAS.mutations == "Mutated"]
 NRAS.Wildtype <- NRAS.mutations.DNFA.RNAseq$SCD[NRAS.mutations.DNFA.RNAseq$NRAS.mutations == "Wildtype"]
@@ -188,33 +174,6 @@ shapiro.test(NRAS.Wildtype) # p-value < 2.2e-16
 t.test(NRAS.Mutated, NRAS.Wildtype) # p-value = 0.9444
 
 #################################################################################################
-AKT.mutations <- getProfileData(
-  mycgds,
-  "AKT",
-  "skcm_tcga_mutations",
-  "skcm_tcga_all"
-)
-colnames(AKT.mutations) <- c("AKT.mutations")
-AKT.mutations.DNFA.RNAseq <- cbind(AKT.mutations, DNFA.RNAseq)
-levels(AKT.mutations.DNFA.RNAseq$AKT.mutations) <- c(
-  levels(AKT.mutations.DNFA.RNAseq$AKT.mutations),
-  "Mutated",
-  "Wildtype"
-)
-AKT.mutations.DNFA.RNAseq$AKT.mutations[AKT.mutations.DNFA.RNAseq$AKT.mutations != "NA"] <- "Mutated"
-AKT.mutations.DNFA.RNAseq$AKT.mutations[is.na(AKT.mutations.DNFA.RNAseq$AKT.mutations)] <- "Wildtype"
-AKT.mutations.DNFA.RNAseq <- na.omit(AKT.mutations.DNFA.RNAseq)
-ggplot(AKT.mutations.DNFA.RNAseq, 
-       aes(x     = AKT.mutations, 
-           y     = log2(SCD), 
-           color = AKT.mutations)) + 
-  geom_boxplot(alpha    = .01, 
-               width    = .5) +
-  geom_dotplot(binaxis  = "y", 
-               binwidth = .1, 
-               stackdir = "center", 
-               fill     = NA)
-
 # density plot to first check the distribution of RNA-seq, then we choose the stastics comparison method
 AKT.Mutated <- AKT.mutations.DNFA.RNAseq$SCD[AKT.mutations.DNFA.RNAseq$AKT.mutations == "Mutated"]
 AKT.Wildtype <- AKT.mutations.DNFA.RNAseq$SCD[AKT.mutations.DNFA.RNAseq$AKT.mutations == "Wildtype"]
@@ -228,34 +187,9 @@ shapiro.test(AKT.Wildtype) # p-value < 2.2e-16
 wilcox.test(AKT.Mutated, AKT.Wildtype) # p-value = 0.434
 
 #################################################################################################
-TP53.mutations <- getProfileData(
-  mycgds,
-  "TP53",
-  "skcm_tcga_mutations",
-  "skcm_tcga_all"
-)
-colnames(TP53.mutations) <- c("TP53.mutations")
-TP53.mutations.DNFA.RNAseq <- cbind(TP53.mutations, DNFA.RNAseq)
-levels(TP53.mutations.DNFA.RNAseq$TP53.mutations) <- c(levels(TP53.mutations.DNFA.RNAseq$TP53.mutations), 
-                                                       "Mutated", 
-                                                       "Wildtype")
-TP53.mutations.DNFA.RNAseq$TP53.mutations[TP53.mutations.DNFA.RNAseq$TP53.mutations != "NA"] <- "Mutated"
-TP53.mutations.DNFA.RNAseq$TP53.mutations[is.na(TP53.mutations.DNFA.RNAseq$TP53.mutations)] <- "Wildtype"
-TP53.mutations.DNFA.RNAseq <- na.omit(TP53.mutations.DNFA.RNAseq)
-ggplot(TP53.mutations.DNFA.RNAseq, 
-       aes(x     = TP53.mutations, 
-           y     = log2(SCD), 
-           color = TP53.mutations)) + 
-  geom_boxplot(alpha    = .01, 
-               width    = .5) +
-  geom_dotplot(binaxis  = "y", 
-               binwidth = .1, 
-               stackdir = "center", 
-               fill     = NA)
-
 # density plot to first check the distribution of RNA-seq, then we choose the stastics comparison method
-TP53.Mutated <- TP53.mutations.DNFA.RNAseq$SCD[TP53.mutations.DNFA.RNAseq$TP53.mutations == "Mutated"]
-TP53.Wildtype <- TP53.mutations.DNFA.RNAseq$SCD[TP53.mutations.DNFA.RNAseq$TP53.mutations == "Wildtype"]
+TP53.Mutated <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$TP53.mutations == "Mutated"]
+TP53.Wildtype <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$TP53.mutations == "Wildtype"]
 plot(density(TP53.Mutated))
 plot(density(TP53.Wildtype))
 # Normality test
