@@ -1,7 +1,10 @@
 install.packages("cgdsr")
 library(cgdsr)
+library(ggfortify)
 library(ggplot2)
+library(plyr)
 library(reshape2)
+library(survival)
 
 # Create CGDS object
 mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
@@ -108,14 +111,41 @@ BRAF.mutations <- getProfileData(mycgds,
                                  "skcm_tcga_mutations", 
                                  "skcm_tcga_all")
 colnames(BRAF.mutations) <- c("BRAF.mutations")
-BRAF.mutations.DNFA.RNAseq <- cbind(BRAF.mutations, DNFA.RNAseq)
-levels(BRAF.mutations.DNFA.RNAseq$BRAF.mutations) <- c(levels(BRAF.mutations.DNFA.RNAseq$BRAF.mutations), 
-                                                       "Mutated", 
-                                                       "Wildtype")
-BRAF.mutations.DNFA.RNAseq$BRAF.mutations[BRAF.mutations.DNFA.RNAseq$BRAF.mutations != "NA"] <- "Mutated"
-BRAF.mutations.DNFA.RNAseq$BRAF.mutations[is.na(BRAF.mutations.DNFA.RNAseq$BRAF.mutations)] <- "Wildtype"
-BRAF.mutations.DNFA.RNAseq <- na.omit(BRAF.mutations.DNFA.RNAseq)
-ggplot(BRAF.mutations.DNFA.RNAseq, 
+
+NRAS.mutations <- getProfileData(mycgds, 
+                                 "NRAS", 
+                                 "skcm_tcga_mutations", 
+                                 "skcm_tcga_all")
+colnames(NRAS.mutations) <- c("NRAS.mutations")
+
+AKT.mutations <- getProfileData(mycgds,
+                                "AKT",
+                                "skcm_tcga_mutations",
+                                "skcm_tcga_all")
+colnames(AKT.mutations) <- c("AKT.mutations")
+
+TP53.mutations <- getProfileData(mycgds,
+                                  "TP53",
+                                  "skcm_tcga_mutations",
+                                  "skcm_tcga_all")
+colnames(TP53.mutations) <- c("TP53.mutations")
+
+mutations <- cbind(BRAF.mutations, 
+                   NRAS.mutations, 
+                   AKT.mutations, 
+                   TP53.mutations)
+
+levels(mutations$BRAF.mutations) <- c(levels(mutations$BRAF.mutations), 
+                                      "Mutated", 
+                                      "Wildtype")
+mutations$BRAF.mutations[mutations$BRAF.mutations != "NA"] <- "Mutated"
+mutations$BRAF.mutations[is.na(mutations$BRAF.mutations)] <- "Wildtype"
+
+
+
+mutations.DNFA.RNAseq <- cbind(mutations, DNFA.RNAseq)
+mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
+ggplot(mutations.DNFA.RNAseq, 
        aes(x     = BRAF.mutations, 
            y     = log2(SCD), 
            color = BRAF.mutations)) + 
@@ -127,8 +157,8 @@ ggplot(BRAF.mutations.DNFA.RNAseq,
                fill     = NA)
 
 # density plot to first check the distribution of RNA-seq, then we choose the stastics comparison method
-BRAF.Mutated <- BRAF.mutations.DNFA.RNAseq$SCD[BRAF.mutations.DNFA.RNAseq$BRAF.mutations == "Mutated"]
-BRAF.Wildtype <- BRAF.mutations.DNFA.RNAseq$SCD[BRAF.mutations.DNFA.RNAseq$BRAF.mutations == "Wildtype"]
+BRAF.Mutated <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$BRAF.mutations == "Mutated"]
+BRAF.Wildtype <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$BRAF.mutations == "Wildtype"]
 plot(density(BRAF.Mutated))
 plot(density(BRAF.Wildtype))
 # Normality test
@@ -411,9 +441,7 @@ shapiro.test(PTEN.Diploid) # p-value = 5.124e-13
 t.test(PTEN.Hetlos, PTEN.Diploid) # p-value = 0.0008492 (pten loss correlates with scd decrease)
 ####################################################################################################################
 ####################################################################################################################
-library(ggfortify)
-library(survival)
-library(plyr)
+
 
 mycancerstudy <- getCancerStudies(mycgds)[193, 1]
 mycaselist <- getCaseLists(mycgds, mycancerstudy)[1, 1]
