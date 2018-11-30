@@ -3,6 +3,7 @@ library(cgdsr)
 library(ggfortify)
 library(ggplot2)
 library(plyr)
+library(reshape)
 library(reshape2)
 library(survival)
 
@@ -53,51 +54,73 @@ geneticprofile.RNAseq <- function(x) {
 # test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
 # caselist.RNAseq = caselist.RNAseq ('acc_tcga')
 # geneticprofile.RNAseq = geneticprofile.RNAseq ('acc_tcga')
-# We wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x) within TCGA_ProfileData_RNAseq(x)
+# We wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x) 
+# within TCGA_ProfileData_RNAseq(x)
 tcga.profiledata.RNAseq <- function(genename,
                                     geneticprofile,
                                     caselist) {
   getProfileData(mycgds, genename, geneticprofile, caselist)
   }
 
-SCD.tcga.RNAseq <- function(x) {
-  tcga.profiledata.RNAseq("SCD", geneticprofile.RNAseq(x), caselist.RNAseq(x))
-  }
-# test the wrapping function, then use each element in tcga_study_list vector as the x in SCD_TCGA_RNAseq(x)
-# data5 = TCGA_RNAseq ('acc_tcga')
-SCD.tcga.RNAseq.all.studies <- lapply(tcga.study.list, SCD.tcga.RNAseq)
+DNFA.tcga.RNAseq <- function(x, y) {
+  z <- tcga.profiledata.RNAseq(x,
+                               geneticprofile.RNAseq(y),
+                               caselist.RNAseq(y))
+}
 
-# use the melt function from reshape2 package.
-df <- melt(SCD.tcga.RNAseq.all.studies)
-# Separate boxplots for each data.frame
-qplot(factor(L1), log2(value), data = df, geom = "boxplot")
-# boxplot graph for SCD gene expression across all tumor types, and order the X axis based on the gene expression level
-mean <- within(df, L1 <- reorder(L1, log2(value), median))
-ggplot(mean, 
-       aes(x    = L1, 
-           y    = log2(value), 
-           fill = L1)) +
-  geom_boxplot(alpha    = .01, 
-               width    = .5, 
-               position = position_dodge(width = .9)) +
-  theme_bw() +
-  labs(x = "Tumor types (TCGA)", 
-       y = paste("log2(SCD RNA counts)")) +
-  theme(axis.title  = element_text(face   = "bold", 
-                                   size   = 9, 
-                                   color  = "black"), 
-        axis.text   = element_text(size   = 9, 
-                                   angle  = 45, 
-                                   hjust  = 1, 
-                                   face   = "bold", 
-                                   color  = "black"), 
-        axis.line.x = element_line(color  = "black"), 
-        axis.line.y = element_line(color  = "black"), 
-        panel.grid  = element_blank(), 
-        strip.text  = element_text(face   = "bold", 
-                                   size   = 9, 
-                                   colour = "black"), 
-        legend.position = "none")
+DNFA.gene <- c("SCD", "FASN", "ACLY", "ACSS2")
+names(DNFA.gene ) <- DNFA.gene
+
+DNFA.RNAseq.all.tcga.studies <- function() {
+  test <- lapply(tcga.study.list,
+                 function(y) mapply(DNFA.tcga.RNAseq, DNFA.gene, y))
+  df2 <- melt(test)
+  colnames(df2) <- c("RNAseq", "DNFAgene", "TCGAstudy")
+  as.factor(df2$L2)
+  as.factor(df2$L1)
+  df2 <- data.frame(df2)
+  return(df2)}
+
+df2 <- DNFA.RNAseq.all.tcga.studies()
+
+plotDNFA <- function(x) {
+  m <- paste0(x, ".", x)
+  mean <- within(df2[df2$DNFAgene == m,],
+                 TCGAstudy <- reorder(TCGAstudy, log2(RNAseq), median))
+  print(
+    ggplot(mean,
+           aes(x     = TCGAstudy,
+               y     = log2(RNAseq),
+               color = TCGAstudy)) +
+      geom_boxplot(alpha    = .01,
+                   width    = .5,
+                   position = position_dodge(width = .9)) +
+      labs(x = "Tumor types (TCGA)",
+           y = paste0("log2(", x, " RNA counts)")) +
+      theme(axis.title  = element_text(face   = "bold", 
+                                       size   = 9, 
+                                       color  = "black"),
+            axis.text.x = element_text(size   = 9, 
+                                       angle  = 45, 
+                                       hjust  = 1, # 1 means right-justified
+                                       face   = "bold", 
+                                       color  = "black"),
+            axis.text.y = element_text(size   = 9, 
+                                       angle  = 0, 
+                                       hjust  = 1, # 1 means right-justified
+                                       face   = "bold", 
+                                       color  = "black"),
+            axis.line.x = element_line(color  = "black"), 
+            axis.line.y = element_line(color  = "black"), 
+            panel.grid  = element_blank(), 
+            strip.text  = element_text(face   = "bold",
+                                       size   = 9, 
+                                       colour = "black"),
+            legend.position = "none"))
+}
+
+plotDNFA("SCD")
+lapply(DNFA.gene, plotDNFA)
 
 ##############################################
 ## Get DNFA gene expression from SKCM group ##
