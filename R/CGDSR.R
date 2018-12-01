@@ -233,6 +233,11 @@ plot.mutations.RNAseq <- function(genemutations, RNAseq) {
 plot.mutations.RNAseq("NRAS.mutations", "SCD")
 sapply(c("BRAF.mutations","NRAS.mutations","AKT1.mutations", "TP53.mutations"), 
        function(x) mapply(plot.mutations.RNAseq, x, c("BRAF", "NRAS", "SCD")))
+# or
+sapply(c("BRAF", "NRAS", "SCD"), 
+       function(y) mapply(plot.mutations.RNAseq,
+                          c("BRAF.mutations","NRAS.mutations","AKT1.mutations", "TP53.mutations"),
+                          y))
 
 ###############################################################################
 ##  check the data distribution, then choose the stastics comparison methods ##
@@ -241,6 +246,31 @@ BRAF.Mutated <- mutations.DNFA.RNAseq$SCD[
   mutations.DNFA.RNAseq$BRAF.mutations == "Mutated"]
 BRAF.Wildtype <- mutations.DNFA.RNAseq$SCD[
   mutations.DNFA.RNAseq$BRAF.mutations == "Wildtype"]
+
+stats <- function(DNFA.RNAseq, mutations) {
+  Mutated <- function(DNFA.RNAseq, mutations) {
+    mutations.DNFA.RNAseq[ ,DNFA.RNAseq][mutations.DNFA.RNAseq[ ,mutations] == "Mutated"]
+  }
+  Wildtype <- function(DNFA.RNAseq, mutations) {
+    mutations.DNFA.RNAseq[ ,DNFA.RNAseq][mutations.DNFA.RNAseq[ ,mutations] == "Wildtype"]
+  }
+  plot(density(Mutated(DNFA.RNAseq, mutations)))
+  plot(density(Wildtype(DNFA.RNAseq, mutations)))
+        a <- shapiro.test(Mutated(DNFA.RNAseq, mutations)) 
+        b <- shapiro.test(Wildtype(DNFA.RNAseq, mutations))
+        c <- t.test(Mutated(DNFA.RNAseq, mutations), Wildtype(DNFA.RNAseq, mutations))
+        print(a)
+        print(b)
+        print(c)
+   }
+
+stats("SCD", "BRAF.mutations")
+sapply(c("SCD", "FASN"), function(x) mapply(stats, x, c("BRAF.mutations", "NRAS.mutations")))
+sapply(c("BRAF.mutations", "NRAS.mutations"), function(y) mapply(stats, c("SCD", "FASN"), y))
+
+NRAS.Mutated <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$NRAS.mutations == "Mutated"]
+
+
 plot(density(BRAF.Mutated))
 plot(density(BRAF.Wildtype))
 # Normality test
@@ -367,6 +397,7 @@ shapiro.test(PTEN.Diploid) # p-value = 5.124e-13
 # Welch Two Sample t-test
 t.test(PTEN.Hetlos, PTEN.Diploid) 
 # p-value = 0.0008492 (pten loss correlates with scd decrease)
+
 ################################################################################
 ################################################################################
 
