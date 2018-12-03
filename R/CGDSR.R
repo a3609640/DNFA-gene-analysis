@@ -1,4 +1,4 @@
-install.packages("cgdsr")
+# install.packages("cgdsr")
 library(car)
 library(cgdsr)
 library(ggfortify)
@@ -13,22 +13,22 @@ test(mycgds)
 # Get list of cancer studies at server
 getCancerStudies(mycgds)
 # Get cases from TCGA provisional studies only
-tcga.pro.studies <- getCancerStudies(mycgds)[
-  grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
+# getDNFAdata <- function(ge) {
+  tcga.pro.studies <- getCancerStudies(mycgds)[
+    grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
 # "tcag_study_list" is a vector containing all the tcga cancer studies 
 # that I would to analyze for DNFA gene expression
-tcga.study.list <- tcga.pro.studies$cancer_study_id
-names(tcga.study.list) <- tcga.study.list
-
-caselist <- function(x) getCaseLists(mycgds, x)
-geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
+  tcga.study.list <- tcga.pro.studies$cancer_study_id
+  names(tcga.study.list) <- tcga.study.list
+  caselist <- function(x) getCaseLists(mycgds, x)
+  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
 # use lappy to pull out all the caselists within tcga.study.list
 # because we named each elements in tcga.study.list 
 # (names(tcga.study.list) <- tcga.study.list),
 # lappy will return a large list, each element (with a cancer study name) 
 # in that list is a data-table
-tcga.pro.caselist <- lapply(tcga.study.list, caselist)
-tcga.pro.geneticprofile <- lapply(tcga.study.list, geneticprofile)
+  tcga.pro.caselist <- lapply(tcga.study.list, caselist)
+  tcga.pro.geneticprofile <- lapply(tcga.study.list, geneticprofile)
 # for example, tcga.pro.caselist[[1]] shows the dataframe of caselist 
 # in laml study group.
 # we want to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna, 
@@ -40,48 +40,50 @@ tcga.pro.geneticprofile <- lapply(tcga.study.list, geneticprofile)
 # grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
 # tcga.pro.geneticprofile[[1]]$genetic_profile_name), ][1,1]
 # how do we do this for all study groups from [[1]] to  [[32]]?
-caselist.RNAseq <- function(x) {
-  tcga.pro.caselist[[x]][
-    grep("tcga_rna_seq_v2_mrna", tcga.pro.caselist[[x]]$case_list_id), ][1, 1]
-  }
+  caselist.RNAseq <- function(x) {
+    tcga.pro.caselist[[x]][
+      grep("tcga_rna_seq_v2_mrna", tcga.pro.caselist[[x]]$case_list_id), ][1, 1]
+    }
 
-geneticprofile.RNAseq <- function(x) {
-  tcga.pro.geneticprofile[[x]][
+  geneticprofile.RNAseq <- function(x) {
+    tcga.pro.geneticprofile[[x]][
 # double backslash \\ suppress the special meaning of ( ) in regular expression    
-    grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
-         tcga.pro.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
-}
+      grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
+           tcga.pro.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
+    }
 # test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
 # caselist.RNAseq = caselist.RNAseq ('acc_tcga')
 # geneticprofile.RNAseq = geneticprofile.RNAseq ('acc_tcga')
 # We wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x) 
 # within TCGA_ProfileData_RNAseq(x)
-tcga.profiledata.RNAseq <- function(genename,
-                                    geneticprofile,
-                                    caselist) {
-  getProfileData(mycgds, genename, geneticprofile, caselist)
-  }
+  tcga.profiledata.RNAseq <- function(genename,
+                                      geneticprofile,
+                                      caselist) {
+    getProfileData(mycgds, genename, geneticprofile, caselist)
+    }
 
-DNFA.tcga.RNAseq <- function(x, y) {
-  z <- tcga.profiledata.RNAseq(x,
+  DNFA.tcga.RNAseq <- function(x, y) {
+    tcga.profiledata.RNAseq(x,
                                geneticprofile.RNAseq(y),
                                caselist.RNAseq(y))
-}
+    }
+  DNFA.RNAseq.all.tcga.studies <- function(m) {
+    test <- lapply(tcga.study.list,
+                   function(y) mapply(DNFA.tcga.RNAseq, m, y))
+    df2 <- melt(test)
+    colnames(df2) <- c("RNAseq", "DNFAgene", "TCGAstudy")
+    as.factor(df2$L2)
+    as.factor(df2$L1)
+    df2 <- data.frame(df2)
+    return(df2)
+    }
+#  }
+
 
 DNFA.gene <- c("SCD", "FASN", "ACLY", "ACSS2")
 names(DNFA.gene ) <- DNFA.gene
-
-DNFA.RNAseq.all.tcga.studies <- function() {
-  test <- lapply(tcga.study.list,
-                 function(y) mapply(DNFA.tcga.RNAseq, DNFA.gene, y))
-  df2 <- melt(test)
-  colnames(df2) <- c("RNAseq", "DNFAgene", "TCGAstudy")
-  as.factor(df2$L2)
-  as.factor(df2$L1)
-  df2 <- data.frame(df2)
-  return(df2)}
-
-df2 <- DNFA.RNAseq.all.tcga.studies()
+# df2 <- getDNFAdata(DNFA.gene)
+df2 <- DNFA.RNAseq.all.tcga.studies(DNFA.gene)
 
 plotDNFA <- function(x) {
   m <- paste0(x, ".", x)
@@ -130,7 +132,7 @@ skcm_tcga_all <- getCaseLists(mycgds, "skcm_tcga")[2, 1]
 
 # Get available genetic profiles
 SKCMgeneticprofile <- getGeneticProfiles(mycgds, "skcm_tcga")
-DNFA.RNAseq <- getProfileData(mycgds, 
+DNFA.RNAseq.data <- getProfileData(mycgds, 
                               c("ACACA", "FASN", "SCD", "ACLY", "ACSS2",
                                 "ACSL1", "LDLR", "SREBF1", "SREBF2",
                                 "MITF", "BRAF", "NRAS", "PTEN"),
@@ -161,10 +163,10 @@ getmutations <- function(x) {
   mutations2 <- cbind(Row.Names = v, mutations)
   # mutations <- mutations2[ , -1]
   rownames(mutations) <- mutations2[ , 1]
+  print(attributes(mutations))
   return(mutations)
   }
-mutations <- getmutations(c("BRAF", "NRAS", "AKT", "TP53"))
-attributes(mutations)
+mutations.data <- getmutations(c("BRAF", "NRAS", "AKT", "TP53"))
 
 ###########################################
 ## Get oncogene CNV data from SKCM group ##
@@ -186,18 +188,21 @@ getCNV <- function(x) {
   CNV2 <- cbind(Row.Names = v, CNV)
   # mutations <- mutations2[ , -1]
   rownames(CNV) <- CNV2[ , 1]
+  print(attributes(CNV))
+
   return(CNV)
+#  return(CNV.DNFA.RNAseq)
   }
-CNV <- getCNV(c("BRAF", "NRAS", "PTEN"))
-attributes(CNV)
+CNV.data <- getCNV(c("BRAF", "NRAS", "PTEN"))
+
 
 ###############################################################################
 ## examine the correlation between mutation status and DNFA expression level ##
 ###############################################################################
-mutations.DNFA.RNAseq <- cbind(mutations, DNFA.RNAseq)
-mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
 
 plot.mutations.RNAseq <- function(mutations, RNAseq) {
+  mutations.DNFA.RNAseq <- cbind(mutations.data, DNFA.RNAseq.data)
+  mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
   print(
     ggplot(mutations.DNFA.RNAseq,
     #use[ ,genemutations] not $genemutations for variable in a function  
@@ -301,13 +306,13 @@ sapply(c("BRAF.mutations",
 #############################################################################
 ## compare the correlation between oncogene CNV and DNFA gene RNA-seq data ##
 #############################################################################
-CNV.DNFA.RNAseq <- cbind(CNV, DNFA.RNAseq)
-# na.omit will eleminate NaN as well
-CNV.DNFA.RNAseq <- na.omit(CNV.DNFA.RNAseq)
-toBeRemoved <- which(CNV.DNFA.RNAseq$BRAF.CNV=="NaN")
-CNV.DNFA.RNAseq <- CNV.DNFA.RNAseq[-toBeRemoved,]
+
 # make a large function to plot all genes
 plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
+  CNV.DNFA.RNAseq <- cbind(CNV.data, DNFA.RNAseq)
+  # na.omit cannot eleminate NaN here!
+  toBeRemoved <- which(CNV.DNFA.RNAseq$BRAF.CNV == "NaN")
+  CNV.DNFA.RNAseq <- CNV.DNFA.RNAseq[-toBeRemoved,]
   print(
     ggplot(CNV.DNFA.RNAseq,
            aes(x     = CNV.DNFA.RNAseq[, geneCNV],
