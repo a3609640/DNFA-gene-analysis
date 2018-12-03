@@ -249,6 +249,8 @@ sapply(c("BRAF", "NRAS", "SCD"),
 ##  check the data distribution, then choose the stastics comparison methods ##
 ###############################################################################
 stats <- function(RNAseq, mutations) {
+  mutations.DNFA.RNAseq <- cbind(mutations.data, DNFA.RNAseq.data)
+  mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
   print(
     ggplot(mutations.DNFA.RNAseq,
            aes(x      = mutations.DNFA.RNAseq[, RNAseq],
@@ -309,7 +311,7 @@ sapply(c("BRAF.mutations",
 
 # make a large function to plot all genes
 plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
-  CNV.DNFA.RNAseq <- cbind(CNV.data, DNFA.RNAseq)
+  CNV.DNFA.RNAseq <- cbind(CNV.data, DNFA.RNAseq.data)
   # na.omit cannot eleminate NaN here!
   toBeRemoved <- which(CNV.DNFA.RNAseq$BRAF.CNV == "NaN")
   CNV.DNFA.RNAseq <- CNV.DNFA.RNAseq[-toBeRemoved,]
