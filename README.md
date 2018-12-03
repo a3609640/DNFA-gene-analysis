@@ -122,7 +122,7 @@ It creates output directories with sensible permissions if they are absent.
 If STAR is already built and installed it does not repeat the download and
 compilation.  If human genome files are already downloaded it does not
 download them again.  If a reference genome has already been sequenced,
-it is reused.  Etc.  
+it is reused.  Etc.
 
 However note that the detection of previously-completed work is not
 foolproof.  If in doubt, it is best to `make clean` and re-execute.
@@ -145,7 +145,7 @@ The commands `make` or `make all` will build everything, from soup to nuts.
 The following specific workflows are also supported:
 
 ## DNFA gene expression analysis with TCGA and GTEx databases.
-This depends on Makefile, R/TCGA.R, R/GTEx.R, R/Xena.R
+This depends on Makefile, R/CGDSR.R, R/GTEx.R, R/Xena.R
 
 Specific targets associated with this workflow include the following:
 * `make genedbanalysis` -- downloads public GTEX data and annotations
@@ -163,7 +163,7 @@ Specific targets associated with this workflow include the following:
 * `make singlecellanalysis` -- downloads a public single-cell data
     set to the r-extdata directory under the directory named by the
     configured environment variable `DNFA_generatedDataRoot`.
-    
+
 The script R/scRNA-Seq.R will search for the file in the same location
 where the Makefile deposits it, provided that it is executed with the
 same environment.  For the time being, the .R file must be evaluated
