@@ -3,7 +3,8 @@ This github repository was initially generated to support the academic publicati
 There are several major pipelines used in the manuscript.
 
 1.	DNFA gene expression analysis with TCGA and GTEx databases.
-    Including the R script:   TCGA.R
+    Including the R script:   CGDSR.R
+                              TCGA.R
                               GTEx.R
                               Xena.R
 
