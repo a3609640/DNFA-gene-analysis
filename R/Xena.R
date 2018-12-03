@@ -35,21 +35,32 @@ plot1 <- ggplot2::autoplot(prcomp(df), data = DNFASKCMandGTEX, colour = 'sample_
 print(plot1)
 # we can color each data point in the plot according to their cancer category: colour = 'sample_type'
 # Use loadings = TRUE, we draw eigenvector for each DNFA gene on the plot.
-bp <- ggplot2::autoplot(prcomp(df), data = DNFASKCMandGTEX, colour = 'sample_type',
-         loadings = TRUE, loadings.colour = 'black',
-         loadings.label.vjust = -1,
-         loadings.label = TRUE, loadings.label.size = 4) +
-  theme(plot.background = element_blank(),
-        panel.background = element_rect(fill = 'transparent', color = 'black', size = 1),
-        axis.title = element_text(colour = "black", size = 12,
-                                    face = "bold"),
-        axis.text = element_text(colour = "black", size = 12,
-                                 face = "bold"),
-        legend.title = element_text(colour = "black", size = 12,
-                                     face = "bold"),
-        legend.text = element_text(colour = "black", size = 12,
-                                 face = "bold", hjust = 1),
-        legend.key = element_blank())
+bp <- ggplot2::autoplot(prcomp(df),
+                        data                  = DNFASKCMandGTEX,
+                        colour                = 'sample_type',
+                        loadings              = TRUE,
+                        loadings.colour       = 'black',
+                        loadings.label.vjust  = -1,
+                        loadings.label        = TRUE,
+                        loadings.label.size   = 4) +
+  theme(plot.background  = element_blank(),
+        panel.background = element_rect(fill  = 'transparent',
+                                        color = 'black',
+                                        size  = 1),
+        axis.title   = element_text(colour = "black",
+                                    size   = 12,
+                                    face   = "bold"),
+        axis.text    = element_text(colour = "black",
+                                    size   = 12,
+                                    face   = "bold"),
+        legend.title = element_text(colour = "black",
+                                    size   = 12,
+                                    face   = "bold"),
+        legend.text  = element_text(colour = "black",
+                                   size    = 12,
+                                   face    = "bold",
+                                   hjust   = 1),
+        legend.key  = element_blank())
 
 print(bp)
 
@@ -79,20 +90,40 @@ print(plot6)
 # Note, set knn = 1 and minObsPerLabel = 1 if there is a label in the data that only
 # occurs once.  However, still expect errors; lfda has strong assumptions that there
 # are multiple observations per label.
-model <- lfda(DNFASKCMandGTEX[-8], DNFASKCMandGTEX[, 8], r = 7, metric = "plain",
-              knn = 5)
-plot7 <- ggplot2::autoplot(model, data = DNFASKCMandGTEX, frame = TRUE, frame.colour = 'sample_type')
+model <- lfda(DNFASKCMandGTEX[-8],
+              DNFASKCMandGTEX[, 8],
+              r      = 7,
+              metric = "plain",
+              knn    = 5)
+plot7 <- ggplot2::autoplot(model,
+                           data         = DNFASKCMandGTEX,
+                           frame        = TRUE,
+                           frame.colour = 'sample_type')
 print(plot7)
 
 # A beta value of 0 indicates totally supervised learning; 1 is totally unsupervised.
-model <- self(DNFASKCMandGTEX[-8], DNFASKCMandGTEX[, 8], beta = 0.0, r = 7, metric = "plain",
+model <- self(DNFASKCMandGTEX[-8],
+              DNFASKCMandGTEX[, 8],
+              beta           = 0.0,
+              r              = 7,
+              metric         = "plain",
               minObsPerLabel = 5)
-plot8 <- ggplot2::autoplot(model, data = DNFASKCMandGTEX, frame = TRUE, frame.colour = 'sample_type')
+plot8 <- ggplot2::autoplot(model,
+                           data         = DNFASKCMandGTEX,
+                           frame        = TRUE,
+                           frame.colour = 'sample_type')
 print(plot8)
 
-model <- self(DNFASKCMandGTEX[-8], DNFASKCMandGTEX[, 8], beta = 1.0, r = 7, metric = "plain",
+model <- self(DNFASKCMandGTEX[-8],
+              DNFASKCMandGTEX[, 8],
+              beta           = 1.0,
+              r              = 7,
+              metric         = "plain",
               minObsPerLabel = 5)
-plot9 <- ggplot2::autoplot(model, data = DNFASKCMandGTEX, frame = TRUE, frame.colour = 'sample_type')
+plot9 <- ggplot2::autoplot(model,
+                           data         = DNFASKCMandGTEX,
+                           frame        = TRUE,
+                           frame.colour = 'sample_type')
 print(plot9)
 }
 doAllXena()
