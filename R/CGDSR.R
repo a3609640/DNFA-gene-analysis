@@ -1,9 +1,9 @@
 install.packages("cgdsr")
+library(car)
 library(cgdsr)
 library(ggfortify)
 library(ggplot2)
 library(plyr)
-library(reshape)
 library(reshape2)
 library(survival)
 
@@ -197,16 +197,16 @@ attributes(CNV)
 mutations.DNFA.RNAseq <- cbind(mutations, DNFA.RNAseq)
 mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
 
-plot.mutations.RNAseq <- function(genemutations, RNAseq) {
+plot.mutations.RNAseq <- function(mutations, RNAseq) {
   print(
     ggplot(mutations.DNFA.RNAseq,
     #use[ ,genemutations] not $genemutations for variable in a function  
-         aes(x     = mutations.DNFA.RNAseq[ ,genemutations], 
+         aes(x     = mutations.DNFA.RNAseq[ ,mutations], 
              y     = log2(mutations.DNFA.RNAseq[, RNAseq]), 
-             color = mutations.DNFA.RNAseq[ ,genemutations])) +
+             color = mutations.DNFA.RNAseq[ ,mutations])) +
     geom_boxplot(alpha = .01, 
                  width = .5) + 
-    labs(x = genemutations, 
+    labs(x = mutations, 
          y = paste("log2(", RNAseq, "RNA counts)")) + 
     theme(axis.title        = element_text(face   = "bold",
                                            size   = 9, 
@@ -236,86 +236,67 @@ sapply(c("BRAF.mutations","NRAS.mutations","AKT1.mutations", "TP53.mutations"),
 # or
 sapply(c("BRAF", "NRAS", "SCD"), 
        function(y) mapply(plot.mutations.RNAseq,
-                          c("BRAF.mutations","NRAS.mutations","AKT1.mutations", "TP53.mutations"),
+                          c("BRAF.mutations", "NRAS.mutations",
+                            "AKT1.mutations", "TP53.mutations"),
                           y))
 
 ###############################################################################
 ##  check the data distribution, then choose the stastics comparison methods ##
 ###############################################################################
-BRAF.Mutated <- mutations.DNFA.RNAseq$SCD[
-  mutations.DNFA.RNAseq$BRAF.mutations == "Mutated"]
-BRAF.Wildtype <- mutations.DNFA.RNAseq$SCD[
-  mutations.DNFA.RNAseq$BRAF.mutations == "Wildtype"]
-
-stats <- function(DNFA.RNAseq, mutations) {
-  Mutated <- function(DNFA.RNAseq, mutations) {
-    mutations.DNFA.RNAseq[ ,DNFA.RNAseq][mutations.DNFA.RNAseq[ ,mutations] == "Mutated"]
+stats <- function(RNAseq, mutations) {
+  print(
+    ggplot(mutations.DNFA.RNAseq,
+           aes(x      = mutations.DNFA.RNAseq[, RNAseq],
+               colour = mutations.DNFA.RNAseq[, mutations])) +
+      geom_density() +
+      scale_x_continuous(name = RNAseq) +
+      scale_colour_discrete(name = mutations)) # change the legend title
+  Mutated <- function(RNAseq, mutations) {
+    mutations.DNFA.RNAseq[ ,RNAseq][
+      mutations.DNFA.RNAseq[ ,mutations] == "Mutated"]
+    }
+  Wildtype <- function(RNAseq, mutations) {
+    mutations.DNFA.RNAseq[ ,RNAseq][
+      mutations.DNFA.RNAseq[ ,mutations] == "Wildtype"]
+    }
+  list <- list(Mutated(RNAseq, mutations), 
+               Wildtype(RNAseq, mutations))
+  nameit <- function(RNAseq, mutations) {
+    name = c(paste(RNAseq, "with", mutations),
+             paste(RNAseq, "without", mutations))}  
+  names(list) <- nameit(RNAseq, mutations)
+  result <- lapply(list, shapiro.test)
+  a <- t.test(
+    mutations.DNFA.RNAseq[ ,RNAseq] ~ mutations.DNFA.RNAseq[ ,mutations]
+    )
+  # overwrite the data.name variable of t.test result
+  a$data.name <- paste(RNAseq,'expression by', mutations, 'status') 
+  b <- wilcox.test(
+    mutations.DNFA.RNAseq[ ,RNAseq] ~ mutations.DNFA.RNAseq[ ,mutations]
+  )
+  b$data.name <- paste(RNAseq,'expression by', mutations, 'status') 
+  print(result)
+  print(a)
+  print(b)
   }
-  Wildtype <- function(DNFA.RNAseq, mutations) {
-    mutations.DNFA.RNAseq[ ,DNFA.RNAseq][mutations.DNFA.RNAseq[ ,mutations] == "Wildtype"]
-  }
-  plot(density(Mutated(DNFA.RNAseq, mutations)))
-  plot(density(Wildtype(DNFA.RNAseq, mutations)))
-        a <- shapiro.test(Mutated(DNFA.RNAseq, mutations)) 
-        b <- shapiro.test(Wildtype(DNFA.RNAseq, mutations))
-        c <- t.test(Mutated(DNFA.RNAseq, mutations), Wildtype(DNFA.RNAseq, mutations))
-        print(a)
-        print(b)
-        print(c)
-   }
 
 stats("SCD", "BRAF.mutations")
-sapply(c("SCD", "FASN"), function(x) mapply(stats, x, c("BRAF.mutations", "NRAS.mutations")))
-sapply(c("BRAF.mutations", "NRAS.mutations"), function(y) mapply(stats, c("SCD", "FASN"), y))
-
-NRAS.Mutated <- mutations.DNFA.RNAseq$SCD[mutations.DNFA.RNAseq$NRAS.mutations == "Mutated"]
-
-
-plot(density(BRAF.Mutated))
-plot(density(BRAF.Wildtype))
-# Normality test
-shapiro.test(BRAF.Mutated) # p-value < 2.2e-16
-shapiro.test(BRAF.Wildtype) # p-value < 2.2e-16
-# Welch two sample t-test
-t.test(BRAF.Mutated, BRAF.Wildtype) # p-value = 0.5361
-
-NRAS.Mutated <- mutations.DNFA.RNAseq$SCD[
-  mutations.DNFA.RNAseq$NRAS.mutations == "Mutated"]
-NRAS.Wildtype <- mutations.DNFA.RNAseq$SCD[
-  mutations.DNFA.RNAseq$NRAS.mutations == "Wildtype"]
-plot(density(NRAS.Mutated))
-plot(density(NRAS.Wildtype))
-# Normality test
-shapiro.test(NRAS.Mutated) # p-value = 2.279e-13
-shapiro.test(NRAS.Wildtype) # p-value < 2.2e-16
-t.test(NRAS.Mutated, NRAS.Wildtype) # p-value = 0.9444
-
-AKT.Mutated <- mutations.DNFA.RNAseq$SCD[
-  mutations.DNFA.RNAseq$AKT.mutations == "Mutated"]
-AKT.Wildtype <- mutations.DNFA.RNAseq$SCD[
-  mutations.DNFA.RNAseq$AKT.mutations == "Wildtype"]
-plot(density(AKT.Mutated))
-plot(density(AKT.Wildtype))
-# Normality test
-shapiro.test(AKT.Mutated) # p-value = 0.8429 not a normal distribution
-shapiro.test(AKT.Wildtype) # p-value < 2.2e-16
-# t.test(AKT.Mutated, AKT.Wildtype)
-# use non-parametric test
-wilcox.test(AKT.Mutated, AKT.Wildtype) # p-value = 0.434
-
-TP53.Mutated <- mutations.DNFA.RNAseq$SCD[
-  mutations.DNFA.RNAseq$TP53.mutations == "Mutated"]
-TP53.Wildtype <- mutations.DNFA.RNAseq$SCD[
-  mutations.DNFA.RNAseq$TP53.mutations == "Wildtype"]
-plot(density(TP53.Mutated))
-plot(density(TP53.Wildtype))
-# Normality test
-shapiro.test(TP53.Mutated) # p-value = 0.009181
-shapiro.test(TP53.Wildtype) # p-value < 2.2e-16
-# Welch Two Sample t-test
-t.test(TP53.Mutated, TP53.Wildtype) # p-value = 0.06594
-# Wilcoxon rank sum test with continuity correction
-wilcox.test(TP53.Mutated, TP53.Wildtype) # p-value = 0.761
+sapply(c("SCD", "FASN"),
+       function(x)
+         mapply(stats,
+                x,
+                c("BRAF.mutations",
+                  "NRAS.mutations",
+                  "AKT1.mutations",
+                  "TP53.mutations")))
+sapply(c("BRAF.mutations",
+         "NRAS.mutations",
+         "AKT1.mutations",
+         "TP53.mutations"),
+       function(y) 
+         mapply(stats,
+                c("SCD", "FASN"),
+                y))
 
 #############################################################################
 ## compare the correlation between oncogene CNV and DNFA gene RNA-seq data ##
@@ -323,6 +304,8 @@ wilcox.test(TP53.Mutated, TP53.Wildtype) # p-value = 0.761
 CNV.DNFA.RNAseq <- cbind(CNV, DNFA.RNAseq)
 # na.omit will eleminate NaN as well
 CNV.DNFA.RNAseq <- na.omit(CNV.DNFA.RNAseq)
+toBeRemoved <- which(CNV.DNFA.RNAseq$BRAF.CNV=="NaN")
+CNV.DNFA.RNAseq <- CNV.DNFA.RNAseq[-toBeRemoved,]
 # make a large function to plot all genes
 plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
   print(
@@ -356,47 +339,26 @@ plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
                                            colour = "black"),
                                            legend.position = "none")
   )
+  a <- leveneTest(CNV.DNFA.RNAseq[, RNAseq] ~ CNV.DNFA.RNAseq[, geneCNV])
+  a$data.name <- paste(RNAseq,'expression by', geneCNV, 'status')
+  b <- fligner.test(CNV.DNFA.RNAseq[, RNAseq] ~ CNV.DNFA.RNAseq[, geneCNV])
+  b$data.name <- paste(RNAseq,'expression by', geneCNV, 'status')
+  print(b)
+  print(a)
   }
 
-plot.CNV.RNAseq("NRAS.CNV", "BRAF")
-plot.CNV.RNAseq("NRAS.CNV", "SCD")
-# however, mapply function only works with print function in ggplot.
-# three combinations: BRAF.CNV, BRAF; NRAS.CNV, NRAS; PTEN.CNV, PTEN
-mapply(plot.CNV.RNAseq, 
-       geneCNV = c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"), 
-       RNAseq = c("BRAF", "NRAS", "PTEN"))
 # use all combinations of geneCNV and RNAseq
 sapply(c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"), 
-       function(x) mapply(plot.CNV.RNAseq, x, c("BRAF", "NRAS", "PTEN", "SCD")))
+       function(x) 
+         mapply(plot.CNV.RNAseq, x, c("BRAF", "NRAS", "PTEN", "SCD", "FASN")))
+# or
+sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"), 
+       function(y) 
+         mapply(plot.CNV.RNAseq, c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"), y))
 
-# compare the variance among different groups using a nonparametri test
-fligner.test(SCD ~ BRAF.CNV, data = CNV.DNFA.RNAseq) # p-value = 0.179
-fligner.test(BRAF ~ BRAF.CNV, data = CNV.DNFA.RNAseq) # p-value = 0.02785
-################################################################################
-
-# compare the variance among different groups using a nonparametri test
-fligner.test(SCD ~ NRAS.CNV, data = CNV.DNFA.RNAseq) # p-value = 0.1973
-fligner.test(NRAS ~ NRAS.CNV, data = CNV.DNFA.RNAseq) # p-value = 1.9e-08
-################################################################################
-# compare the variance among different groups using a nonparametri test
-fligner.test(SCD ~ PTEN.CNV, data = CNV.DNFA.RNAseq) 
-# p-value = 0.0004647 (pten loss correlates with scd decrease?)
-fligner.test(PTEN ~ PTEN.CNV, data = CNV.DNFA.RNAseq) 
-# p-value = p-value = 5.948e-08
 
 # statistic comparision of SCD expression between PTEN heterdeletion and diploid
-PTEN.Hetlos <- CNV.DNFA.RNAseq$SCD[
-  CNV.DNFA.RNAseq$PTEN.CNV == "-1"]
-PTEN.Diploid <- CNV.DNFA.RNAseq$SCD[
-  CNV.DNFA.RNAseq$PTEN.CNV == "0"]
-plot(density(PTEN.Hetlos))
-plot(density(PTEN.Diploid))
-# Normality test
-shapiro.test(PTEN.Hetlos) # p-value = 6.252e-08
-shapiro.test(PTEN.Diploid) # p-value = 5.124e-13
-# Welch Two Sample t-test
-t.test(PTEN.Hetlos, PTEN.Diploid) 
-# p-value = 0.0008492 (pten loss correlates with scd decrease)
+# (pten loss correlates with scd decrease)
 
 ################################################################################
 ################################################################################
