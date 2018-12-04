@@ -6,6 +6,7 @@ library(ggplot2)
 library(plyr)
 library(reshape2)
 library(survival)
+library(survminer)
 
 # Create CGDS object
 mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
@@ -364,22 +365,21 @@ sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
 ############################################
 ##  Retrieve clinic data from SKCM group  ##
 ############################################
-mycancerstudy <- getCancerStudies(mycgds)[193, 1]
-mycaselist <- getCaseLists(mycgds, mycancerstudy)[1, 1]
-skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
-skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
-
-mutations.DNFA.RNAseq <- cbind(mutations.data, DNFA.RNAseq.data)
-mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
-mutations.DNFA.RNAseq$rn <- rownames(mutations.DNFA.RNAseq)
-
-CNV.DNFA.RNAseq <- cbind(CNV.data, DNFA.RNAseq.data)
-# na.omit cannot eleminate NaN here!
-toBeRemoved <- which(CNV.DNFA.RNAseq$BRAF.CNV == "NaN")
-CNV.DNFA.RNAseq <- CNV.DNFA.RNAseq[-toBeRemoved,]
-CNV.DNFA.RNAseq$rn <- rownames(CNV.DNFA.RNAseq)
-
-df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", 
+plotOS <- function() {
+  mycancerstudy <- getCancerStudies(mycgds)[193, 1]
+  mycaselist <- getCaseLists(mycgds, mycancerstudy)[1, 1]
+  skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
+  skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
+  mutations.DNFA.RNAseq <- cbind(mutations.data, DNFA.RNAseq.data)
+  mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
+  mutations.DNFA.RNAseq$rn <- rownames(mutations.DNFA.RNAseq)
+  CNV.DNFA.RNAseq <- cbind(CNV.data, DNFA.RNAseq.data)
+# na.omit does not eleminate NaN in CNV.DNFA.RNAseq, 
+# because NaN was treated as a factor in CNV.DNFA.RNAseq$BRAF.CNV 
+  toBeRemoved <- which(CNV.DNFA.RNAseq$BRAF.CNV == "NaN")
+  CNV.DNFA.RNAseq <- CNV.DNFA.RNAseq[-toBeRemoved,]
+  CNV.DNFA.RNAseq$rn <- rownames(CNV.DNFA.RNAseq)
+  df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", 
                                         "OS_STATUS", 
                                         'rn')],
                     mutations.DNFA.RNAseq[c("BRAF.mutations", 
@@ -392,11 +392,11 @@ df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS",
                                       'rn')]),
                by   = 'rn', 
                type = 'full')
+  df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
+  fit <- survfit(SurvObj ~ BRAF.mutations, data = df, conf.type = "log-log")
+  # unfortunately there is a bug in ggsurvplot, can not call it within a function
+  print(
+    ggsurvplot(fit, data = df, risk.table = TRUE, pval = TRUE))
+  }
 
-df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
-km.by.mutation <- survfit(SurvObj ~ NRAS.mutations,
-                          data      = df,
-                          conf.type = "log-log")
-autoplot(km.by.mutation)
-library("survminer")
-ggsurvplot(km.by.mutation, data = df)
+plotOS() 
