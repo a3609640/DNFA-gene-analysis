@@ -1,3 +1,5 @@
+# the following script generates the plot and statistics 
+# for DNFA expression and mutations data from TCGA dataset.
 # install.packages("cgdsr")
 library(car)
 library(cgdsr)
@@ -359,13 +361,14 @@ sapply(c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"),
 sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"), 
        function(y) 
          mapply(plot.CNV.RNAseq, c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"), y))
-# statistic comparision of SCD expression between PTEN heterdeletion and diploid
-# (?pten loss correlates with scd decrease?)
+# statistic comparision of SCD expression 
+# between PTEN heterdeletion and diploid
+# (pten loss correlates with scd decrease?)
 
 ############################################
 ##  Retrieve clinic data from SKCM group  ##
 ############################################
-plotOS <- function() {
+plotOS <- function(ge) {
   mycancerstudy <- getCancerStudies(mycgds)[193, 1]
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[1, 1]
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
@@ -374,29 +377,101 @@ plotOS <- function() {
   mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
   mutations.DNFA.RNAseq$rn <- rownames(mutations.DNFA.RNAseq)
   CNV.DNFA.RNAseq <- cbind(CNV.data, DNFA.RNAseq.data)
-# na.omit does not eleminate NaN in CNV.DNFA.RNAseq, 
-# because NaN was treated as a factor in CNV.DNFA.RNAseq$BRAF.CNV 
+  # na.omit does not eleminate NaN in CNV.DNFA.RNAseq, 
+  # because NaN was treated as a factor in CNV.DNFA.RNAseq$BRAF.CNV 
   toBeRemoved <- which(CNV.DNFA.RNAseq$BRAF.CNV == "NaN")
   CNV.DNFA.RNAseq <- CNV.DNFA.RNAseq[-toBeRemoved,]
   CNV.DNFA.RNAseq$rn <- rownames(CNV.DNFA.RNAseq)
-  df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", 
-                                        "OS_STATUS", 
-                                        'rn')],
-                    mutations.DNFA.RNAseq[c("BRAF.mutations", 
+  df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS",
+                                          "OS_STATUS", 
+                                        "rn")],
+                      mutations.DNFA.RNAseq[c("BRAF.mutations", 
                                             "NRAS.mutations",
                                             "TP53.mutations",
-                                            'rn')],
-                    CNV.DNFA.RNAseq[c("BRAF.CNV",
+                                            "rn")],
+                      CNV.DNFA.RNAseq[c("BRAF.CNV",
                                       "NRAS.CNV",
                                       "PTEN.CNV",
-                                      'rn')]),
-               by   = 'rn', 
-               type = 'full')
+                                      "rn")]),
+                 by   = "rn", 
+                 type = "full")
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
-  fit <- survfit(SurvObj ~ BRAF.mutations, data = df, conf.type = "log-log")
-  # unfortunately there is a bug in ggsurvplot, can not call it within a function
+  # there is a bug in ggsurvplot, can not call it within a function
+  # it may be an internal bug for survminer package. try other plotting strategy
+  fit <- function(x) {
+    survfit(SurvObj ~ df[[x]], data = df, conf.type = "log-log")
+    }
+  km <- fit(ge)
+  black.bold.12pt <- element_text(face   = "bold",
+                                  size   = 12,
+                                  colour = "black")
   print(
-    ggsurvplot(fit, data = df, risk.table = TRUE, pval = TRUE))
+    autoplot(km,
+             xlab = "Months",
+             ylab = "Survival Probability",
+             main = "Kaplan-Meier plot",
+             xlim = c(0, 360)) +
+      theme(axis.title      = black.bold.12pt,
+            axis.text       = black.bold.12pt,
+            axis.line.x     = element_line(color  = "black"),
+            axis.line.y     = element_line(color  = "black"),
+            panel.grid      = element_blank(),
+            strip.text      = black.bold.12pt,
+            legend.text     = black.bold.12pt ,
+            legend.title    = black.bold.12pt ,
+            legend.justification = c(1,1)) +
+      scale_fill_discrete(name = ge))
+  stats <- function(x) {
+    survdiff(SurvObj ~ df[[x]], data = df)
+    }
+  print(ge)
+  print(stats(ge))
   }
 
-plotOS() 
+plotOS('BRAF.mutations') 
+mutation.list <- c("BRAF.mutations", "NRAS.mutations", "TP53.mutations") 
+names(mutation.list) <- mutation.list 
+lapply(mutation.list, plotOS)
+
+
+
+
+mycancerstudy <- getCancerStudies(mycgds)[193, 1]
+mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
+skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
+skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
+DNFA.RNAseq.data <- na.omit(DNFA.RNAseq.data)
+DNFA.RNAseq.data <- as.data.frame(DNFA.RNAseq.data)
+DNFA.RNAseq.data$rn <- rownames(DNFA.RNAseq.data)
+
+df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS",
+                                        "OS_STATUS", 
+                                        "rn")],
+                    DNFA.RNAseq.data[c("SCD", 
+                                  "FASN",
+                                  "ACLY",
+                                   "rn")]),
+               by   = "rn", 
+               type = "full")
+df <- na.omit(df)
+Percentile_00  = min(df$SCD)
+Percentile_20  = quantile(df$SCD, 0.2)
+Percentile_80  = quantile(df$SCD, 0.8)
+Percentile_100 = max(df$SCD)
+RB = rbind(Percentile_00, Percentile_20, Percentile_80, Percentile_100)
+dimnames(RB)[[2]] = "Value"
+RB
+
+df$Group[df$SCD >= Percentile_00 & df$SCD <  Percentile_20]  = "Bottom 20%"
+df$Group[df$SCD > Percentile_80 & df$SCD <= Percentile_100] = "Top 20%"
+
+summary(df$Group)
+df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
+km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+autoplot(km)
+survdiff(SurvObj ~ Group, data = df)
+
+
+
+
+
