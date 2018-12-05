@@ -136,7 +136,7 @@ lapply(DNFA.gene, plotDNFA)
 # SKCMgeneticprofile <- getGeneticProfiles(mycgds, "skcm_tcga")
 DNFA.RNAseq.data <- getProfileData(mycgds,
                                    c("ACACA", "FASN", "SCD", "ACLY", "ACSS2",
-                                     "ACSL1", "LDLR", "SREBF1", "SREBF2",
+                                     "HMGCS1", "HMGCR", "SREBF1", "SREBF2",
                                      "MITF", "BRAF", "NRAS", "PTEN"),
                                    "skcm_tcga_rna_seq_v2_mrna",
                                    "skcm_tcga_all")
@@ -370,7 +370,7 @@ sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
 ############################################
 plotOS <- function(ge) {
   mycancerstudy <- getCancerStudies(mycgds)[193, 1]
-  mycaselist <- getCaseLists(mycgds, mycancerstudy)[1, 1]
+  mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
   mutations.DNFA.RNAseq <- cbind(mutations.data, DNFA.RNAseq.data)
@@ -384,15 +384,16 @@ plotOS <- function(ge) {
   CNV.DNFA.RNAseq$rn <- rownames(CNV.DNFA.RNAseq)
   df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS",
                                           "OS_STATUS", 
-                                        "rn")],
-                      mutations.DNFA.RNAseq[c("BRAF.mutations", 
-                                            "NRAS.mutations",
-                                            "TP53.mutations",
-                                            "rn")],
+                                          "rn")],
+                      mutations.DNFA.RNAseq[c("BRAF.mutations",
+                                              "NRAS.mutations",
+                                              "AKT1.mutations",
+                                              "TP53.mutations",
+                                              "rn")],
                       CNV.DNFA.RNAseq[c("BRAF.CNV",
-                                      "NRAS.CNV",
-                                      "PTEN.CNV",
-                                      "rn")]),
+                                        "NRAS.CNV",
+                                        "PTEN.CNV",
+                                        "rn")]),
                  by   = "rn", 
                  type = "full")
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
@@ -429,49 +430,97 @@ plotOS <- function(ge) {
   }
 
 plotOS('BRAF.mutations') 
-mutation.list <- c("BRAF.mutations", "NRAS.mutations", "TP53.mutations") 
+mutation.list <- c("BRAF.mutations", "NRAS.mutations", "AKT1.mutations", "TP53.mutations") 
 names(mutation.list) <- mutation.list 
 lapply(mutation.list, plotOS)
 
 
 
+plotDNFAOS <- function(DNFA) {
+  mycancerstudy <- getCancerStudies(mycgds)[193, 1]
+  mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
+  skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
+  skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
+  DNFA.RNAseq.data <- as.data.frame(DNFA.RNAseq.data)
+  DNFA.RNAseq.data$rn <- rownames(DNFA.RNAseq.data)
+  df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
+                      DNFA.RNAseq.data),
+                 by   = "rn", 
+                 type = "full")
+  df <- na.omit(df)
+  Percentile_00  = min(df[[DNFA]])
+  Percentile_20  = quantile(df[[DNFA]], 0.2)
+  Percentile_80  = quantile(df[[DNFA]], 0.8)
+  Percentile_100 = max(df[[DNFA]])
+  df$Group[df[[DNFA]] >= Percentile_00 & df[[DNFA]] <=  Percentile_20]  = "Bottom 20%"
+  df$Group[df[[DNFA]] >= Percentile_80 & df[[DNFA]] <= Percentile_100] = "Top 20%"
+  df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
+  km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  black.bold.12pt <- element_text(face   = "bold",
+                                  size   = 12,
+                                  colour = "black")
+  print(
+    autoplot(km,
+             xlab = "Months",
+             ylab = "Survival Probability",
+             main = paste("Kaplan-Meier plot", DNFA, "RNA expression"),
+             xlim = c(0, 360)) +
+      theme(axis.title      = black.bold.12pt,
+            axis.text       = black.bold.12pt,
+            axis.line.x     = element_line(color  = "black"),
+            axis.line.y     = element_line(color  = "black"),
+            panel.grid      = element_blank(),
+            strip.text      = black.bold.12pt,
+            legend.text     = black.bold.12pt ,
+            legend.title    = black.bold.12pt ,
+            legend.justification = c(1,1)))
+  survdiff(SurvObj ~ Group, data = df)
+  }
+
+plotDNFAOS("SCD")
+DNFA.list <- c("ACACA", "FASN", "SCD", "ACLY", "SREBF2", "MITF") 
+names(DNFA.list) <- DNFA.list 
+lapply(DNFA.list, plotDNFAOS)
+
 
 mycancerstudy <- getCancerStudies(mycgds)[193, 1]
-mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
+mycaselist <- getCaseLists(mycgds, mycancerstudy)[7, 1]
 skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
 skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
-DNFA.RNAseq.data <- na.omit(DNFA.RNAseq.data)
+DNFA.RNAseq.data <- getProfileData(mycgds,
+                                   c("SCD", "FASN"),
+                                   "skcm_tcga_rna_seq_v2_mrna",
+                                   "skcm_tcga_all")
 DNFA.RNAseq.data <- as.data.frame(DNFA.RNAseq.data)
 DNFA.RNAseq.data$rn <- rownames(DNFA.RNAseq.data)
-
-df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS",
-                                        "OS_STATUS", 
-                                        "rn")],
-                    DNFA.RNAseq.data[c("SCD", 
-                                  "FASN",
-                                  "ACLY",
-                                   "rn")]),
+df1 <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
+                     DNFA.RNAseq.data[c("SCD", "rn")]),
                by   = "rn", 
                type = "full")
-df <- na.omit(df)
-Percentile_00  = min(df$SCD)
-Percentile_20  = quantile(df$SCD, 0.2)
-Percentile_80  = quantile(df$SCD, 0.8)
-Percentile_100 = max(df$SCD)
-RB = rbind(Percentile_00, Percentile_20, Percentile_80, Percentile_100)
-dimnames(RB)[[2]] = "Value"
-RB
-
-df$Group[df$SCD >= Percentile_00 & df$SCD <  Percentile_20]  = "Bottom 20%"
-df$Group[df$SCD > Percentile_80 & df$SCD <= Percentile_100] = "Top 20%"
-
-summary(df$Group)
-df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
-km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
-autoplot(km)
-survdiff(SurvObj ~ Group, data = df)
-
-
-
-
+df1 <- na.omit(df1)
+df1$Group[df1$SCD < quantile(df1$SCD, prob = 0.2)] = "Bottom 20%"
+df1$Group[df1$SCD > quantile(df1$SCD, prob = 0.8)] = "Top 20%"
+# df1 <- complete.cases(df1)
+df1$SurvObj <- with(df1, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
+df1 <- na.omit(df1)
+km <- survfit(SurvObj ~ df1$Group, data = df1, conf.type = "log-log")
+black.bold.12pt <- element_text(face   = "bold",
+                                size   = 12,
+                                colour = "black")
+print(
+  autoplot(km,
+           xlab = "Months",
+           ylab = "Survival Probability",
+           main = paste("Kaplan-Meier plot", "SCD", "RNA expression"),
+           xlim = c(0, 360)) +
+    theme(axis.title      = black.bold.12pt,
+          axis.text       = black.bold.12pt,
+          axis.line.x     = element_line(color  = "black"),
+          axis.line.y     = element_line(color  = "black"),
+          panel.grid      = element_blank(),
+          strip.text      = black.bold.12pt,
+          legend.text     = black.bold.12pt ,
+          legend.title    = black.bold.12pt ,
+          legend.justification = c(1,1)))
+survdiff(SurvObj ~ Group, data = df1)
 
