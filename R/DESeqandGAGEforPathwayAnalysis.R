@@ -43,10 +43,9 @@ library(survival)
 
 data(kegg.gs)
 
-################################
-## 2 Preparing count matrices ##
-################################
-
+#################################
+## 1. Preparing count matrices ##
+#################################
 # TODO(dlroxe): This function is copied from the FactoMineR file.
 # Find a single place to define it in common for all callers.
 .readGeneCounts <- function() {
@@ -58,18 +57,14 @@ data(kegg.gs)
   testseq <- data.frame(testseq[,-1], row.names = testseq[,1])
   # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
   testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
-
   ## remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
   testseq <- testseq[-25]
-
   return(testseq)
 }
 
-
-##################################################################################
-## 3 Compare siNeg and siBF1 RNA-seq results for differentially expressed genes ##
-##################################################################################
-
+##########################################################################
+## 2. Compare siNeg vs siBF1 RNA-seq for differentially expressed genes ##
+##########################################################################
 # TODO(dlroxe): again, this is exactly the same function as
 # found in FactoMineR
 .getGuideData <- function(testseq) {
@@ -80,11 +75,11 @@ data(kegg.gs)
   guideData <- testseq[rowSums(testseq) > 1,]
   head(guideData)
   dim(guideData)
-  ## check how the data distribution with boxplot after removing rows with no read
+  ## check the data distribution with boxplot after removing rows without read
   par(mar = c(3,12,2,1))
   boxplot(guideData, outline = FALSE, horizontal = TRUE, las = 1)
   return(guideData)
-}
+  }
 
 # TODO(dlroxe): again, same function as other file
 .getDDS <- function(guideData, guideDesign, condition) {
@@ -95,15 +90,15 @@ data(kegg.gs)
   dds
   head(assay(dds))
   return(dds)
-}
+  }
 
 ########################################
-## 4 Exploring and exporting results ##
+## 3. Exploring and exporting results ##
 ########################################
 
-###############################################################################
-## 4.1 standard analysis to make MA-plot from base means and log fold changes##
-###############################################################################
+##############################################################################
+## 3.1. standard analysis to draw MA-plot (base means and log fold changes) ##
+##############################################################################
 .getDDSRes <- function(ddsDEsiRNA) {
   ressiRNA <- results(ddsDEsiRNA) # default alpha = 0.1
   ## p-values and adjusted p-values
@@ -143,9 +138,9 @@ data(kegg.gs)
 }
 
 # TODO(dlroxe): again, mostly the same as the other file
-###########################################################
-## 4.2 Add Entrez IDs, gene symbols, and full gene names ##
-###########################################################
+############################################################
+## 3.2. Add Entrez IDs, gene symbols, and full gene names ##
+############################################################
 .addGeneIdentifiers <- function(ressiRNA) {
   ressiRNA <- data.frame(ressiRNA)
   columns(org.Hs.eg.db)
@@ -169,10 +164,11 @@ data(kegg.gs)
   return(ressiRNA)
 }
 
-########################################
-## 4.3 Exporting results to CSV files ##
-########################################
-## Exporting only the results which pass an adjusted p value threshold can be accomplished with the subset function,
+#########################################
+## 3.3. Exporting results to CSV files ##
+#########################################
+## Exporting only the results which pass an adjusted p value threshold
+## can be accomplished with the subset function,
 ## followed by the write.csv function.
 .exportCSV <- function(ressiRNA) {
   resSig <- subset(ressiRNA, pvalue < 0.05)
@@ -184,12 +180,14 @@ data(kegg.gs)
 }
 
 ##############################################################
-## 5. Heatmap for top variable genes across siNeg and siBF1 ##
+## 4. Heatmap for top variable genes across siNeg and siBF1 ##
 ##############################################################
 # The regularized log transform can be obtained using the rlog() function.
 # The default “blinds” the normalization to the design.
-# topVarGenes looks at the row variance of the transformed values regardless of which samples come from which group.
-# Differential expression testing asks whether the difference across group is large relative to the within-group variance.
+# topVarGenes looks at the row variance of the transformed values
+# regardless of which samples come from which group.
+# Differential expression testing asks whether the difference across group
+# is large relative to the within-group variance.
 # So these are different ways of ranking genes.
 # calculate the variance for each gene, # select the top 50 genes by variance
 .makeHeatMap2 <- function(ddsDEsiRNA) {
@@ -209,31 +207,36 @@ data(kegg.gs)
             col           = colorRampPalette( rev(brewer.pal(9, "RdBu")) )(255),
             ColSideColors = c(Control = "gray",
                               DPN     = "darkgreen",
-                              OHT     = "orange")[colData(rldsiRNA)$condition ])
+                              OHT     = "orange")[colData(rldsiRNA)$condition])
 }
 
 ######################################################
-## 6. KEGG pathway analysis on DESeq siNeg vs siBF1 ##
+## 5. KEGG pathway analysis on DESeq siNeg vs siBF1 ##
 ######################################################
 .keggAnalysis <- function(ressiRNA) {
   ## Generally Applicable Gene-set/Pathway Analysis (GAGE)
-  ## check for coordinated differential expression over gene sets instead of changes of individual genes.
+  ## check for coordinated differential expression over gene sets
+  ## instead of changes of individual genes.
   lapply(kegg.gs[1:3],head)
   ## kegg.sets.hs is a named list of 229 elements
-  ## Each element is a character vector of member gene Entrez IDs for a single KEGG pathway
+  ## Each element is a character vector of member gene Entrez IDs
+  ## for a single KEGG pathway
   data(kegg.sets.hs)
-  ## sigmet.idx.hs is an index of numbers of sinaling and metabolic pathways in kegg.set.gs.
+  ## sigmet.idx.hs is an index of numbers of sinaling and
+  ## metabolic pathways in kegg.set.gs.
   data(sigmet.idx.hs)
-  ## kegg.sets.hs[sigmet.idx.hs] gives you the “cleaner” gene sets of signalling and metabolic pathways only.
+  ## kegg.sets.hs[sigmet.idx.hs] gives you the “cleaner” gene sets of signalling
+  ## and metabolic pathways only.
   kegg.sets.hs.sigmet <-  kegg.sets.hs[sigmet.idx.hs]
   head(kegg.sets.hs.sigmet, 3)
-  
-  ## Generate a named vector of fold changes, where the names of the values are the Entrez gene IDs, for the gage() function
+
+  ## Generate a named vector of fold changes, where the names of the values
+  ## are the Entrez gene IDs, for the gage() function
   foldchanges <- ressiRNA$log2FoldChange
   names(foldchanges) <- ressiRNA$entrez
   head(foldchanges)
-  
-  # Look at top upregulated (greater) and downregulated (less) genes with statatistics.
+
+  # Identify upregulated (greater) and downregulated (less) genes with stats.
   # Get KEGG pathway with both metabolism and signaling pathways
   kg.hsa <- kegg.gsets("hsa")
   kegg.sigmet.idx <- kg.hsa$kg.sets[kg.hsa$sigmet.idx]
@@ -274,7 +277,7 @@ data(kegg.gs)
   go.cc.gs <- go.hs$go.sets[go.hs$go.subs$CC] # “Cellular Component”
   # GO pathway analysis with Biological Process
   fc.go.bp.p <- gage(foldchanges,
-                     gsets  = go.bp.gs,
+                     gsets    = go.bp.gs,
                      same.dir = TRUE)
   lapply(fc.go.bp.p, head,20)
   write.table(fc.go.bp.p$greater, file = "fc.go.bp.p.greater.txt",sep = "\t")
@@ -295,7 +298,7 @@ doAll2 <- function() {
   condition <- c(rep("siNeg",4),rep("siBF1",4))
   guideDesignsiRNA <- data.frame(row.names = colnames(guideDatasiRNA),
                                  condition = condition)
-## specifying the reference level:
+  ## specifying the reference level:
   ddssiRNA <- .getDDS(guideDatasiRNA, guideDesignsiRNA, condition)
   ddssiRNA$condition <- relevel(ddssiRNA$condition, ref = "siNeg")
   ddssiRNA
@@ -308,13 +311,13 @@ doAll2 <- function() {
   .pathwayAnalysis(foldchanges)
 }
 
+###################################################################
+## 7. Pathway analysis on ChIP-seq and RNA-seq overlapping genes ##
+###################################################################
 # TODO(dlroxe): doAll2a() is a temporary wrapper for code that doesn't
 # (yet) run from scratch using only files checked into GitHub
 doAll2a <- function() {
-########################################################################
-###### Pathway analysis on ChIP-seq and RNA-seq overlapping genes ######
-########################################################################
-#setwd("~/Documents/Su Wu/Documents/Research/Naar Lab/ChIP-seq")
+# setwd("~/Documents/Su Wu/Documents/Research/Naar Lab/ChIP-seq")
 # TODO(suwu): check this file into project-data/ ...
 # TODO(dlroxe): ...or generate equivalent data programatically
   ChIP_Seq_and_RNA_Seq_overlap <- read_excel("ChIP-Seq and RNA-Seq overlap.xlsx",
