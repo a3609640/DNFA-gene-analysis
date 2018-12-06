@@ -38,7 +38,8 @@ print(plot1)
 .getTitleFont <- function() {
   return(element_text(face = "bold", color = "black", size = 12))
 }
-# we can color each data point in the plot according to their cancer category: colour = 'sample_type'
+# we can color each data point in the plot according to their cancer category: 
+# colour = 'sample_type'
 # Use loadings = TRUE, we draw eigenvector for each DNFA gene on the plot.
 bp <- ggplot2::autoplot(prcomp(df),
  data                   = DNFASKCMandGTEX,
@@ -65,7 +66,8 @@ PC <- prcomp(df)
 PCi <- data.frame(PC$x, Species = DNFASKCMandGTEX$sample_type)
 plot3 <- ggplot(PCi,aes(x = PC1, y = PC2, col = Species)) +
   geom_point(size = 3, alpha = 0.5) +
-  scale_color_manual(values = c("#FF1BB3","#A7FF5B","#99554D","#CC0000")) + #choose colors here
+  # choose colors here
+  scale_color_manual(values = c("#FF1BB3","#A7FF5B","#99554D","#CC0000")) + 
   theme_classic()
 print(plot3)
 
@@ -87,6 +89,8 @@ print(plot6)
 # Tumor tissues and healthy tissus samples are clearly seperated,
 # However, metastatic and primary tumor samples were not seperated by clustering method
 
+
+# Local Fisher Discriminant Analysis (LFDA)
 # Dimensionality (r) is set to 7 because there are 7 DNFA genes to consider.
 # Note, set knn = 1 and minObsPerLabel = 1 if there is a label in the data that only
 # occurs once.  However, still expect errors; lfda has strong assumptions that there
