@@ -78,11 +78,11 @@ library(survival)
                             condition = condition))
 }
 
-#######################################################
-### 3. Construct DESeqDataSet from the count matrix ###
-#######################################################
-.getDDS <- function (guideData, guideDesign, condition) {
-  ## Construct DESeqDataSet with the count matrix, 
+#####################################################
+## 3. Construct DESeqDataSet from the count matrix ##
+#####################################################
+.getDDS <- function(guideData, guideDesign, condition) {
+  ## Construct DESeqDataSet with the count matrix,
   ## countData, and the sample information, colData
   dds <- DESeqDataSetFromMatrix(countData = guideData,
                                 colData   = guideDesign,
@@ -92,29 +92,29 @@ library(survival)
   return(dds)
 }
 
-######################################################
-#### 4. Standard differential expression analysis ####
-######################################################
+##################################################
+## 4. Standard differential expression analysis ##
+##################################################
 # DESeq function performs a default analysis through the steps:
 # (1) estimation of size factor: estimateSizeFactors
 # (2) estimation of dispersion: estimateDispersions
 # (3) Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
 .getDDSRES <- function(ddsDE) {
   ddsres <- results(ddsDE)
-  summary(ddsres)
+  # summary(ddsres)
   res <- data.frame(ddsres)
   return(ddsres)
 }
 
-########################################################
-##### 5. Count data transformations for clustering #####
-########################################################
+##################################################
+## 5. Count data transformations for clustering ##
+##################################################
 ## The regularized log transform can be obtained using the rlog() function.
-## Regularized log transform is to stabilize the variance of the data 
+## Regularized log transform is to stabilize the variance of the data
 ## and to make its distribution roughly symmetric
 ## The default “blinds” the normalization to the design.
 ## This is very important so as to not bias the analyses (e.g. class discovery)
-## The running times are shorter when using blind=FALSE 
+## The running times are shorter when using blind=FALSE
 ## and if the function DESeq has already been run,
 ## because then it is not necessary to re-estimate the dispersion values.
 ## The assay function is used to extract the matrix of normalized value
@@ -122,7 +122,7 @@ library(survival)
   vsd <- vst(ddsDE, blind = FALSE)
   rld <- rlog(ddsDE, blind = FALSE)
   # Hierarchical clustering using rlog transformation
-  dists=dist(t(assay(rld)))
+  dists <- dist(t(assay(rld)))
   plot(hclust(dists), labels = guideDesign$condition)
   sampleDistMatrix <- as.matrix(dists)
   rownames(sampleDistMatrix) <- paste(vsd$condition, vsd$type, sep = "-")
@@ -135,21 +135,21 @@ library(survival)
   return(rld)
 }
 
-#############################################
-###### 6. Principal component analysis ######
-#############################################
+#####################################
+## 6. Principal component analysis ##
+#####################################
 .makePcaPlot <- function(rld) {
-  ## number of top genes to use for principal components, 
+  ## number of top genes to use for principal components,
   ## selected by highest row variance, 500 by default
   pcaData <- plotPCA(rld, intgroup = c( "condition"), returnData = TRUE)
   percentVar <- round(100 * attr(pcaData, "percentVar"))
-
   ## Print 2D PCA plot
   pcaPlot <- ggplot(
     data <- pcaData,
-    aes_string(x = "PC1", y = "PC2", color = "condition")
-    ) +
-    geom_point(size = 3) +
+    aes_string(x     = "PC1",
+               y     = "PC2",
+               color = "condition")) +
+    geom_point(size  = 3) +
     theme_bw() +
     xlim(-10, 6) +
     ylim(-6, 6) +
@@ -161,7 +161,7 @@ library(survival)
           axis.ticks.length    = unit(.25, "cm"),
           panel.grid.major     = element_blank(),
           panel.grid.minor     = element_blank(),
-          panel.border         = element_rect(color = "black",size = 1),
+          panel.border         = element_rect(color = "black", size = 1),
           panel.background     = element_blank(),
           legend.position      = c(0,0),
           legend.justification = c(-0.05,-0.05)) +
@@ -175,8 +175,8 @@ library(survival)
 
 ## Print 3D PCA plot
 .plotPCA3D <- function(object,
-                       intgroup = "condition",
-                       ntop = 5000,
+                       intgroup   = "condition",
+                       ntop       = 5000,
                        returnData = FALSE){
   rv <- rowVars(assay(object))
   select <- order(rv, decreasing = TRUE)[seq_len(min(ntop, length(rv)))]
@@ -214,9 +214,9 @@ library(survival)
   return(p)
 }
 
-####################################################################
-####### 7. Add Entrez IDs, gene symbols, and full gene names #######
-####################################################################
+##########################################################
+## 7. Add Entrez IDs, gene symbols, and full gene names ##
+##########################################################
 .addGeneIdentifiers <- function(res) {
   columns(org.Hs.eg.db)
   res$symbol = mapIds(org.Hs.eg.db,
@@ -239,9 +239,9 @@ library(survival)
   return(res)
 }
 
-##################################################################
-######## 8. Annotate genes enriched in each PCA component ########
-##################################################################
+######################################################
+## 8. Annotate genes enriched in each PCA component ##
+######################################################
 ## scale.unit : a logical value. If TRUE, the data are scaled to unit variance before the analysis.
 ## This standardization to the same scale avoids some variables to become dominant just because of their large measurement units.
 ## We used FAlSE for scale.unit because rld has been run with DESEQ function before.
@@ -253,19 +253,15 @@ library(survival)
   Pvars <- rowVars(assayrld)
   select <- order(Pvars, decreasing = TRUE)[seq_len(min(500,
                                                         length(Pvars)))]
-
   columns(org.Hs.eg.db)
-  row.names(assayrld) = mapIds(org.Hs.eg.db,
-                               keys      = row.names(assayrld),
-                               column    = "SYMBOL",
-                               keytype   = "ENSEMBL",
-                               multiVals = "first")
-
-
+  row.names(assayrld) <- mapIds(org.Hs.eg.db,
+                                keys      = row.names(assayrld),
+                                column    = "SYMBOL",
+                                keytype   = "ENSEMBL",
+                                multiVals = "first")
   assayrld <- data.frame(t(assayrld[select, ]))
   assayrld$condition = guideDesign$condition
-
-  con = c("Mock-1", "Mock-2", "Mock-3", "Mock-4",
+  con <- c("Mock-1", "Mock-2", "Mock-3", "Mock-4",
           "siNegative-1", "siNegative-2", "siNegative-3", "siNegative-4",
           "siSREBF1-1", "siSREBF1-2", "siSREBF1-3", "siSREBF1-4",
           "ASO-Neg-1", "ASO-Neg-2", "ASO-Neg-3", "ASO-Neg-4",
@@ -274,7 +270,6 @@ library(survival)
   rownames(assayrld) = con
   return(assayrld)
 }
-
 # The variable Species (index = 501) is removed
 # before PCA analysis
 ## # Compute PCA with ncp = 3, to keep only the first three principal components
@@ -282,9 +277,9 @@ library(survival)
   return(PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2,graph = TRUE))
 }
 
-####################################################################
-######### 9. Extract variances in each principal component #########
-####################################################################
+######################################################
+## 9. Extract variances in each principal component ##
+######################################################
 ## Eigenvalues correspond to the amount of the variation explained by each principal component (PC).
 ## Eigenvalues are large for the first PC and small for the subsequent PCs.
 .makeBiplot <- function(assayrld, res.pca, pcaData) {
@@ -312,36 +307,36 @@ library(survival)
                     label      = "var",
                     habillage  = assayrld$condition) +
       geom_point(size = 3,
-                 aes(colour = factor(assayrld$condition))) +
-      theme_bw() +
-      xlim(-8, 4) +
-      ylim(-5, 5) +
-      theme(text              = .getTitleFont(),
-            axis.text         = .getTitleFont(),
-            axis.line.x       = element_line(color = "black",
-                                             size  = 1),
-            axis.line.y       = element_line(color = "black",
-                                             size  = 1),
-            axis.ticks        = element_line(size  = 1),
-            axis.ticks.length = unit(.25, "cm"),
-            panel.grid.major  = element_blank(),
-            panel.grid.minor  = element_blank(),
-            panel.border      = element_rect(color = "black",
-                                             size  = 1),
-            panel.background  = element_blank(),
-            legend.text       = element_text(color = "black",
-                                             size  = 18,
-                                             face  = "bold"),
+         aes(color = factor(assayrld$condition))) +
+          theme_bw() +
+          xlim(-8, 4) +
+          ylim(-5, 5) +
+          theme(text              = .getTitleFont(),
+                axis.text         = .getTitleFont(),
+                axis.line.x       = element_line(color = "black",
+                                                 size  = 1),
+                axis.line.y       = element_line(color = "black",
+                                                 size  = 1),
+                axis.ticks        = element_line(size  = 1),
+                axis.ticks.length = unit(.25, "cm"),
+                panel.grid.major  = element_blank(),
+                panel.grid.minor  = element_blank(),
+                panel.border      = element_rect(color = "black",
+                                                 size  = 1),
+                panel.background  = element_blank(),
+                legend.text       = element_text(color = "black",
+                                                 size  = 18,
+                                                 face  = "bold"),
             legend.position = c(0,1),
-            legend.justification = c(-0.05,1.05)) +
+            legend.justification = c(-0.05, 1.05)) +
       xlab(paste0("PC1: ", percentVar[1], "% variance")) +
       ylab(paste0("PC2: ", percentVar[2], "% variance"))
   print(pcaBiplot)
 }
 
-#########################################################################
-########## 10. Hierarchical Clustering on Principal Components ##########
-#########################################################################
+#########################################################
+## 10. Hierarchical Clustering on Principal Components ##
+#########################################################
 ## Compute hierarchical clustering: Hierarchical clustering is performed using the Ward’s criterion on the selected principal components.
 ## Ward criterion is used in the hierarchical clustering because it is based on the multidimensional variance like principal component analysis.
 .makeHierarchicalCluster <- function(res.pca, pcaData) {
@@ -367,7 +362,7 @@ library(survival)
   print(plot2)
   #Hierarchical Clustering
   #compute dissimilarity matrix for all data
-  eu.d <- dist(pcaData, method = "euclidean")
+  eu.d <- dist(pcaData, method  = "euclidean")
   # Hierarchical clustering using Ward's method
   res.hc <- hclust(eu.d, method = "ward.D2" )
   # Cut tree into 4 groups
@@ -377,9 +372,9 @@ library(survival)
   rect.hclust(res.hc, k = 2, border = c("yellow","blue")) # add rectangle
 }
 
-##########################################################################
-########### 11. Top contributing gene variables to PC1 and PC2 ###########
-##########################################################################
+########################################################
+## 11. Top contributing gene variables to PC1 and PC2 ##
+########################################################
 .findTopPrincipalComponentContributors <- function(res.pca) {
   ## Contributions of variables to PCs
   head(res.pca$var$contrib,10)
@@ -401,7 +396,7 @@ library(survival)
   pc2Plot <- fviz_contrib(res.pca,
                           choice = "var",
                           axes   = 2,
-                          top    = 10, 
+                          top    = 10,
                           fill   = "lightgray",
                           color  = "black") +
     theme_minimal() +
@@ -409,7 +404,7 @@ library(survival)
   print(pc1Plot)
   print(pc2Plot)
   ##  identify the most correlated variables with a given principal component
-  res.desc <- dimdesc(res.pca, axes = c(1,2),proba = 0.05)
+  res.desc <- dimdesc(res.pca, axes = c(1,2), proba = 0.05)
   # Description of dimension 1
   head(res.desc, 10)
   res.desc$Dim.1
@@ -425,8 +420,6 @@ library(survival)
   quanti.correlation.dim1        = dim1$quanti.correlation
   names(quanti.correlation.dim1) = dim1$entrez
   head(quanti.correlation.dim1)
-
-
   res.desc$Dim.2
   dim2 <- data.frame(res.desc$Dim.2)
   columns(org.Hs.eg.db)
@@ -435,14 +428,17 @@ library(survival)
   head(dim2,10)
 }
 
-
-##########################################################################
-############ 12. Plot of normalized counts for a single gene  ############
-##########################################################################
-# plotcount: "normalized" whether the counts should be normalized by size factor (default is TRUE)
-# plotcount: "transform" whether to present log2 counts (TRUE) or to present the counts on the log scale (FALSE, default)
-# re-arrange x-ase according to the following order: "Mock","siNeg","siBF1","ASO-neg","ASO-1","ASO-4"
-# theme_bw() removes background color in the graph, guides(fill=FALSE) removes legends
+######################################################
+## 12. Plot of normalized counts for a single gene  ##
+######################################################
+# plotcount: "normalized" whether the counts should be normalized
+# by size factor (default is TRUE)
+# plotcount: "transform" whether to present log2 counts (TRUE)
+# or to present the counts on the log scale (FALSE, default)
+# re-arrange x-ase according to the following order:
+# "Mock","siNeg","siBF1","ASO-neg","ASO-1","ASO-4"
+# theme_bw() removes background color in the graph,
+# guides(fill=FALSE) removes legends
 
 .getCountsAndConditions <- function(dds, ensgID) {
   geneCounts <- plotCounts(
@@ -468,7 +464,7 @@ library(survival)
           axis.ticks.length = unit(.25, "cm"),
           panel.grid.major  = element_blank(),
           panel.grid.minor  = element_blank(),
-          panel.border      = element_rect(color = "black",size = 1),
+          panel.border      = element_rect(color = "black", size  = 1),
           panel.background  = element_blank())
   plot <-
     ggplot(
