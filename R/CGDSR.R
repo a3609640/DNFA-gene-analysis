@@ -125,7 +125,7 @@ plotDNFA <- function(x) {
 }
 
 plotDNFA("SCD")
-lapply(DNFA.gene, plotDNFA)
+sapply(DNFA.gene, plotDNFA)
 
 ##############################################
 ## Get DNFA gene expression from SKCM group ##
@@ -431,7 +431,7 @@ mutation.list <- c("BRAF.mutations",
                    "AKT1.mutations",
                    "TP53.mutations") 
 names(mutation.list) <- mutation.list 
-lapply(mutation.list, plotOS)
+sapply(mutation.list, plotOS)
 
 
 #########################################################################
@@ -484,6 +484,6 @@ plotDNFAOS <- function(DNFA) {
 plotDNFAOS("ACACA")
 DNFA.list <- c("ACACA", "SCD", "ACLY", "FASN", "SREBF1", "MITF") 
 names(DNFA.list) <- DNFA.list 
-lapply(DNFA.list, plotDNFAOS)
+sapply(DNFA.list, plotDNFAOS)
 
 
