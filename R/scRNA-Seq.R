@@ -48,7 +48,7 @@ library(plyr)
 # The resulting data frame is returned to the caller.
 #
 get_lipogenesis_data <- function(data) {
-  # -----------------------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   #select the genes of interest
   SREBF1 <- data[data$Cell    == "SREBF1",]
   SREBF2 <- data[data$Cell    == "SREBF2",]
@@ -67,7 +67,7 @@ get_lipogenesis_data <- function(data) {
   tumor <- data[data$Cell     == "tumor",]
   malignant <- data[data$Cell == "malignant(1=no,2=yes,0=unresolved)",]
 
-  # -----------------------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   #combine them into a new table "geneset"
   geneset <- rbind(tumor,malignant,
                    SREBF1,SREBF2,FASN,SCD,ACACA,ACSS2,ACLY,ACSL1,
@@ -95,8 +95,8 @@ get_lipogenesis_data <- function(data) {
 # the downloaded txt file GSE72056_melanoma_single_cell_revised_v2.txt is
 # produced locally by the Makefile.
 .get_rnaseq_data <- function() {
-  # The data table is over 300 Mb, so it seems better to use the fread
-  # function in R package data.table to quickly import the dataset as a dataframe.
+  # The data table is over 300 Mb, so it is better to use the "fread" function
+  # from R package "data.table" to quickly import the dataset as dataframe.
   melanomaSingleCellFile <- .get_rnaseq_data_filename()
   singleRNAseq <- fread(melanomaSingleCellFile, header = T)
   sampleSingleRNAseq <- head(singleRNAseq)[,c(1,2,3,4,5,6,7)]
@@ -159,47 +159,47 @@ make_single_cell_plots <- function() {
     scale_y_continuous(breaks  = seq(0, 10, 2)) +
     scale_fill_discrete(labels = c("Nonmalignant cells", "Malignant cells"))
 
-  ###############################################################################
+  ##############################################################################
   # compare single cell SREBF1 expression level in malignant and non-malignant
   # cells using boxplot graph within the same graph##
-  ###############################################################################
+  ##############################################################################
   plot1 <- ggplot(totalgeneset, aes(x = factor(tumor), y = SREBF1)) +
     singleCellBoxplot + singleCellTheme + singleCellGuidesAndScales +
     labs(x = "tumor samples", y = "SREBF1 mRNA counts")
 
   print(plot1)
-  # -----------------------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   plot2 <- ggplot(totalgeneset, aes(x = factor(tumor), y = FASN)) +
     singleCellBoxplot + singleCellTheme + singleCellGuidesAndScales +
     labs(x = "tumor samples", y = "FASN mRNA counts")
 
   print(plot2)
-  # -----------------------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
 
   plot3 <- ggplot(totalgeneset, aes(x = factor(tumor), y = SCD)) +
     singleCellBoxplot + singleCellTheme + singleCellGuidesAndScales +
     labs(x = "tumor samples", y = "SCD mRNA counts")
 
   print(plot3)
-  # -----------------------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   plot4 <- ggplot(totalgeneset, aes(x = factor(tumor), y = ACACA)) +
     singleCellBoxplot + singleCellTheme + singleCellGuidesAndScales +
     labs(x = "tumor samples", y = "ACACA mRNA counts")
 
   print(plot4)
-  # -----------------------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   plot5 <- ggplot(totalgeneset, aes(x = factor(tumor), y = SREBF2)) +
     singleCellBoxplot + singleCellTheme + singleCellGuidesAndScales +
     labs(x = "tumor samples", y = "SREBF2 mRNA counts")
 
   print(plot5)
-  # -----------------------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   plot6 <- ggplot(totalgeneset, aes(x = factor(tumor), y = MITF)) +
     singleCellBoxplot + singleCellTheme + singleCellGuidesAndScales +
     labs(x = "tumor samples", y = "MITF mRNA counts")
 
   print(plot6)
-  # -----------------------------------------------------------------------------------------------
+  # ----------------------------------------------------------------------------
   plot7 <- ggplot(totalgeneset, aes(x = factor(tumor), y = AXL)) +
     singleCellBoxplot + singleCellTheme + singleCellGuidesAndScales +
     labs(x = "tumor samples", y = "AXL mRNA counts")

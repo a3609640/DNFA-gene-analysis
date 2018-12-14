@@ -1,4 +1,4 @@
-# the following script generates the plot and statistics 
+# the following script generates the plot and statistics
 # for DNFA expression and mutations data from TCGA dataset.
 # install.packages("cgdsr")
 library(car)
@@ -22,25 +22,25 @@ getCancerStudies(mycgds)
 getDNFAdata <- function(ge) {
   tcga.pro.studies <- getCancerStudies(mycgds)[
     grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
-  # "tcag_study_list" is a vector containing all the tcga cancer studies 
+  # "tcag_study_list" is a vector containing all the tcga cancer studies
   # that I would to analyze for DNFA gene expression
   tcga.study.list <- tcga.pro.studies$cancer_study_id
   names(tcga.study.list) <- tcga.study.list
   caselist <- function(x) getCaseLists(mycgds, x)
   geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
   # use lappy to pull out all the caselists within tcga.study.list
-  # because we named each elements in tcga.study.list 
+  # because we named each elements in tcga.study.list
   # (names(tcga.study.list) <- tcga.study.list),
-  # lappy will return a large list, each element (with a cancer study name) 
+  # lappy will return a large list, each element (with a cancer study name)
   # in that list is a data-table
   tcga.pro.caselist <- lapply(tcga.study.list, caselist)
   tcga.pro.geneticprofile <- lapply(tcga.study.list, geneticprofile)
-  # for example, tcga.pro.caselist[[1]] shows the dataframe of caselist 
+  # for example, tcga.pro.caselist[[1]] shows the dataframe of caselist
   # in laml study group.
-  # to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna, 
+  # to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna,
   # we use the following tcag_provisional_caselist[[1][8,1]
   # a <- tcga.pro.caselist[[1]][
-  # grep("tcga_rna_seq_v2_mrna", tcag_provisional_caselist[[1]]$case_list_id), 
+  # grep("tcga_rna_seq_v2_mrna", tcag_provisional_caselist[[1]]$case_list_id),
   # ][1,1]
   # b <- tcga.pro.geneticprofile[[1]][
   # grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
@@ -52,15 +52,15 @@ getDNFAdata <- function(ge) {
     }
   geneticprofile.RNAseq <- function(x) {
     tcga.pro.geneticprofile[[x]][
-  # double backslash \\ suppress the special meaning of ( ) 
-  # in regular expression    
+  # double backslash \\ suppress the special meaning of ( )
+  # in regular expression
       grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
            tcga.pro.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
     }
   # test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
   # caselist.RNAseq = caselist.RNAseq ('acc_tcga')
   # geneticprofile.RNAseq = geneticprofile.RNAseq ('acc_tcga')
-  # We wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x) 
+  # We wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x)
   # within TCGA_ProfileData_RNAseq(x)
   tcga.profiledata.RNAseq <- function(genename, geneticprofile, caselist) {
     getProfileData(mycgds, genename, geneticprofile, caselist)
@@ -69,7 +69,7 @@ getDNFAdata <- function(ge) {
     tcga.profiledata.RNAseq(x, geneticprofile.RNAseq(y), caselist.RNAseq(y))
     }
   DNFA.RNAseq.all.tcga.studies <- function(x) {
-    test <- 
+    test <-
     lapply(tcga.study.list, function(y) mapply(DNFA.tcga.RNAseq, x, y))
     df2 <- melt(test)
     colnames(df2) <- c("RNAseq", "DNFAgene", "TCGAstudy")
@@ -102,24 +102,24 @@ plotDNFA <- function(x) {
                    position = position_dodge(width = .9)) +
       labs(x = "Tumor types (TCGA)",
            y = paste0("log2(", x, " RNA counts)")) +
-      theme(axis.title  = element_text(face   = "bold", 
-                                       size   = 9, 
+      theme(axis.title  = element_text(face   = "bold",
+                                       size   = 9,
                                        color  = "black"),
-            axis.text.x = element_text(size   = 9, 
-                                       angle  = 45, 
+            axis.text.x = element_text(size   = 9,
+                                       angle  = 45,
                                        hjust  = 1, # 1 means right-justified
-                                       face   = "bold", 
+                                       face   = "bold",
                                        color  = "black"),
-            axis.text.y = element_text(size   = 9, 
-                                       angle  = 0, 
+            axis.text.y = element_text(size   = 9,
+                                       angle  = 0,
                                        hjust  = 1, # 1 means right-justified
-                                       face   = "bold", 
+                                       face   = "bold",
                                        color  = "black"),
-            axis.line.x = element_line(color  = "black"), 
-            axis.line.y = element_line(color  = "black"), 
-            panel.grid  = element_blank(), 
+            axis.line.x = element_line(color  = "black"),
+            axis.line.y = element_line(color  = "black"),
+            panel.grid  = element_blank(),
             strip.text  = element_text(face   = "bold",
-                                       size   = 9, 
+                                       size   = 9,
                                        color  = "black"),
             legend.position = "none"))
 }
@@ -153,7 +153,7 @@ getmutations <- function() {
                               "skcm_tcga_all")
   colnames(mutations) <- paste0(colnames(mutations), '.mutations')
   v <- rownames(mutations)
-  # each mutation column contains three types of data: 
+  # each mutation column contains three types of data:
   # mutation (V600E), NAN (wildtype), NA (not sequenced).
   relabel.mutations <- function(gene) {
     mutations[, gene] <- ifelse(
@@ -162,7 +162,7 @@ getmutations <- function() {
   # use sapply , input as a matrix, and output as a matrix too.
   mutations <- sapply(colnames(mutations), relabel.mutations)
   mutations <- as.data.frame(mutations)
-  # the sapply function return a new matrix lacking row names. 
+  # the sapply function return a new matrix lacking row names.
   # add row names back with the following two lines
   mutations2 <- cbind(Row.Names = v, mutations)
   # mutations <- mutations2[ , -1]
@@ -174,14 +174,13 @@ getmutations <- function() {
 mutations.data <- getmutations()
 # mutations.list <- c("BRAF", "NRAS", "AKT", "TP53")
 
-
 ###########################################
 ## Get oncogene CNV data from SKCM group ##
 ###########################################
 getCNV <- function(x) {
-  CNV <- getProfileData(mycgds, 
+  CNV <- getProfileData(mycgds,
                         x,
-                        "skcm_tcga_gistic", 
+                        "skcm_tcga_gistic",
                         "skcm_tcga_all")
   v <- rownames(CNV)
   colnames(CNV) <- paste0(colnames(CNV), '.CNV')
@@ -209,30 +208,30 @@ plot.mutations.RNAseq <- function(mutations, RNAseq) {
   mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
   print(
     ggplot(mutations.DNFA.RNAseq,
-    #use[ ,genemutations] not $genemutations for variable in a function  
-         aes(x     = mutations.DNFA.RNAseq[ ,mutations], 
-             y     = log2(mutations.DNFA.RNAseq[, RNAseq]), 
+    #use[ ,genemutations] not $genemutations for variable in a function
+         aes(x     = mutations.DNFA.RNAseq[ ,mutations],
+             y     = log2(mutations.DNFA.RNAseq[, RNAseq]),
              color = mutations.DNFA.RNAseq[ ,mutations])) +
-    geom_boxplot(alpha = .01, 
-                 width = .5) + 
-    labs(x = mutations, 
-         y = paste("log2(", RNAseq, "RNA counts)")) + 
+    geom_boxplot(alpha = .01,
+                 width = .5) +
+    labs(x = mutations,
+         y = paste("log2(", RNAseq, "RNA counts)")) +
     theme(axis.title        = element_text(face   = "bold",
-                                           size   = 9, 
+                                           size   = 9,
                                            color  = "black"),
-          axis.text         = element_text(size   = 9, 
-                                           hjust  = 1, 
-                                           face   = "bold", 
+          axis.text         = element_text(size   = 9,
+                                           hjust  = 1,
+                                           face   = "bold",
                                            color  = "black"),
           axis.line.x       = element_line(color  = "black"),
           axis.line.y       = element_line(color  = "black"),
           panel.grid        = element_blank(),
-          strip.text        = element_text(face   = "bold", 
-                                           size   = 9, 
+          strip.text        = element_text(face   = "bold",
+                                           size   = 9,
                                            colour = "black"),
           legend.position   = "none") +
-    # stack the dots along the y-axis and group them along x-axis     
-    geom_dotplot(binaxis    = "y", 
+    # stack the dots along the y-axis and group them along x-axis
+    geom_dotplot(binaxis    = "y",
                  binwidth   = .1,
                  stackdir   = "center",
                  fill       = NA))
@@ -240,12 +239,12 @@ plot.mutations.RNAseq <- function(mutations, RNAseq) {
 
 plot.mutations.RNAseq("NRAS.mutations", "SCD")
 sapply(c("BRAF.mutations","NRAS.mutations",
-         "AKT1.mutations", "TP53.mutations"), 
+         "AKT1.mutations", "TP53.mutations"),
        function(x) mapply(plot.mutations.RNAseq,
                           x,
                           c("BRAF", "NRAS", "SCD")))
 # or
-sapply(c("BRAF", "NRAS", "SCD"), 
+sapply(c("BRAF", "NRAS", "SCD"),
        function(y) mapply(plot.mutations.RNAseq,
                           c("BRAF.mutations", "NRAS.mutations",
                             "AKT1.mutations", "TP53.mutations"),
@@ -272,22 +271,22 @@ stats <- function(RNAseq, mutations) {
     mutations.DNFA.RNAseq[ ,RNAseq][
       mutations.DNFA.RNAseq[ ,mutations] == "Wildtype"]
     }
-  list <- list(Mutated(RNAseq, mutations), 
+  list <- list(Mutated(RNAseq, mutations),
                Wildtype(RNAseq, mutations))
   nameit <- function(RNAseq, mutations) {
     name <- c(paste(RNAseq, "with", mutations),
-              paste(RNAseq, "without", mutations))}  
+              paste(RNAseq, "without", mutations))}
   names(list) <- nameit(RNAseq, mutations)
   result <- lapply(list, shapiro.test)
   a <- t.test(
     mutations.DNFA.RNAseq[ ,RNAseq] ~ mutations.DNFA.RNAseq[ ,mutations]
     )
   # overwrite the data.name variable of t.test result
-  a$data.name <- paste(RNAseq, 'expression by', mutations, 'status') 
+  a$data.name <- paste(RNAseq, 'expression by', mutations, 'status')
   b <- wilcox.test(
     mutations.DNFA.RNAseq[ ,RNAseq] ~ mutations.DNFA.RNAseq[ ,mutations]
     )
-  b$data.name <- paste(RNAseq, 'expression by', mutations, 'status') 
+  b$data.name <- paste(RNAseq, 'expression by', mutations, 'status')
   print(result)
   print(a)
   print(b)
@@ -307,7 +306,7 @@ sapply(c("BRAF.mutations",
          "NRAS.mutations",
          "AKT1.mutations",
          "TP53.mutations"),
-       function(y) 
+       function(y)
          mapply(stats,
                 c("SCD", "FASN"),
                 y))
@@ -360,14 +359,14 @@ plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
   print(a)
   }
 # use all combinations of geneCNV and RNAseq
-sapply(c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"), 
-       function(x) 
+sapply(c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"),
+       function(x)
          mapply(plot.CNV.RNAseq, x, c("BRAF", "NRAS", "PTEN", "SCD", "FASN")))
 # or
-sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"), 
-       function(y) 
+sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
+       function(y)
          mapply(plot.CNV.RNAseq, c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"), y))
-# statistic comparision of SCD expression 
+# statistic comparision of SCD expression
 # between PTEN heterdeletion and diploid
 # (pten loss correlates with scd decrease?)
 
@@ -382,17 +381,17 @@ plotOS <- function(ge) {
   mutations.data <- na.omit(mutations.data)
   mutations.data$rn <- rownames(mutations.data)
 #  CNV.data <- getCNV(ge)
-  # na.omit does not eleminate NaN in CNV.DNFA.RNAseq, 
-  # because NaN was treated as a factor in CNV.DNFA.RNAseq$BRAF.CNV 
+  # na.omit does not eleminate NaN in CNV.DNFA.RNAseq,
+  # because NaN was treated as a factor in CNV.DNFA.RNAseq$BRAF.CNV
 #  CNV.data$rn <- rownames(CNV.data)
 #  CNVname <- paste0(ge, '.CNV')
 #  toBeRemoved <- which(CNV.data[[CNVname]] == "NaN")
 #  CNV.data <- CNV.data[-toBeRemoved,]
   df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS",
-                                          "OS_STATUS", 
+                                          "OS_STATUS",
                                           "rn")],
                       mutations.data),
-                 by   = "rn", 
+                 by   = "rn",
                  type = "full")
   df <- na.omit(df)
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
@@ -425,14 +424,13 @@ plotOS <- function(ge) {
   print(stats(ge))
   }
 
-plotOS("BRAF.mutations") 
+plotOS("BRAF.mutations")
 mutation.list <- c("BRAF.mutations",
                    "NRAS.mutations",
                    "AKT1.mutations",
-                   "TP53.mutations") 
-names(mutation.list) <- mutation.list 
+                   "TP53.mutations")
+names(mutation.list) <- mutation.list
 sapply(mutation.list, plotOS)
-
 
 #########################################################################
 ##  plot OS curve with clinic and DNFA expression data from SKCM group ##
@@ -450,7 +448,7 @@ plotDNFAOS <- function(DNFA) {
   skcm.RNAseq.data$rn <- rownames(skcm.RNAseq.data)
   df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
                       skcm.RNAseq.data),
-                 by   = "rn", 
+                 by   = "rn",
                  type = "full")
   df <- na.omit(df)
   df$Group[df[[DNFA]] < quantile(df[[DNFA]], prob = 0.2)] = "Bottom 20%"
@@ -476,14 +474,12 @@ plotDNFAOS <- function(DNFA) {
             legend.title         = black.bold.12pt ,
             legend.justification = c(1,1)))
   # rho = 1 the Gehan-Wilcoxon test
-  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1) 
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
   print(DNFA)
   print(stats)
   }
 
 plotDNFAOS("ACACA")
-DNFA.list <- c("ACACA", "SCD", "ACLY", "FASN", "SREBF1", "MITF") 
-names(DNFA.list) <- DNFA.list 
+DNFA.list <- c("ACACA", "SCD", "ACLY", "FASN", "SREBF1", "MITF")
+names(DNFA.list) <- DNFA.list
 sapply(DNFA.list, plotDNFAOS)
-
-
