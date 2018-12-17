@@ -8,7 +8,7 @@ library(ggplot2)
 library(plyr)
 library(reshape2)
 library(survival)
-
+library(UCSCXenaTools)
 
 # Create CGDS object
 mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
@@ -374,7 +374,7 @@ sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
 ##  plot OS curve with clinic and mutation data from SKCM group ##
 ##################################################################
 plotOS <- function(ge) {
-  mycancerstudy <- getCancerStudies(mycgds)[193, 1]
+  mycancerstudy <- getCancerStudies(mycgds)[194, 1]
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
@@ -436,7 +436,7 @@ sapply(mutation.list, plotOS)
 ##  plot OS curve with clinic and DNFA expression data from SKCM group ##
 #########################################################################
 plotDNFAOS <- function(DNFA) {
-  mycancerstudy <- getCancerStudies(mycgds)[193, 1]
+  mycancerstudy <- getCancerStudies(mycgds)[194, 1]    # "skcm_tcga"
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
@@ -483,3 +483,63 @@ plotDNFAOS("ACACA")
 DNFA.list <- c("ACACA", "SCD", "ACLY", "FASN", "SREBF1", "MITF")
 names(DNFA.list) <- DNFA.list
 sapply(DNFA.list, plotDNFAOS)
+
+
+#############################################################################
+## plot OS curve with clinic and DNFA expression data from all TCGA groups ##
+#############################################################################
+# Download UCSC Xena Datasets and load them into R by UCSCXenaTools
+data(XenaData)
+# mRNASeq: logical. if TRUE, download mRNASeq data
+# mRNASeqType: character vector.
+# can be  ("normalized", "pancan normalized", "percentile")
+PANCAN <- getTCGAdata(project     = "PANCAN",
+                      clinical    = TRUE,
+                      mRNASeq     = TRUE,
+                      mRNASeqType = "pancan normalized",
+                      destdir     = "tests/testTCGA",
+                      download    = TRUE)
+PANCAN <- XenaPrepare(PANCAN)
+
+RNAseq <- as.data.frame(PANCAN[[1]])
+RNAseq.SCD <- t(RNAseq[RNAseq$sample == "SCD",])
+RNAseq.SCD <- RNAseq.SCD[-1, ]
+RNAseq.SCD <- as.data.frame(RNAseq.SCD)
+RNAseq.SCD$RNAseq.SCD <- as.numeric(RNAseq.SCD$RNAseq.SCD)
+colnames(RNAseq.SCD) <- "SCD" # the first row will be the header
+RNAseq.SCD$sample <- rownames(RNAseq.SCD)
+clinic <- as.data.frame(PANCAN[[2]])
+df <- join_all(list(clinic[c("OS.time",
+                             "OS",
+                             "sample",
+                             "cancer type abbreviation")],
+                    RNAseq.SCD),
+               by   = "sample",
+               type = "full")
+df <- na.omit(df)
+df$Group[df[["SCD"]] < quantile(df[["SCD"]], prob = 0.2)] = "Bottom 20%"
+df$Group[df[["SCD"]] > quantile(df[["SCD"]], prob = 0.8)] = "Top 20%"
+df$SurvObj <- with(df, Surv(OS.time, OS == 1))
+df <- na.omit(df)
+km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+black.bold.12pt <- element_text(face   = "bold",
+                                size   = 12,
+                                colour = "black")
+print(
+  autoplot(km,
+           xlab = "Months",
+           ylab = "Survival Probability",
+           main = paste("Kaplan-Meier plot", "SCD", "RNA expression")) +
+    theme(axis.title           = black.bold.12pt,
+          axis.text            = black.bold.12pt,
+          axis.line.x          = element_line(color  = "black"),
+          axis.line.y          = element_line(color  = "black"),
+          panel.grid           = element_blank(),
+          strip.text           = black.bold.12pt,
+          legend.text          = black.bold.12pt ,
+          legend.title         = black.bold.12pt ,
+          legend.justification = c(1,1)))
+# rho = 1 the Gehan-Wilcoxon test
+stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
+print(DNFA)
+print(stats)
