@@ -488,7 +488,10 @@ sapply(DNFA.list, plotDNFAOS)
 #############################################################################
 ## plot OS curve with clinic and DNFA expression data from all TCGA groups ##
 #############################################################################
-# Download UCSC Xena Datasets and load them into R by UCSCXenaTools
+
+## SKCM data retrieved from CGDSR gave differet results to data from Xenatools
+## need to figure out the bugs in the data
+## Download UCSC Xena Datasets and load them into R by UCSCXenaTools
 data(XenaData)
 # mRNASeq: logical. if TRUE, download mRNASeq data
 # mRNASeqType: character vector.
@@ -547,8 +550,8 @@ plotOS <- function(DNFA){
   print(stats)
 }
 
-DNFA <- "SCD"
-plotOS("SCD")
+# DNFA <- "SCD"
+plotOS("ACACA")
 DNFA.list <- c("ACACA", "SCD", "ACLY", "FASN", "SREBF1", "MITF")
 names(DNFA.list) <- DNFA.list
 sapply(DNFA.list, plotOS)
