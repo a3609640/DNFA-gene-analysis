@@ -1,4 +1,5 @@
-## the following script perform PCA on RNA-Seq data of seven DNFA genes from SKCM amd GTEX dataset with R package "ggfortify".
+## the following script perform PCA on RNA-Seq data of seven DNFA genes 
+## from SKCM amd GTEX dataset with R package "ggfortify".
 library(cluster)
 library(factoextra)
 library(ggfortify)
@@ -87,14 +88,13 @@ print(plot5)
 plot6 <- ggplot2::autoplot(pam(df, 2), frame = TRUE, frame.type = 'norm')
 print(plot6)
 # Tumor tissues and healthy tissus samples are clearly seperated,
-# However, metastatic and primary tumor samples were not seperated by clustering method
-
+# Metastatic and primary tumor samples were not seperated by clustering method
 
 # Local Fisher Discriminant Analysis (LFDA)
 # Dimensionality (r) is set to 7 because there are 7 DNFA genes to consider.
-# Note, set knn = 1 and minObsPerLabel = 1 if there is a label in the data that only
-# occurs once.  However, still expect errors; lfda has strong assumptions that there
-# are multiple observations per label.
+# Note, set knn = 1 and minObsPerLabel = 1 if there is a label in the data 
+# that only occurs once.  However, still expect errors; 
+# lfda has strong assumptions that there are multiple observations per label.
 model <- lfda(DNFASKCMandGTEX[-8],
               DNFASKCMandGTEX[, 8],
               r      = 7,
@@ -106,7 +106,8 @@ plot7 <- ggplot2::autoplot(model,
                            frame.colour = 'sample_type')
 print(plot7)
 
-# A beta value of 0 indicates totally supervised learning; 1 is totally unsupervised.
+# A beta value of 0 indicates totally supervised learning; 
+# A beta value of 1 indicates totally unsupervised.
 model <- self(DNFASKCMandGTEX[-8],
               DNFASKCMandGTEX[, 8],
               beta           = 0.0,
@@ -121,7 +122,7 @@ print(plot8)
 
 model <- self(DNFASKCMandGTEX[-8],
               DNFASKCMandGTEX[, 8],
-              beta           = 1.0,
+              beta           = 1.0,     # unsupervised learning
               r              = 7,
               metric         = "plain",
               minObsPerLabel = 5)

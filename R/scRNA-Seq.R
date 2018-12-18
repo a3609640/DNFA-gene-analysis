@@ -94,8 +94,8 @@ get_lipogenesis_data <- function(data) {
 # the downloaded txt file GSE72056_melanoma_single_cell_revised_v2.txt is
 # produced locally by the Makefile.
 .get_rnaseq_data <- function() {
-  # The data table is over 300 Mb, so it seems better to use the fread
-  # function in R package data.table to quickly import the dataset as a dataframe.
+  # The data table is over 300 Mb, so it is better to use the "fread" function
+  # from R package "data.table" to quickly import the dataset as dataframe.
   melanomaSingleCellFile <- .get_rnaseq_data_filename()
   singleRNAseq <- fread(melanomaSingleCellFile, header = T)
   sampleSingleRNAseq <- head(singleRNAseq)[,c(1,2,3,4,5,6,7)]
@@ -158,10 +158,10 @@ make_single_cell_plots <- function() {
     scale_y_continuous(breaks  = seq(0, 10, 2)) +
     scale_fill_discrete(labels = c("Nonmalignant cells", "Malignant cells"))
 
-  ###############################################################################
+  ##############################################################################
   # compare single cell SREBF1 expression level in malignant and non-malignant
   # cells using boxplot graph within the same graph##
-  ###############################################################################
+  ##############################################################################
   plot1 <- ggplot(totalgeneset, aes(x = factor(tumor), y = SREBF1)) +
     singleCellBoxplot + singleCellTheme + singleCellGuidesAndScales +
     labs(x = "tumor samples", y = "SREBF1 mRNA counts")

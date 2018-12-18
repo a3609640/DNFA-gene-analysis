@@ -83,7 +83,8 @@ data(kegg.gs)
 
 # TODO(dlroxe): again, same function as other file
 .getDDS <- function(guideData, guideDesign, condition) {
-  ## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
+  ## Construct DESeqDataSet with the count matrix, countData, 
+  ## and the sample information, colData
   dds <- DESeqDataSetFromMatrix(countData = guideData,
                                 colData   = guideDesign,
                                 design    = ~ condition)
@@ -105,26 +106,33 @@ data(kegg.gs)
   ## We can order our results table by the smallest p value:
   # ressiRNA<-ressiRNA[order(ressiRNA$log2FoldChange),]
   ressiRNA <- ressiRNA[order(ressiRNA$pvalue),]
-  ## Information about which variables and tests were used can be found by calling the function mcols on the results object.
+  ## Information about which variables and tests were used can be found 
+  ## by calling the function mcols on the results object.
   mcols(ressiRNA)$description
   ## We can summarize some basic tallies using the summary function
   summary(ressiRNA)
   ## How many adjusted p-values were less than 0.1?
   sum(ressiRNA$padj < 0.1, na.rm = TRUE)
 
-  ## Note that the results function automatically performs independent filtering based on the mean of normalized counts for each gene,
-  ## optimizing the number of genes which will have an adjusted p value below a given FDR cutoff, alpha = 0.05 here
+  ## Note that the results function automatically performs independent filtering 
+  ## based on the mean of normalized counts for each gene,
+  ## optimizing the number of genes which will have an adjusted p value 
+  ## below a given FDR cutoff, alpha = 0.05 here
   res05 <- results(ddsDEsiRNA, alpha = 0.05)
   summary(res05)
   sum(res05$padj < 0.05, na.rm = TRUE)
-  ## plotMA shows the log2 fold changes attributable to a given variable over the mean of normalized counts for all the samples in the DESeqDataSet.
+  ## plotMA shows the log2 fold changes attributable to a given variable 
+  ## over the mean of normalized counts for all the samples in the DESeqDataSet.
   ## Points will be colored red if the adjusted p value is less than 0.1.
-  ## Points which fall out of the window are plotted as open triangles pointing either up or down.
+  ## Points which fall out of the window are plotted 
+  ## as open triangles pointing either up or down.
   plotMA(ressiRNA, main = "DESeq2 siRNA", ylim = c(-2,2))
   ## It is more useful visualize the MA-plot for the shrunken log2 fold changes,
-  ## which remove the noise associated with log2 fold changes from low count genes without requiring arbitrary filtering thresholds.
+  ## which remove the noise associated with log2 fold changes 
+  ## from low count genes without requiring arbitrary filtering thresholds.
   resultsNames(ddsDEsiRNA)
-  # normal is the the original DESeq2 shrinkage estimator, an adaptive normal prior
+  # normal is the the original DESeq2 shrinkage estimator, 
+  # an adaptive normal prior
   resLFC <- lfcShrink(ddsDEsiRNA, coef = 2)
   # par(mfrow=c(1,3), mar=c(4,4,2,1))
   xlim <- c(1,1e5); ylim <- c(-2.2,2.2)
@@ -133,7 +141,6 @@ data(kegg.gs)
          ylim = ylim,
          main = "normal",
          cex  = .8)
-  # plotMA(resLFC, xlim=xlim, xlab = "mean of normalized counts", ylim=ylim, main="normal")
   return(ressiRNA)
 }
 

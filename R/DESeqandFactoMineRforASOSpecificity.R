@@ -1,4 +1,7 @@
-## This R script will use the final processed RNA-Seq file from STAR alignment  (gene-counts-from-Makefile.csv) to perform differential gene expression analysis. The following script uses DESeq and PCA analysis to compare the specificity of SREBF1 ASOs to pooled siRNA of SREBF1 (as positive control).
+## This R script will use the final processed RNA-Seq file from STAR alignment  
+## (gene-counts-from-Makefile.csv) to perform differential gene expression analysis. 
+## The following script uses DESeq and PCA analysis to compare 
+## the specificity of SREBF1-ASOs to pooled siRNA of SREBF1 (positive control).
 
 library(AnnotationDbi)
 library(BiocStyle)
@@ -41,15 +44,17 @@ library(survival)
 }
 
 .readGeneCounts <- function() {
-  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
+  # obtain the count table of the experiment directly 
+  # from a pre-saved file: gene-counts.csv.
   # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
   # read processed RNA-seq read data from file testseq.csv.
   testseq <- read.csv(file.path("project-data", "gene-counts-from-Makefile.csv"))
   # Use the column one (Ensemble names) as columnn names.
   testseq <- data.frame(testseq[,-1], row.names = testseq[,1])
-  # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
+  # Remove the first four rows 
+  # (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
   testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
-  ## remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
+  # remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
   testseq <- testseq[-25]
   return(testseq)
 }
@@ -65,7 +70,8 @@ library(survival)
   guideData <- testseq[rowSums(testseq) > 1,]
   head(guideData)
   dim(guideData)
-  ## check how the data distribution with boxplot after removing rows with no read
+  ## check how the data distribution with boxplot 
+  ## after removing rows with no read
   par(mar = c(3,12,2,1))
   boxplot(guideData, outline = FALSE, horizontal = TRUE, las = 1)
   return(guideData)
@@ -242,8 +248,10 @@ library(survival)
 ######################################################
 ## 8. Annotate genes enriched in each PCA component ##
 ######################################################
-## scale.unit : a logical value. If TRUE, the data are scaled to unit variance before the analysis.
-## This standardization to the same scale avoids some variables to become dominant just because of their large measurement units.
+## scale.unit : a logical value. If TRUE, the data are scaled to unit variance 
+## before the analysis.
+## This standardization to the same scale avoids some variables to 
+## become dominant just because of their large measurement units.
 ## We used FAlSE for scale.unit because rld has been run with DESEQ function before.
 ## ncp : number of dimensions kept in the final results.
 ## graph : a logical value. If TRUE a graph is displayed.
@@ -280,14 +288,15 @@ library(survival)
 ######################################################
 ## 9. Extract variances in each principal component ##
 ######################################################
-## Eigenvalues correspond to the amount of the variation explained by each principal component (PC).
+## Eigenvalues correspond to the amount of the variation explained 
+## by each principal component (PC).
 ## Eigenvalues are large for the first PC and small for the subsequent PCs.
 .makeBiplot <- function(assayrld, res.pca, pcaData) {
   eigenvalues <- res.pca$eig
   head(eigenvalues[, 1:2])
   eigen <- eigenvalues[1:10,]
-  # Make a scree plot using base graphics :
-  # A scree plot is a graph of the eigenvalues/variances associated with components.
+  # Make a scree plot using base graphics:
+  # Scree plot is a graph of eigenvalues/variances associated with components.
   barplot(eigen[, 2],
           names.arg = 1:nrow(eigen),
           main      = "Variances",
@@ -297,12 +306,12 @@ library(survival)
   lines(x = 1:nrow(eigen), eigen[, 2],
         type = "b", pch = 19, col = "red")
 
- #     plot biplot graph with the top six contributing genes to PCA from RNA-Seq
+  # plot biplot graph with the top six contributing genes to PCA from RNA-Seq
   percentVar <- round(100 * attr(pcaData, "percentVar"))
   pcaBiplot <-
     fviz_pca_biplot(res.pca,
                     select.var = list(contrib = 6),
-                    #select.var = list(contrib = 0.6),
+                    # select.var = list(contrib = 0.6),
                     col.var    = "red",
                     label      = "var",
                     habillage  = assayrld$condition) +
@@ -337,8 +346,11 @@ library(survival)
 #########################################################
 ## 10. Hierarchical Clustering on Principal Components ##
 #########################################################
-## Compute hierarchical clustering: Hierarchical clustering is performed using the Ward’s criterion on the selected principal components.
-## Ward criterion is used in the hierarchical clustering because it is based on the multidimensional variance like principal component analysis.
+## Compute hierarchical clustering: Hierarchical clustering is performed 
+## using the Ward’s criterion on the selected principal components.
+## Ward criterion is used in the hierarchical clustering 
+## because it is based on the multidimensional variance 
+## like principal component analysis.
 .makeHierarchicalCluster <- function(res.pca, pcaData) {
   res.hcpc <- HCPC(res.pca, graph = FALSE)
   plot1 <-
@@ -360,8 +372,8 @@ library(survival)
     )
   print(plot1)
   print(plot2)
-  #Hierarchical Clustering
-  #compute dissimilarity matrix for all data
+  # Hierarchical Clustering
+  # compute dissimilarity matrix for all data
   eu.d <- dist(pcaData, method  = "euclidean")
   # Hierarchical clustering using Ward's method
   res.hc <- hclust(eu.d, method = "ward.D2" )
@@ -381,9 +393,9 @@ library(survival)
   head(res.pca$var$cos2, 10)
   var <- get_pca_var(res.pca)
   var
-  #library("corrplot")
-  #corrplot(var$contrib, is.corr=FALSE)
-  # Contributions of gene variables to PC1
+  ## library("corrplot")
+  ## corrplot(var$contrib, is.corr=FALSE)
+  ## Contributions of gene variables to PC1
   pc1Plot <- fviz_contrib(res.pca,
                           choice = "var",
                           axes   = 1,
@@ -392,7 +404,7 @@ library(survival)
                           color  = "black") +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 45))
-  # Contributions of gene variables to PC2
+  ## Contributions of gene variables to PC2
   pc2Plot <- fviz_contrib(res.pca,
                           choice = "var",
                           axes   = 2,
@@ -403,18 +415,17 @@ library(survival)
     theme(axis.text.x = element_text(angle = 45))
   print(pc1Plot)
   print(pc2Plot)
-  ##  identify the most correlated variables with a given principal component
+  ## Identify the most correlated variables with a given principal component
   res.desc <- dimdesc(res.pca, axes = c(1,2), proba = 0.05)
-  # Description of dimension 1
+  ## Description of dimension 1
   head(res.desc, 10)
   res.desc$Dim.1
   dim1 <- data.frame(res.desc$Dim.1)
   columns(org.Hs.eg.db)
-  # TODO(dlroxe): Figure out why it is necessary to comment out
-  # gene identifier assignment, here and for Dim.2 below.
-
-  #head(dim1,10)
-  #dim1 <- .addGeneIdentifiers(dim1)
+  ## TODO(dlroxe): Figure out why it is necessary to comment out
+  ## gene identifier assignment, here and for Dim.2 below.
+  ## head(dim1,10)
+  ## dim1 <- .addGeneIdentifiers(dim1)
   summary(dim1)
   head(dim1,10)
   quanti.correlation.dim1        = dim1$quanti.correlation
@@ -423,7 +434,7 @@ library(survival)
   res.desc$Dim.2
   dim2 <- data.frame(res.desc$Dim.2)
   columns(org.Hs.eg.db)
-  # dim1 <- .addGeneIdentifiers(dim1)
+  ## dim1 <- .addGeneIdentifiers(dim1)
   summary(dim2)
   head(dim2,10)
 }
@@ -553,8 +564,8 @@ analyze_aso_specificity <- function() {
   .makeGeneCountPlot(NRAS, "NRAS", 7, 9)
 }
 
-#if (interactive()) {
+# if (interactive()) {
 #  analyze_aso_specificity()
-#}
+# }
 
 analyze_aso_specificity()
