@@ -501,45 +501,54 @@ PANCAN <- getTCGAdata(project     = "PANCAN",
                       download    = TRUE)
 PANCAN <- XenaPrepare(PANCAN)
 
-RNAseq <- as.data.frame(PANCAN[[1]])
-RNAseq.SCD <- t(RNAseq[RNAseq$sample == "SCD",])
-RNAseq.SCD <- RNAseq.SCD[-1, ]
-RNAseq.SCD <- as.data.frame(RNAseq.SCD)
-RNAseq.SCD$RNAseq.SCD <- as.numeric(RNAseq.SCD$RNAseq.SCD)
-colnames(RNAseq.SCD) <- "SCD" # the first row will be the header
-RNAseq.SCD$sample <- rownames(RNAseq.SCD)
-clinic <- as.data.frame(PANCAN[[2]])
-df <- join_all(list(clinic[c("OS.time",
-                             "OS",
-                             "sample",
-                             "cancer type abbreviation")],
-                    RNAseq.SCD),
-               by   = "sample",
-               type = "full")
-df <- na.omit(df)
-df$Group[df[["SCD"]] < quantile(df[["SCD"]], prob = 0.2)] = "Bottom 20%"
-df$Group[df[["SCD"]] > quantile(df[["SCD"]], prob = 0.8)] = "Top 20%"
-df$SurvObj <- with(df, Surv(OS.time, OS == 1))
-df <- na.omit(df)
-km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
-black.bold.12pt <- element_text(face   = "bold",
-                                size   = 12,
-                                colour = "black")
-print(
-  autoplot(km,
-           xlab = "Months",
-           ylab = "Survival Probability",
-           main = paste("Kaplan-Meier plot", "SCD", "RNA expression")) +
-    theme(axis.title           = black.bold.12pt,
-          axis.text            = black.bold.12pt,
-          axis.line.x          = element_line(color  = "black"),
-          axis.line.y          = element_line(color  = "black"),
-          panel.grid           = element_blank(),
-          strip.text           = black.bold.12pt,
-          legend.text          = black.bold.12pt ,
-          legend.title         = black.bold.12pt ,
-          legend.justification = c(1,1)))
+plotOS <- function(DNFA){
+  RNAseq <- as.data.frame(PANCAN[[1]])
+  RNAseq.DNFA <- t(RNAseq[RNAseq$sample == DNFA,])
+  RNAseq.DNFA <- RNAseq.DNFA[-1, ]
+  RNAseq.DNFA <- as.data.frame(RNAseq.DNFA)
+  RNAseq.DNFA$RNAseq.DNFA <- as.numeric(RNAseq.DNFA$RNAseq.DNFA)
+  colnames(RNAseq.DNFA) <- DNFA # the first row will be the header
+  RNAseq.DNFA$sample <- rownames(RNAseq.DNFA)
+  clinic <- as.data.frame(PANCAN[[2]])
+  df <- join_all(list(clinic[c("OS.time",
+                               "OS",
+                               "sample",
+                               "cancer type abbreviation")],
+                      RNAseq.DNFA),
+                 by   = "sample",
+                 type = "full")
+  df <- na.omit(df)
+  df <- df[df$`cancer type abbreviation` == "SKCM", ]
+  df$Group[df[[DNFA]] < quantile(df[[DNFA]], prob = 0.2)] = "Bottom 20%"
+  df$Group[df[[DNFA]] > quantile(df[[DNFA]], prob = 0.8)] = "Top 20%"
+  df$SurvObj <- with(df, Surv(OS.time, OS == 1))
+  df <- na.omit(df)
+  km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  black.bold.12pt <- element_text(face   = "bold",
+                                  size   = 12,
+                                  colour = "black")
+  print(
+    autoplot(km,
+             xlab = "Days",
+             ylab = "Survival Probability",
+             main = paste("Kaplan-Meier plot", DNFA, "RNA expression")) +
+      theme(axis.title           = black.bold.12pt,
+            axis.text            = black.bold.12pt,
+            axis.line.x          = element_line(color  = "black"),
+            axis.line.y          = element_line(color  = "black"),
+            panel.grid           = element_blank(),
+            strip.text           = black.bold.12pt,
+            legend.text          = black.bold.12pt ,
+            legend.title         = black.bold.12pt ,
+            legend.justification = c(1,1)))
 # rho = 1 the Gehan-Wilcoxon test
-stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
-print(DNFA)
-print(stats)
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
+  print(DNFA)
+  print(stats)
+}
+
+DNFA <- "SCD"
+plotOS("SCD")
+DNFA.list <- c("ACACA", "SCD", "ACLY", "FASN", "SREBF1", "MITF")
+names(DNFA.list) <- DNFA.list
+sapply(DNFA.list, plotOS)
