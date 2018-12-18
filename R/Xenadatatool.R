@@ -19,7 +19,7 @@ availTCGA("ProjectID")
 # can be one, two or three in c("normalized", "pancan normalized", "percentile")
 # download files to directory /tmp/RtmpyOXWWh.
 # /tmp/RtmpyOXWWh/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz,
-PANACAN <- getTCGAdata(project = "PANCAN", clinical = FALSE,
+PANACAN <- getTCGAdata(project = "SKCM", clinical = FALSE,
             mRNASeq = TRUE, mRNAArray = FALSE,
             mRNASeqType = "normalized", miRNASeq = FALSE,
             exonRNASeq = FALSE, RPPAArray = FALSE,
