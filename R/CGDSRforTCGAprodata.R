@@ -1,5 +1,5 @@
 # the following script generates the plot and statistics
-# for DNFA expression and mutations data from TCGA dataset.
+# for DNFA expression and mutations data from TCGA provisional dataset.
 # install.packages("cgdsr")
 library(car)
 library(cgdsr)
@@ -40,7 +40,7 @@ getDNFAdata <- function(ge) {
   # to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna,
   # we use the following tcag_provisional_caselist[[1][8,1]
   # a <- tcga.pro.caselist[[1]][
-  # grep("tcga_rna_seq_v2_mrna", tcag_provisional_caselist[[1]]$case_list_id),
+  # grep("tcga_rna_seq_v2_mrna", tcga.pro.caselist[[1]]$case_list_id),
   # ][1,1]
   # b <- tcga.pro.geneticprofile[[1]][
   # grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
@@ -67,7 +67,25 @@ getDNFAdata <- function(ge) {
     }
   DNFA.tcga.RNAseq <- function(x, y) {
     tcga.profiledata.RNAseq(x, geneticprofile.RNAseq(y), caselist.RNAseq(y))
-    }
+  }
+###########################################################################
+## test ## try to keep patient ID in the rownames
+  DNFA.tcga.RNAseq <- function(y) {
+    tcga.profiledata.RNAseq("SCD", geneticprofile.RNAseq(y), caselist.RNAseq(y))
+  }
+  
+   test1 <- lapply(tcga.study.list, DNFA.tcga.RNAseq)
+##  test1[[1]]$rn <- rownames(test1[[1]])
+##  add rowname on to the list.
+   addrowname <- function(x) {
+     test1[[x]]$rn <- rownames(test1[[x]])
+     return(test1)
+   }
+#   tested <- addrowname(1) 
+
+   df2 <- melt(test2)
+## test ##    
+    
   DNFA.RNAseq.all.tcga.studies <- function(x) {
     test <-
     lapply(tcga.study.list, function(y) mapply(DNFA.tcga.RNAseq, x, y))
@@ -436,8 +454,8 @@ sapply(mutation.list, plotOS)
 ##  plot OS curve with clinic and DNFA expression data from SKCM group ##
 #########################################################################
 plotDNFAOS <- function(DNFA) {
-  mycancerstudy <- getCancerStudies(mycgds)[194, 1]    # "skcm_tcga"
-  mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
+  mycancerstudy <- getCancerStudies(mycgds)[194, 1]        # "skcm_tcga"
+  mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "skcm_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
   skcm.RNAseq.data <- getProfileData(mycgds,
