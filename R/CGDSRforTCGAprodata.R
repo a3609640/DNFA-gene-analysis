@@ -8,7 +8,7 @@ library(ggplot2)
 library(plyr)
 library(reshape2)
 library(survival)
-library(UCSCXenaTools)
+
 
 # Create CGDS object
 mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
