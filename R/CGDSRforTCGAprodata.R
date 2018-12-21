@@ -9,7 +9,6 @@ library(plyr)
 library(reshape2)
 library(survival)
 
-
 # Create CGDS object
 mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
 test(mycgds)
@@ -68,40 +67,24 @@ getDNFAdata <- function(ge) {
   DNFA.tcga.RNAseq <- function(x, y) {
     tcga.profiledata.RNAseq(x, geneticprofile.RNAseq(y), caselist.RNAseq(y))
   }
-###########################################################################
-## test ## try to keep patient ID in the rownames
-  DNFA.tcga.RNAseq <- function(y) {
-    tcga.profiledata.RNAseq("SCD", geneticprofile.RNAseq(y), caselist.RNAseq(y))
-  }
-  
-   test1 <- lapply(tcga.study.list, DNFA.tcga.RNAseq)
-##  test1[[1]]$rn <- rownames(test1[[1]])
-##  add rowname on to the list.
-   addrowname <- function(x) {
-     test1[[x]]$rn <- rownames(test1[[x]])
-     return(test1)
-   }
-#   tested <- addrowname(1) 
-
-   df2 <- melt(test2)
-## test ##    
-    
   DNFA.RNAseq.all.tcga.studies <- function(x) {
     test <-
     lapply(tcga.study.list, function(y) mapply(DNFA.tcga.RNAseq, x, y))
     df2 <- melt(test)
     colnames(df2) <- c("RNAseq", "DNFAgene", "TCGAstudy")
-    as.factor(df2$L2)
-    as.factor(df2$L1)
     df2 <- data.frame(df2)
     }
   df2 <- DNFA.RNAseq.all.tcga.studies(ge)
+  df2$DNFAgene <- as.factor(df2$DNFAgene)
+  df2$TCGAstudy <- as.factor(df2$TCGAstudy)
   return(df2)
   }
 
 DNFA.gene <- c("SCD", "FASN", "ACLY", "ACSS2")
 names(DNFA.gene ) <- DNFA.gene
 df2 <- getDNFAdata(DNFA.gene)
+
+levels(df2$DNFAgene)
 
 ######################################################
 ## plot DNFA gene expression across all TCGA groups ##
@@ -506,6 +489,178 @@ sapply(DNFA.list, plotDNFAOS)
 #############################################################################
 ## plot OS curve with clinic and DNFA expression data from all TCGA groups ##
 #############################################################################
+# getDNFAdata <- function(ge) {
+tcga.pro.studies <- getCancerStudies(mycgds)[
+  grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
+# "tcag_study_list" is a vector containing all the tcga cancer studies
+# that I would to analyze for DNFA gene expression
+tcga.study.list <- tcga.pro.studies$cancer_study_id
+names(tcga.study.list) <- tcga.study.list
+caselist <- function(x) getCaseLists(mycgds, x)
+geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
+# use lappy to pull out all the caselists within tcga.study.list
+# because we named each elements in tcga.study.list
+# (names(tcga.study.list) <- tcga.study.list),
+# lappy will return a large list, each element (with a cancer study name)
+# in that list is a data-table
+tcga.pro.caselist <- lapply(tcga.study.list, caselist)
+tcga.pro.geneticprofile <- lapply(tcga.study.list, geneticprofile)
+# for example, tcga.pro.caselist[[1]] shows the dataframe of caselist
+# in laml study group.
+# to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna,
+# we use the following tcag_provisional_caselist[[1][8,1]
+# a <- tcga.pro.caselist[[1]][
+# grep("tcga_rna_seq_v2_mrna", tcga.pro.caselist[[1]]$case_list_id),
+# ][1,1]
+# b <- tcga.pro.geneticprofile[[1]][
+# grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
+# tcga.pro.geneticprofile[[1]]$genetic_profile_name), ][1,1]
+# how do we do this for all study groups from [[1]] to  [[32]]?
+caselist.RNAseq <- function(x) {
+  tcga.pro.caselist[[x]][
+    grep("tcga_rna_seq_v2_mrna",
+         tcga.pro.caselist[[x]]$case_list_id), ][1, 1]
+  }
+geneticprofile.RNAseq <- function(x) {
+  tcga.pro.geneticprofile[[x]][
+    # double backslash \\ suppress the special meaning of ( )
+    # in regular expression
+    grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
+         tcga.pro.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
+  }
+# test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
+# caselist.RNAseq = caselist.RNAseq ('acc_tcga')
+# geneticprofile.RNAseq = geneticprofile.RNAseq ('acc_tcga')
+# We wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x)
+# within TCGA_ProfileData_RNAseq(x)
+tcga.profiledata.RNAseq <- function(genename,
+                                    geneticprofile,
+                                    caselist) {
+  getProfileData(mycgds,
+                 genename,
+                 geneticprofile,
+                 caselist)
+  }
+
+## test ## try to keep patient ID in the rownames
+DNFA.tcga.RNAseq <- function(y) {
+  tcga.profiledata.RNAseq("SCD",
+                          geneticprofile.RNAseq(y),
+                          caselist.RNAseq(y))
+  }
+## DNFA.RNAseq.all.tcga.studies <- function(x) {
+test1 <- lapply(tcga.study.list, DNFA.tcga.RNAseq)
+##  test1[[1]]$rn <- rownames(test1[[1]])
+##  add rowname on to the list.
+##  addrowname <- function(x) {
+##    test1[[x]]$rn <- rownames(test1[[x]])
+##    return(test1)
+##    }
+for(x in 1:32)
+  {
+  test1[[x]]$rn <- rownames(test1[[x]])
+  message("test1 = ", x)
+  }
+df1 <- melt(test1)
+colnames(df1) <- c("case.id",
+                   "DNFAgene",
+                   "RNAseq",
+                   "TCGAstudy")
+df1 <- data.frame(df1)
+df1$TCGAstudy <- as.factor(df1$TCGAstudy)
+return(df1)
+
+
+## to continue ..................
+## tcga.RNAseq.data <- getDNFAdata("SCD")
+tcga.clinicaldata <- getClinicalData(mycgds, tcga.study.list)
+tcga.clinicaldata$rn <- rownames(tcga.clinicaldata)
+
+
+
+
+plotDNFAOS <- function(DNFA) {
+  mycancerstudy <- getCancerStudies(mycgds)[194, 1]        # "skcm_tcga"
+  mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "skcm_tcga_all"
+  skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
+  skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
+  
+  
+  skcm.RNAseq.data <- getProfileData(mycgds,
+                                     DNFA,
+                                     "skcm_tcga_rna_seq_v2_mrna",
+                                     "skcm_tcga_all")
+  skcm.RNAseq.data <- as.data.frame(skcm.RNAseq.data)
+  skcm.RNAseq.data$rn <- rownames(skcm.RNAseq.data)
+  df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
+                      skcm.RNAseq.data),
+                 by   = "rn",
+                 type = "full")
+  df <- na.omit(df)
+  df$Group[df[[DNFA]] < quantile(df[[DNFA]], prob = 0.2)] = "Bottom 20%"
+  df$Group[df[[DNFA]] > quantile(df[[DNFA]], prob = 0.8)] = "Top 20%"
+  df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
+  df <- na.omit(df)
+  km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  black.bold.12pt <- element_text(face   = "bold",
+                                  size   = 12,
+                                  colour = "black")
+  print(
+    autoplot(km,
+             xlab = "Months",
+             ylab = "Survival Probability",
+             main = paste("Kaplan-Meier plot", DNFA, "RNA expression")) +
+      theme(axis.title           = black.bold.12pt,
+            axis.text            = black.bold.12pt,
+            axis.line.x          = element_line(color  = "black"),
+            axis.line.y          = element_line(color  = "black"),
+            panel.grid           = element_blank(),
+            strip.text           = black.bold.12pt,
+            legend.text          = black.bold.12pt ,
+            legend.title         = black.bold.12pt ,
+            legend.justification = c(1,1)))
+  # rho = 1 the Gehan-Wilcoxon test
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
+  print(DNFA)
+  print(stats)
+}
+
+plotDNFAOS("ACACA")
+DNFA.list <- c("ACACA", "SCD", "ACLY", "FASN", "SREBF1", "MITF")
+names(DNFA.list) <- DNFA.list
+sapply(DNFA.list, plotDNFAOS)
+
+
+
+
+
+
+
+
+################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## SKCM data retrieved from CGDSR gave differet results to data from Xenatools
 ## need to figure out the bugs in the data
