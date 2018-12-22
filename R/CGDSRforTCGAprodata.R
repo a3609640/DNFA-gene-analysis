@@ -571,16 +571,39 @@ df1$TCGAstudy <- as.factor(df1$TCGAstudy)
 return(df1)
 
 
-## to continue ..................
-## tcga.RNAseq.data <- getDNFAdata("SCD")
-tcga.clinicaldata <- getClinicalData(mycgds, tcga.study.list)
+test.case.list <- function(x) {tcga.pro.caselist[[x]][4, 1]} 
+tcga.clinicaldata <- function(x) {getClinicalData(mycgds, test.case.list(x))}
+# data <- tcga.clinicaldata("acc_tcga")
+# data <- tcga.clinicaldata("blca_tcga")
+tcga.clinic.data <- function(x) {
+  data < tcga.clinicaldata(x)
+  data$rn <- rownames(data)
+  data <- data[c("OS_MONTHS", "OS_STATUS", "rn")]
+  return(data)
+  }
+test.list <-  tcga.clinic.data("blca_tcga")
+
+## there is a bug below, for apply function, particularly in blca_tcga data
+tcga.study.list <- tcga.pro.studies$cancer_study_id
+names(tcga.study.list) <- tcga.study.list
+test <- lapply(tcga.study.list, tcga.clinic.data)
+## different cancer study groups offer different column numbers.
+## it is better to specifically extract OS and patient ID column out. 
+
+
+tcga.study.list <- tcga.pro.studies$cancer_study_id
+names(tcga.study.list) <- tcga.study.list
+# test.list with two items work, but tcga.study.list does not
+test <- sapply(tcga.study.list, tcga.clinicaldata)
+
 tcga.clinicaldata$rn <- rownames(tcga.clinicaldata)
 
-
+df2 <- melt(test)
+## to be continued ..................
 
 
 plotDNFAOS <- function(DNFA) {
-  mycancerstudy <- getCancerStudies(mycgds)[194, 1]        # "skcm_tcga"
+  mycancerstudy <- getCancerStudies(mycgds)[22, 1]        # "skcm_tcga"
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "skcm_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
