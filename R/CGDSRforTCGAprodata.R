@@ -587,12 +587,12 @@ plot.all.OS <- function(DNFA) {
                                       "OS_MONTHS",
                                       "TCGAstudy")
   all.tcga.clinic.data$case.id <- str_replace_all(all.tcga.clinic.data$case.id,
-                                                '-',
-                                                '.')
+                                                  '-',
+                                                  '.')
   message("clinical data retrieved")
   df <- join_all(list(all.tcga.clinic.data[c("OS_MONTHS",
-                                           "OS_STATUS",
-                                           "case.id")],
+                                             "OS_STATUS",
+                                             "case.id")],
                       all.tcga.DNFA.RNAseq[c("case.id",
                                              "RNAseq",
                                              "TCGAstudy")]),
@@ -629,8 +629,8 @@ plot.all.OS <- function(DNFA) {
   print(stats)
   }
 
-all.tcga.DNFA.RNAseq <- plot.all.OS("ACLY")
-DNFA.list <- c("ACACA", "SCD", "ACLY", "FASN", "SREBF1", "MITF")
+all.tcga.DNFA.RNAseq <- plot.all.OS("ACSS2")
+DNFA.list <- c("ACACA", "SCD", "ACLY", "FASN", "ACSS2", "MITF")
 names(DNFA.list) <- DNFA.list
 sapply(DNFA.list, plot.all.OS)
 
