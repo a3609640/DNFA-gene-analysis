@@ -80,14 +80,14 @@ plot.DNFA.tcga <- function(DNFA){
                             geneticprofile.RNAseq(y),
                             caselist.RNAseq(y))
     }
-  DNFA.RNAseq.all.tcga.studies <- function(x) {
-    test <-
-    lapply(tcga.study.list, function(y) mapply(DNFA.tcga.RNAseq, x, y))
+  DNFA.RNAseq.tcga.all <- function(x) {
+    test <- lapply(tcga.study.list,
+                   function(y) mapply(DNFA.tcga.RNAseq, x, y))
     df2 <- melt(test)
     colnames(df2) <- c("RNAseq", "DNFAgene", "TCGAstudy")
     df2 <- data.frame(df2)
     }
-  df2 <- DNFA.RNAseq.all.tcga.studies(DNFA)
+  df2 <- DNFA.RNAseq.tcga.all(DNFA)
   df2$DNFAgene <- as.factor(df2$DNFAgene)
   df2$TCGAstudy <- as.factor(df2$TCGAstudy)
   ## plot DNFA gene expression across all TCGA groups ##
