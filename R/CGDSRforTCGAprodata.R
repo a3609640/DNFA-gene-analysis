@@ -5,12 +5,14 @@ library(car)
 library(cgdsr)
 library(ggfortify)
 library(ggplot2)
+library(httr)
 library(plyr)
 library(reshape2)
 library(survival)
 
 # Create CGDS object
 mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
+# mycgds = CGDS("http://www.cbioportal.org/")
 test(mycgds)
 # Get list of cancer studies at server
 getCancerStudies(mycgds)
@@ -490,6 +492,8 @@ sapply(DNFA.list, plotDNFAOS)
 ## plot OS curve with clinic and DNFA expression data from all TCGA groups ##
 #############################################################################
 # getDNFAdata <- function(ge) {
+mycgds <- CGDS("http://www.cbioportal.org/")
+test(mycgds)
 tcga.pro.studies <- getCancerStudies(mycgds)[
   grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
 # "tcag_study_list" is a vector containing all the tcga cancer studies
@@ -533,23 +537,24 @@ geneticprofile.RNAseq <- function(x) {
 # geneticprofile.RNAseq = geneticprofile.RNAseq ('acc_tcga')
 # We wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x)
 # within TCGA_ProfileData_RNAseq(x)
-tcga.profiledata.RNAseq <- function(genename,
-                                    geneticprofile,
-                                    caselist) {
-  getProfileData(mycgds,
-                 genename,
-                 geneticprofile,
-                 caselist)
-  }
+tcga.profiledata.RNAseq <- function(genename, geneticprofile, caselist) {
+  getProfileData(mycgds, genename, geneticprofile, caselist)
+}
 
+DNFA.tcga.RNAseq <- function(x, y) {
+  tcga.profiledata.RNAseq(x, geneticprofile.RNAseq(y), caselist.RNAseq(y))
+}
+test0 <- DNFA.tcga.RNAseq(x = "SCD", y = "acc_tcga")
+
+SCD.tcga.RNAseq <- function(y) {
+  DNFA.tcga.RNAseq(x = "SCD", y)}
+
+test1 <- SCD.tcga.RNAseq(y = "skcm_tcga")
 ## test ## try to keep patient ID in the rownames
-DNFA.tcga.RNAseq <- function(y) {
-  tcga.profiledata.RNAseq("SCD",
-                          geneticprofile.RNAseq(y),
-                          caselist.RNAseq(y))
-  }
+
 ## DNFA.RNAseq.all.tcga.studies <- function(x) {
-test1 <- lapply(tcga.study.list, DNFA.tcga.RNAseq)
+
+test2 <- lapply(tcga.study.list, SCD.tcga.RNAseq)
 ##  test1[[1]]$rn <- rownames(test1[[1]])
 ##  add rowname on to the list.
 ##  addrowname <- function(x) {
@@ -558,68 +563,65 @@ test1 <- lapply(tcga.study.list, DNFA.tcga.RNAseq)
 ##    }
 for(x in 1:32)
   {
-  test1[[x]]$rn <- rownames(test1[[x]])
-  message("test1 = ", x)
+  test2[[x]]$case.id <- rownames(test2[[x]])
+  message("test2 = ", x)
   }
-df1 <- melt(test1)
+df1 <- melt(test2)
 colnames(df1) <- c("case.id",
                    "DNFAgene",
                    "RNAseq",
                    "TCGAstudy")
-df1 <- data.frame(df1)
-df1$TCGAstudy <- as.factor(df1$TCGAstudy)
-return(df1)
+all.tcga.DNFA.RNAseq <- data.frame(df1)
+all.tcga.DNFA.RNAseq$TCGAstudy <- as.factor(all.tcga.DNFA.RNAseq$TCGAstudy)
 
 
-test.case.list <- function(x) {tcga.pro.caselist[[x]][4, 1]} 
-tcga.clinicaldata <- function(x) {getClinicalData(mycgds, test.case.list(x))}
-# data <- tcga.clinicaldata("acc_tcga")
-# data <- tcga.clinicaldata("blca_tcga")
+
+#####
+
 tcga.clinic.data <- function(x) {
-  data < tcga.clinicaldata(x)
-  data$rn <- rownames(data)
-  data <- data[c("OS_MONTHS", "OS_STATUS", "rn")]
+  print(x)
+  url <- function(x){
+  url <- "http://www.cbioportal.org/webservice.do?cmd=getClinicalData&case_set_id="
+  url <- paste0(url, x, "_all")
+  return(url)
+  }
+# testurl <- url("acc_tcga")
+# tesereq <- GET(url("acc_tcga"))
+  req <- function(x) {GET(url(x))}
+# req <- req("acc_tcga")
+  clinical_data <- function(x) {content(req(x),
+                                        type = 'text/tab-separated-values',
+                                        col_names = T,
+                                        col_types = NULL)}
+  data <- clinical_data(x)
+  data <- data[c("OS_MONTHS", "OS_STATUS", "CASE_ID")]
   return(data)
   }
-test.list <-  tcga.clinic.data("blca_tcga")
 
-## there is a bug below, for apply function, particularly in blca_tcga data
-tcga.study.list <- tcga.pro.studies$cancer_study_id
-names(tcga.study.list) <- tcga.study.list
-test <- lapply(tcga.study.list, tcga.clinic.data)
-## different cancer study groups offer different column numbers.
-## it is better to specifically extract OS and patient ID column out. 
-
+skcm.clinical.data <- tcga.clinic.data("skcm_tcga")
+skcm.clinical.data <- skcm.clinical.data[c("OS_STATUS", "CASE_ID","OS_MONTHS")]
+colnames(skcm.clinical.data) <- c("OS_STATUS","case.id", "OS_MONTHS")
 
 tcga.study.list <- tcga.pro.studies$cancer_study_id
 names(tcga.study.list) <- tcga.study.list
-# test.list with two items work, but tcga.study.list does not
-test <- sapply(tcga.study.list, tcga.clinicaldata)
+# three datasets donot have OS data and cause bug. remove them
+tcga.study.list <- tcga.study.list[tcga.study.list != "meso_tcga"]
+tcga.study.list <- tcga.study.list[tcga.study.list != "pcpg_tcga"]
+tcga.study.list <- tcga.study.list[tcga.study.list != "ucs_tcga"]
+# remove blca_tcga, there is a bug when using getClinicalData to retrieve data
+all.tcga.clinic.data <- lapply(tcga.study.list, tcga.clinic.data)
+all.tcga.clinic.data <- melt(all.tcga.clinic.data)
+all.tcga.clinic.data <- all.tcga.clinic.data[c("OS_STATUS", "CASE_ID","value", "L1")]
+colnames(all.tcga.clinic.data) <- c("OS_STATUS","case.id", "OS_MONTHS", "TCGAstudy")
+library(stringr)
+all.tcga.clinic.data$case.id <- str_replace_all(all.tcga.clinic.data$case.id, '-', '.')
+df <- join_all(list(all.tcga.clinic.data[c("OS_MONTHS", "OS_STATUS", "case.id")],
+                    all.tcga.DNFA.RNAseq[c("case.id", "RNAseq", "TCGAstudy")]),
+               by   = "case.id",
+               type = "full")
 
-tcga.clinicaldata$rn <- rownames(tcga.clinicaldata)
-
-df2 <- melt(test)
-## to be continued ..................
-
-
-plotDNFAOS <- function(DNFA) {
-  mycancerstudy <- getCancerStudies(mycgds)[22, 1]        # "skcm_tcga"
-  mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "skcm_tcga_all"
-  skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
-  skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
-  
-  
-  skcm.RNAseq.data <- getProfileData(mycgds,
-                                     DNFA,
-                                     "skcm_tcga_rna_seq_v2_mrna",
-                                     "skcm_tcga_all")
-  skcm.RNAseq.data <- as.data.frame(skcm.RNAseq.data)
-  skcm.RNAseq.data$rn <- rownames(skcm.RNAseq.data)
-  df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
-                      skcm.RNAseq.data),
-                 by   = "rn",
-                 type = "full")
-  df <- na.omit(df)
+   df <- na.omit(df)
+   DNFA <- "RNAseq"
   df$Group[df[[DNFA]] < quantile(df[[DNFA]], prob = 0.2)] = "Bottom 20%"
   df$Group[df[[DNFA]] > quantile(df[[DNFA]], prob = 0.8)] = "Top 20%"
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
@@ -632,7 +634,8 @@ plotDNFAOS <- function(DNFA) {
     autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
-             main = paste("Kaplan-Meier plot", DNFA, "RNA expression")) +
+             main = paste("Kaplan-Meier plot", "SCD", "RNA expression"),
+             xlim = c(0, 200)) +
       theme(axis.title           = black.bold.12pt,
             axis.text            = black.bold.12pt,
             axis.line.x          = element_line(color  = "black"),
