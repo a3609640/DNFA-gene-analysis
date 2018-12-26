@@ -21,22 +21,20 @@ getCancerStudies(mycgds)
 DNFA.gene <- c("ACACA", "SCD", "ACLY", "FASN", "ACSS2", "MITF")
 names(DNFA.gene) <- DNFA.gene
 
-##############################################################
-## plot DNFA RNASeq  data from all TCGA cancer study groups ##
-##############################################################
+#############################################################
+## plot DNFA RNASeq data from all TCGA cancer study groups ##
+#############################################################
 plot.DNFA.tcga <- function(DNFA){
-## Get DNFA gene expression data from all TCGA cancer study groups
+  # Get DNFA RNAseq data from all TCGA study groups
   tcga.pro.studies <- getCancerStudies(mycgds)[
     grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
-  # "tcag_study_list" is a vector containing all the tcga cancer studies
-  # that I would to analyze for DNFA gene expression
+  # "tcag_study_list" contains all the tcga cancer studies
   tcga.study.list <- tcga.pro.studies$cancer_study_id
   names(tcga.study.list) <- tcga.study.list
   caselist <- function(x) getCaseLists(mycgds, x)
   geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
   # use lappy to pull out all the caselists within tcga.study.list
-  # because we named each elements in tcga.study.list
-  # (names(tcga.study.list) <- tcga.study.list),
+  # because we named each elements in tcga.study.list,
   # lappy will return a large list, each element (with a cancer study name)
   # in that list is a data-table
   tcga.pro.caselist <- lapply(tcga.study.list, caselist)
@@ -67,7 +65,7 @@ plot.DNFA.tcga <- function(DNFA){
   # test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
   # caselist.RNAseq = caselist.RNAseq ('acc_tcga')
   # geneticprofile.RNAseq = geneticprofile.RNAseq ('acc_tcga')
-  # We wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x)
+  # Wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x)
   # within TCGA_ProfileData_RNAseq(x)
   tcga.profiledata.RNAseq <- function(genename, geneticprofile, caselist) {
     getProfileData(mycgds,
@@ -90,7 +88,7 @@ plot.DNFA.tcga <- function(DNFA){
   df2 <- DNFA.RNAseq.tcga.all(DNFA)
   df2$DNFAgene <- as.factor(df2$DNFAgene)
   df2$TCGAstudy <- as.factor(df2$TCGAstudy)
-  ## plot DNFA gene expression across all TCGA groups ##
+  # plot DNFA gene expression across all TCGA groups ##
   m <- paste0(DNFA, ".", DNFA)
   mean <- within(df2[df2$DNFAgene == m,], # TCGAstudy is one column in df2
                  TCGAstudy <- reorder(TCGAstudy, log2(RNAseq), median))
@@ -202,9 +200,9 @@ getCNV <- function(x) {
 # CNV.data <- getCNV("BRAF")
 CNV.data <- getCNV(c("BRAF", "NRAS", "PTEN"))
 
-###############################################################################
-## examine the correlation between mutation status and DNFA expression level ##
-###############################################################################
+###########################################################################
+## examine the correlation between mutation status and DNFA RNASeq level ##
+###########################################################################
 plot.mutations.RNAseq <- function(mutations, RNAseq) {
   mutations.DNFA.RNAseq <- cbind(mutations.data, DNFA.RNAseq.data)
   mutations.DNFA.RNAseq <- na.omit(mutations.DNFA.RNAseq)
@@ -565,7 +563,7 @@ plot.km.all.tcga <- function(DNFA) {
                  "CASE_ID")]
   }
 # three datasets donot have OS data and cause bugs remove them
-  bug.data.set <- names(tcga.study.list) %in% c("meso_tcga", "pcpg_tcga", "ucs_tcga") 
+  bug.data.set <- names(tcga.study.list) %in% c("meso_tcga", "pcpg_tcga", "ucs_tcga")
   tcga.study.list <- tcga.study.list[!bug.data.set]
   all.tcga.clinic.data <- lapply(tcga.study.list, tcga.clinic.data)
   all.tcga.clinic.data <- melt(all.tcga.clinic.data)
@@ -604,7 +602,7 @@ plot.km.all.tcga <- function(DNFA) {
              xlab = "Months",
              ylab = "Survival Probability",
              main = paste("Kaplan-Meier plot", DNFA, "RNA expression"),
-             xlim = c(0, 200)) +
+             xlim = c(0, 250)) +
       theme(axis.title           = black.bold.12pt,
             axis.text            = black.bold.12pt,
             axis.line.x          = element_line(color  = "black"),

@@ -21,8 +21,7 @@ getCancerStudies(mycgds)
 getDNFAdata <- function(ge) {
   tcga.pan.studies <- getCancerStudies(mycgds)[
     grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
-  # "tcag_study_list" is a vector containing all the tcga cancer studies
-  # that I would to analyze for DNFA gene expression
+  # "tcag_study_list" contains all the tcga cancer studies
   tcga.study.list <- tcga.pan.studies$cancer_study_id
   names(tcga.study.list) <- tcga.study.list
   caselist <- function(x) getCaseLists(mycgds, x)
@@ -41,7 +40,7 @@ getDNFAdata <- function(ge) {
   # a <- tcga.pan.caselist[[1]][
   # grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
   #      tcga.pan.caselist[[1]]$case_list_id), ][1,1]
-   
+
   # b <- tcga.pan.geneticprofile[[1]][      # laml_tcga_pan_can_atlas_2018
   # grep("mRNA Expression, RSEM",
   #      tcga.pan.geneticprofile[[1]]$genetic_profile_name), ][1,1]
@@ -438,7 +437,7 @@ sapply(mutation.list, plotOS)
 ##  plot OS curve with clinic and DNFA expression data from SKCM group ##
 #########################################################################
 ## PANCAN dataset from cBioportal does not offer clinical results for OS
-## need to the following script uses OS data from TCGA provisional data 
+## need to the following script uses OS data from TCGA provisional data
 ## and combine OS data with the expression data from pancan study
 plotDNFAOS <- function(DNFA) {
   mycancerstudy <- getCancerStudies(mycgds)[194, 1]  # "skcm_tcga_pan_can_atlas_2018"
@@ -494,7 +493,7 @@ sapply(DNFA.list, plotDNFAOS)
 ##  plot OS curve with clinic and DNFA expression data from all TCGA groups ##
 ##############################################################################
 ## PANCAN dataset from cBioportal does not offer clinical results for OS
-## need to the following script uses OS data from TCGA provisional data 
+## need to the following script uses OS data from TCGA provisional data
 ## and combine OS data with the expression data from pancan study
 plotDNFAOS <- function(DNFA) {
   mycancerstudy <- getCancerStudies(mycgds)[194, 1]  # "skcm_tcga_pan_can_atlas_2018"
