@@ -9,7 +9,6 @@ library(plyr)
 library(reshape2)
 library(survival)
 
-
 # Create CGDS object
 mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
 test(mycgds)

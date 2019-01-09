@@ -128,6 +128,114 @@ plot.DNFA.tcga <- function(DNFA){
 plot.DNFA.tcga("SCD")
 sapply(DNFA.gene, plot.DNFA.tcga)
 
+
+#############################################################
+## plot DNFA RNASeq data from pan TCGA cancer study groups ##
+#############################################################
+plot.DNFA.pan.tcga <- function(DNFA){
+  # Get DNFA RNAseq data from all TCGA study groups
+  tcga.pan.studies <- getCancerStudies(mycgds)[
+    grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
+  # "tcag_study_list" contains all the tcga cancer studies
+  tcga.study.list <- tcga.pan.studies$cancer_study_id
+  names(tcga.study.list) <- tcga.study.list
+  caselist <- function(x) getCaseLists(mycgds, x)
+  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
+  # use lappy to pull out all the caselists within tcga.study.list
+  # because we named each elements in tcga.study.list,
+  # lappy will return a large list, each element (with a cancer study name)
+  # in that list is a data-table
+  tcga.pan.caselist <- lapply(tcga.study.list, caselist)
+  tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
+  # for example, tcga.pro.caselist[[1]] shows the dataframe of caselist
+  # in laml study group.
+  # to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna,
+  # we use the following tcag_provisional_caselist[[1][8,1]
+  # a <- tcga.pro.caselist[[1]][
+  # grep("tcga_rna_seq_v2_mrna", tcga.pro.caselist[[1]]$case_list_id),
+  # ][1,1]
+  # b <- tcga.pro.geneticprofile[[1]][
+  # grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
+  # tcga.pro.geneticprofile[[1]]$genetic_profile_name), ][1,1]
+  # how do we do this for all study groups from [[1]] to  [[32]]?
+  caselist.RNAseq <- function(x) {
+    tcga.pan.caselist[[x]][
+      grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
+           tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
+  }
+  geneticprofile.RNAseq <- function(x) {
+    tcga.pan.geneticprofile[[x]][
+      # double backslash \\ suppress the special meaning of ( )
+      # in regular expression
+      grep("mRNA Expression, RSEM",
+           tcga.pan.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
+  }
+  # test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
+  # caselist.RNAseq = caselist.RNAseq ('acc_tcga')
+  # geneticprofile.RNAseq = geneticprofile.RNAseq ('acc_tcga')
+  # Wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x)
+  # within TCGA_ProfileData_RNAseq(x)
+  tcga.profiledata.RNAseq <- function(genename, geneticprofile, caselist) {
+    getProfileData(mycgds,
+                   genename,
+                   geneticprofile,
+                   caselist)
+  }
+  DNFA.tcga.RNAseq <- function(x, y) {
+    tcga.profiledata.RNAseq(x,
+                            geneticprofile.RNAseq(y),
+                            caselist.RNAseq(y))
+  }
+  DNFA.RNAseq.tcga.all <- function(x) {
+    test <- lapply(tcga.study.list,
+                   function(y) mapply(DNFA.tcga.RNAseq, x, y))
+    df2 <- melt(test)
+    colnames(df2) <- c("RNAseq", "DNFAgene", "TCGAstudy")
+    df2 <- data.frame(df2)
+  }
+  df2 <- DNFA.RNAseq.tcga.all(DNFA)
+  df2$DNFAgene <- as.factor(df2$DNFAgene)
+  df2$TCGAstudy <- as.factor(df2$TCGAstudy)
+  df2 <- na.omit(df2)
+  # plot DNFA gene expression across all TCGA groups ##
+  m <- paste0(DNFA, ".", DNFA)
+  mean <- within(df2[df2$DNFAgene == m,], # TCGAstudy is one column in df2
+                 TCGAstudy <- reorder(TCGAstudy, log2(RNAseq), median))
+  print(
+    ggplot(mean,
+           aes(x     = TCGAstudy,
+               y     = log2(RNAseq),
+               color = TCGAstudy)) +
+      geom_boxplot(alpha    = .01,
+                   width    = .5,
+                   position = position_dodge(width = .9)) +
+      labs(x = "Tumor types (TCGA)",
+           y = paste0("log2(", DNFA, " RNA counts)")) +
+      theme(axis.title  = element_text(face   = "bold",
+                                       size   = 9,
+                                       color  = "black"),
+            axis.text.x = element_text(size   = 9,
+                                       angle  = 45,
+                                       hjust  = 1, # 1 means right-justified
+                                       face   = "bold",
+                                       color  = "black"),
+            axis.text.y = element_text(size   = 9,
+                                       angle  = 0,
+                                       hjust  = 1, # 1 means right-justified
+                                       face   = "bold",
+                                       color  = "black"),
+            axis.line.x = element_line(color  = "black"),
+            axis.line.y = element_line(color  = "black"),
+            panel.grid  = element_blank(),
+            strip.text  = element_text(face   = "bold",
+                                       size   = 9,
+                                       color  = "black"),
+            legend.position = "none"))
+}
+
+plot.DNFA.pan.tcga("SCD")
+sapply(DNFA.gene, plot.DNFA.pan.tcga)
+
 ##############################################################
 ## plot Proteinarray data from all TCGA cancer study groups ##
 ##############################################################
@@ -542,17 +650,17 @@ names(mutation.list) <- mutation.list
 sapply(mutation.list, plot.km.mut.skcm)
 
 #####################################################################
-##  Kaplan-Meier curve with clinic and DNFA RNASeq data from SKCM  ##
+##  Kaplan-Meier curve with clinic and DNFA RNASeq data from LAML  ##
 #####################################################################
 plot.km.DNFA.skcm <- function(DNFA) {
-  mycancerstudy <- getCancerStudies(mycgds)[182, 1]        # "skcm_tcga"
+  mycancerstudy <- getCancerStudies(mycgds)[84, 1]        # "hnsc_tcga"
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "skcm_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
   skcm.RNAseq.data <- getProfileData(mycgds,
                                      DNFA,
-                                     "skcm_tcga_rna_seq_v2_mrna",
-                                     "skcm_tcga_all")
+                                     "hnsc_tcga_rna_seq_v2_mrna",
+                                     "hnsc_tcga_all")
   skcm.RNAseq.data <- as.data.frame(skcm.RNAseq.data)
   skcm.RNAseq.data$rn <- rownames(skcm.RNAseq.data)
   df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
@@ -581,6 +689,7 @@ plot.km.DNFA.skcm <- function(DNFA) {
             strip.text           = black.bold.12pt,
             legend.text          = black.bold.12pt ,
             legend.title         = black.bold.12pt ,
+            legend.position      = c(1,1),
             legend.justification = c(1,1)))
   # rho = 1 the Gehan-Wilcoxon test
   stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
@@ -835,15 +944,15 @@ plot.km.all.tcga <- function(DNFA) {
   df <- join_all(list(all.tcga.clinic.data[c("OS_MONTHS",
                                              "OS_STATUS",
                                              "case.id")],
-                      all.tcga.DNFA.RNAseq[c("case.id",
+                      all.pan.tcga.DNFA.RNAseq[c("case.id",
                                              "RNAseq",
                                              "TCGAstudy")]),
                  by   = "case.id",
                  type = "full")
   df <- na.omit(df)
   message("clinical and RNAseq data combined")
-  df$Group[df$RNAseq < quantile(df$RNAseq, prob = 0.2)] = "Bottom 20%"
-  df$Group[df$RNAseq > quantile(df$RNAseq, prob = 0.8)] = "Top 20%"
+  df$Group[df$RNAseq < quantile(df$RNAseq, prob = 0.2)] = "Bottom 20%, n = 1931"
+  df$Group[df$RNAseq > quantile(df$RNAseq, prob = 0.8)] = "Top 20%, n = 1931"
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
   #  df <- na.omit(df)
   km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
@@ -862,8 +971,9 @@ plot.km.all.tcga <- function(DNFA) {
             axis.line.y          = element_line(color  = "black"),
             panel.grid           = element_blank(),
             strip.text           = black.bold.12pt,
-            legend.text          = black.bold.12pt ,
-            legend.title         = black.bold.12pt ,
+            legend.text          = black.bold.12pt,
+            legend.title         = black.bold.12pt,
+            legend.position      = c(1,1),
             legend.justification = c(1,1)))
   # rho = 1 the Gehan-Wilcoxon test
   stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
@@ -871,10 +981,6 @@ plot.km.all.tcga <- function(DNFA) {
   print(stats)
 }
 
-<<<<<<< HEAD
-=======
-plot.km.all.tcga("SCD")
-sapply(DNFA.gene, plot.km.all.tcga)
 
-####################################################
->>>>>>> 5d6bf794856d15dc5212fe8fef9330aef9619e25
+plot.km.all.tcga("EIF4EBP1")
+sapply(DNFA.gene, plot.km.all.tcga)
