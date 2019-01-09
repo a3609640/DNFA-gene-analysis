@@ -436,7 +436,7 @@ sapply(mutation.list, plot.km.mut.skcm)
 ##  Kaplan-Meier curve with clinic and DNFA RNASeq data from SKCM  ##
 #####################################################################
 plot.km.DNFA.skcm <- function(DNFA) {
-  mycancerstudy <- getCancerStudies(mycgds)[194, 1]        # "skcm_tcga"
+  mycancerstudy <- getCancerStudies(mycgds)[195, 1]        # "skcm_tcga"
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "skcm_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
