@@ -88,11 +88,12 @@ plot.DNFA.tcga <- function(DNFA){
   df2 <- DNFA.RNAseq.tcga.all(DNFA)
   df2$DNFAgene <- as.factor(df2$DNFAgene)
   df2$TCGAstudy <- as.factor(df2$TCGAstudy)
+  df2 <- na.omit(df2)
   # plot DNFA gene expression across all TCGA groups ##
   m <- paste0(DNFA, ".", DNFA)
   mean <- within(df2[df2$DNFAgene == m,], # TCGAstudy is one column in df2
                  TCGAstudy <- reorder(TCGAstudy, log2(RNAseq), median))
-  print(
+    print(
     ggplot(mean,
            aes(x     = TCGAstudy,
                y     = log2(RNAseq),
@@ -165,7 +166,7 @@ plot.DNFA.tcga <- function(DNFA){
     tcga.pro.geneticprofile[[x]][
       # double backslash \\ suppress the special meaning of ( )
       # in regular expression
-      grep("Protein expression \\(RPPA\\)",
+      grep("Protein expression Z-scores",
            tcga.pro.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
   }
   # test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
@@ -191,11 +192,11 @@ plot.DNFA.tcga <- function(DNFA){
     colnames(df2) <- c("RNAseq", "DNFAgene", "TCGAstudy")
     df2 <- data.frame(df2)
   }
-  df2 <- DNFA.protein.tcga.all(DNFA)
+  df2 <- DNFA.protein.tcga.all("SCD")
   df2$DNFAgene <- as.factor(df2$DNFAgene)
   df2$TCGAstudy <- as.factor(df2$TCGAstudy)
   # plot DNFA gene expression across all TCGA groups ##
-  m <- paste0(DNFA, ".", DNFA)
+  m <- paste0("SCD", ".", "SCD")
   mean <- within(df2[df2$DNFAgene == m,], # TCGAstudy is one column in df2
                  TCGAstudy <- reorder(TCGAstudy, RNAseq, median))
   print(
@@ -207,7 +208,7 @@ plot.DNFA.tcga <- function(DNFA){
                    width    = .5,
                    position = position_dodge(width = .9)) +
       labs(x = "Tumor types (TCGA)",
-           y = paste0("log2(", DNFA, " protein level)")) +
+           y = paste0("log2(", "SCD", " protein level)")) +
       theme(axis.title  = element_text(face   = "bold",
                                        size   = 9,
                                        color  = "black"),
@@ -731,4 +732,3 @@ sapply(DNFA.gene, plot.km.all.tcga)
 
 ####################################################
 
-"EIF4E", "EIF4EBP1", "RPS6KB1"
