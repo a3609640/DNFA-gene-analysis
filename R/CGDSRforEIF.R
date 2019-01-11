@@ -3,6 +3,7 @@
 # install.packages("cgdsr")
 library(car)
 library(cgdsr)
+library(cowplot)
 library(ggfortify)
 library(ggplot2)
 library(grid)
@@ -11,6 +12,7 @@ library(plyr)
 library(reshape2)
 library(stringr)
 library(survival)
+library(survMisc)
 
 # Create CGDS object
 mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
@@ -366,9 +368,9 @@ EIF.RNAseq.data <- getProfileData(mycgds,
 # https://github.com/cBioPortal/cgdsr/issues/2
 getmutations <- function() {
   mutations <- getProfileData(mycgds,
-                              c("PIK3CA","MYC", "CDKN2A", "NOTCH1", "TP53"),
-                              "hnsc_tcga_mutations",
-                              "hnsc_tcga_all")
+                              c("BRAF","MYC", "NRAS", "PTEN", "TP53"),
+                              "skcm_tcga_mutations",
+                              "skcm_tcga_all")
   colnames(mutations) <- paste0(colnames(mutations), '.mutations')
   v <- rownames(mutations)
   # each mutation column contains three types of data:
@@ -588,7 +590,7 @@ sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
 ##  Kaplan-Meier curve with clinic and mutation data from SKCM  ##
 ##################################################################
 plot.km.mut.skcm <- function(ge) {
-  mycancerstudy <- getCancerStudies(mycgds)[194, 1]
+  mycancerstudy <- getCancerStudies(mycgds)[197, 1]
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
@@ -641,7 +643,7 @@ plot.km.mut.skcm <- function(ge) {
 plot.km.mut.skcm("BRAF.mutations")
 mutation.list <- c("BRAF.mutations",
                    "NRAS.mutations",
-                   "AKT1.mutations",
+                   "PTEN.mutations",
                    "TP53.mutations")
 names(mutation.list) <- mutation.list
 sapply(mutation.list, plot.km.mut.skcm)
@@ -650,14 +652,14 @@ sapply(mutation.list, plot.km.mut.skcm)
 ##  Kaplan-Meier curve with clinic and EIF RNASeq data from LAML  ##
 ####################################################################
 plot.km.EIF.skcm <- function(EIF) {
-  mycancerstudy <- getCancerStudies(mycgds)[100, 1]        # "hnsc_tcga"
+  mycancerstudy <- getCancerStudies(mycgds)[197, 1]        # "hnsc_tcga"
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "hnsc_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
   skcm.RNAseq.data <- getProfileData(mycgds,
                                      EIF,
-                                     "kirp_tcga_rna_seq_v2_mrna",
-                                     "kirp_tcga_all")
+                                     "skcm_tcga_rna_seq_v2_mrna",
+                                     "skcm_tcga_all")
   skcm.RNAseq.data <- as.data.frame(skcm.RNAseq.data)
   skcm.RNAseq.data$rn <- rownames(skcm.RNAseq.data)
   df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
@@ -670,6 +672,9 @@ plot.km.EIF.skcm <- function(EIF) {
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
   df <- na.omit(df)
   km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0)
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1) 
+  p.val <- signif(p.val, 3)
   black.bold.12pt <- element_text(face   = "bold",
                                   size   = 12,
                                   colour = "black")
@@ -677,7 +682,10 @@ plot.km.EIF.skcm <- function(EIF) {
     autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
-             main = paste("Kaplan-Meier plot", EIF, "RNA expression in", mycancerstudy)) +
+             main = paste("Kaplan-Meier plot",
+                          EIF,
+                          "mRNA expression in",
+                          mycancerstudy)) +
       theme(axis.title           = black.bold.12pt,
             axis.text            = black.bold.12pt,
             axis.line.x          = element_line(color  = "black"),
@@ -687,17 +695,33 @@ plot.km.EIF.skcm <- function(EIF) {
             legend.text          = black.bold.12pt ,
             legend.title         = black.bold.12pt ,
             legend.position      = c(1,1),
-            legend.justification = c(1,1)))
+            legend.justification = c(1,1)) +
+      guides(fill = FALSE) +
+      scale_color_manual(values = c("red", "blue"), 
+                         name   = paste(EIF, "mRNA expression"),
+                         breaks = c("Bottom 20%", "Top 20%"),
+                         labels = c("Bottom 20%, n = 93",
+                                    "Top 20%, n = 93"))+ 
+      geom_point(size = 0.25) + 
+      annotate("text",
+               x = 300,
+               y = 0.85,
+               label = paste("log-rank test, p.val = ", p.val),
+               size = 4.5,
+               hjust= 1,
+               fontface = "bold"))
   # rho = 1 the Gehan-Wilcoxon test
-  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
   print(EIF)
   print(stats)
+#  fit = survfit(SurvObj ~ df$Group, data = df)
+#  tst <- comp(fit)$tests$lrTests
+#  print(tst)
   }
 
 plot.km.EIF.skcm("EIF4G1")
 sapply(EIF.gene, plot.km.EIF.skcm)
 
-# EIF <- "EIF4G1"
+ EIF <- "EIF4G1"
 ##########################################################################################
 ## Kaplan-Meier curve with clinic and EIF RNAseq data from all TCGA provisional groups ##
 ##########################################################################################
@@ -816,8 +840,7 @@ plot.km.all.tcga <- function(EIF) {
     autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
-             main = paste("Kaplan-Meier plot", EIF, "RNA expression"),
-             xlim = c(0, 250)) +
+             main = paste("Kaplan-Meier plot", EIF, "RNA expression")) +
       theme(axis.title           = black.bold.12pt,
             axis.text            = black.bold.12pt,
             axis.line.x          = element_line(color  = "black"),
