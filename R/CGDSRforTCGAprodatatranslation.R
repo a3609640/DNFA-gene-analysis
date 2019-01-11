@@ -346,18 +346,18 @@ sapply(EIF.gene, plot.EIF.tcga)
 
 
 ##############################################
-## Get EIF gene expression from SKCM group ##
+## Get EIF gene expression from HNSC group ##
 ##############################################
 # skcm_case <- getCaseLists(mycgds, "skcm_tcga")
 # skcm_tcga_all <- getCaseLists(mycgds, "skcm_tcga")[2, 1]
 # Get available genetic profiles
 # SKCMgeneticprofile <- getGeneticProfiles(mycgds, "skcm_tcga")
 EIF.RNAseq.data <- getProfileData(mycgds,
-                                   c("ACACA", "FASN", "SCD", "ACLY", "ACSS2",
-                                     "HMGCS1", "HMGCR", "SREBF1", "SREBF2",
-                                     "MITF", "BRAF", "NRAS", "PTEN"),
-                                   "skcm_tcga_rna_seq_v2_mrna",
-                                   "skcm_tcga_all")
+                                  c("ACACA", "FASN", "SCD", "ACLY", "ACSS2",
+                                    "EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1",
+                                    "PIK3CA","MYC", "CDKN2A", "NOTCH1", "TP53"),
+                                   "hnsc_tcga_rna_seq_v2_mrna",
+                                   "hnsc_tcga_all")
 
 ################################################
 ## Get oncogene mutation data from SKCM group ##
@@ -366,9 +366,9 @@ EIF.RNAseq.data <- getProfileData(mycgds,
 # https://github.com/cBioPortal/cgdsr/issues/2
 getmutations <- function() {
   mutations <- getProfileData(mycgds,
-                              c("BRAF", "NRAS", "AKT", "TP53"),
-                              "skcm_tcga_mutations",
-                              "skcm_tcga_all")
+                              c("PIK3CA","MYC", "CDKN2A", "NOTCH1", "TP53"),
+                              "hnsc_tcga_mutations",
+                              "hnsc_tcga_all")
   colnames(mutations) <- paste0(colnames(mutations), '.mutations')
   v <- rownames(mutations)
   # each mutation column contains three types of data:
@@ -416,7 +416,7 @@ getCNV <- function(x) {
 }
 
 # CNV.data <- getCNV("BRAF")
-CNV.data <- getCNV(c("BRAF", "NRAS", "PTEN"))
+CNV.data <- getCNV(c("MYC", "NRAS", "PTEN"))
 
 ###########################################################################
 ## examine the correlation between mutation status and EIF RNASeq level ##
@@ -456,16 +456,16 @@ plot.mutations.RNAseq <- function(mutations, RNAseq) {
   }
 
 plot.mutations.RNAseq("NRAS.mutations", "SCD")
-sapply(c("BRAF.mutations","NRAS.mutations",
-         "AKT1.mutations", "TP53.mutations"),
+sapply(c("PIK3CA.mutations", "CDKN2A.mutations",
+         "NOTCH1.mutations", "TP53.mutations"),
        function(x) mapply(plot.mutations.RNAseq,
                           x,
-                          c("BRAF", "NRAS", "SCD")))
+                          c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1")))
 # or
-sapply(c("BRAF", "NRAS", "SCD"),
+sapply(c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1"),
        function(y) mapply(plot.mutations.RNAseq,
-                          c("BRAF.mutations", "NRAS.mutations",
-                            "AKT1.mutations", "TP53.mutations"),
+                          c("PIK3CA.mutations", "CDKN2A.mutations",
+                            "NOTCH1.mutations", "TP53.mutations"),
                           y))
 
 #######################################################################
@@ -511,22 +511,18 @@ stats <- function(RNAseq, mutations) {
   }
 
 stats("SCD", "BRAF.mutations")
-sapply(c("SCD", "FASN"),
+sapply(c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1"),
        function(x)
          mapply(stats,
                 x,
-                c("BRAF.mutations",
-                  "NRAS.mutations",
-                  "AKT1.mutations",
-                  "TP53.mutations")))
+                c("PIK3CA.mutations", "CDKN2A.mutations",
+                  "NOTCH1.mutations", "TP53.mutations")))
 # or
-sapply(c("BRAF.mutations",
-         "NRAS.mutations",
-         "AKT1.mutations",
-         "TP53.mutations"),
+sapply(c("PIK3CA.mutations", "CDKN2A.mutations",
+         "NOTCH1.mutations", "TP53.mutations"),
        function(y)
          mapply(stats,
-                c("SCD", "FASN"),
+                c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1"),
                 y))
 
 #############################################################################
@@ -577,9 +573,9 @@ plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
   print(a)
   }
 # use all combinations of geneCNV and RNAseq
-sapply(c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"),
+sapply(c("MYC.CNV","NRAS.CNV","PTEN.CNV"),
        function(x)
-         mapply(plot.CNV.RNAseq, x, c("BRAF", "NRAS", "PTEN", "SCD", "FASN")))
+         mapply(plot.CNV.RNAseq, x, c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1")))
 # or
 sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
        function(y)
@@ -989,6 +985,6 @@ plot.km.all.tcga <- function(EIF) {
 }
 
 
-plot.km.all.tcga("EIF4A1")
+plot.km.all.tcga("EIF4EBP1")
 sapply(EIF.gene, plot.km.all.tcga)
 EIF <- "EIF4EBP1"
