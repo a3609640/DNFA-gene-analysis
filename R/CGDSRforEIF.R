@@ -701,14 +701,14 @@ plot.km.EIF.skcm <- function(EIF) {
                          name   = paste(EIF, "mRNA expression"),
                          breaks = c("Bottom 20%", "Top 20%"),
                          labels = c("Bottom 20%, n = 93",
-                                    "Top 20%, n = 93"))+ 
+                                    "Top 20%, n = 93")) + 
       geom_point(size = 0.25) + 
       annotate("text",
-               x = 300,
-               y = 0.85,
+               x     = 300,
+               y     = 0.85,
                label = paste("log-rank test, p.val = ", p.val),
-               size = 4.5,
-               hjust= 1,
+               size  = 4.5,
+               hjust = 1,
                fontface = "bold"))
   # rho = 1 the Gehan-Wilcoxon test
   print(EIF)
