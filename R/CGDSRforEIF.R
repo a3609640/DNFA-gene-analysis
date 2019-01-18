@@ -131,7 +131,6 @@ plot.EIF.tcga <- function(EIF){
 plot.EIF.tcga("SCD")
 sapply(EIF.gene, plot.EIF.tcga)
 
-
 #############################################################
 ## plot EIF RNASeq data from pan TCGA cancer study groups ##
 #############################################################
@@ -238,6 +237,44 @@ plot.EIF.pan.tcga <- function(EIF){
 
 plot.EIF.pan.tcga("SCD")
 sapply(EIF.gene, plot.EIF.pan.tcga)
+
+##########################################################
+## plot RNAseq data of EIF complex in TCGA study groups ##
+##########################################################
+EIF.RNAseq.data <- getProfileData(mycgds,
+                                  c("EIF4A1","EIF4B","EIF4E",
+                                  "EIF4G1","EIF4EBP1","RPS6KB1","MYC"),
+                                  "laml_tcga_rna_seq_v2_mrna",
+                                  "laml_tcga_all")
+EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
+boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq in laml")
+
+
+EIF.RNAseq.data <- getProfileData(mycgds,
+                                  c("EIF4A1","EIF4B","EIF4E",
+                                  "EIF4G1","EIF4EBP1","RPS6KB1","MYC"),
+                                  "hnsc_tcga_rna_seq_v2_mrna",
+                                  "hnsc_tcga_all")
+EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
+boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in hnsc")
+
+
+EIF.RNAseq.data <- getProfileData(mycgds,
+                                  c("EIF4A1","EIF4B","EIF4E",
+                                    "EIF4G1","EIF4EBP1","RPS6KB1","MYC"),
+                                  "skcm_tcga_rna_seq_v2_mrna",
+                                  "skcm_tcga_all")
+EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
+boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in skcm")
+
+
+
+
+
+
+
+
+
 
 ##############################################################
 ## plot Proteinarray data from all TCGA cancer study groups ##
@@ -346,21 +383,6 @@ plot.EIF.tcga("SCD")
 sapply(EIF.gene, plot.EIF.tcga)
 
 
-
-##############################################
-## Get EIF gene expression from HNSC group ##
-##############################################
-# skcm_case <- getCaseLists(mycgds, "skcm_tcga")
-# skcm_tcga_all <- getCaseLists(mycgds, "skcm_tcga")[2, 1]
-# Get available genetic profiles
-# SKCMgeneticprofile <- getGeneticProfiles(mycgds, "skcm_tcga")
-EIF.RNAseq.data <- getProfileData(mycgds,
-                                  c("ACACA", "FASN", "SCD", "ACLY", "ACSS2",
-                                    "EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1",
-                                    "PIK3CA","MYC", "CDKN2A", "NOTCH1", "TP53"),
-                                   "hnsc_tcga_rna_seq_v2_mrna",
-                                   "hnsc_tcga_all")
-
 ################################################
 ## Get oncogene mutation data from SKCM group ##
 ################################################
@@ -420,9 +442,9 @@ getCNV <- function(x) {
 # CNV.data <- getCNV("BRAF")
 CNV.data <- getCNV(c("MYC", "NRAS", "PTEN"))
 
-###########################################################################
+##########################################################################
 ## examine the correlation between mutation status and EIF RNASeq level ##
-###########################################################################
+##########################################################################
 plot.mutations.RNAseq <- function(mutations, RNAseq) {
   mutations.EIF.RNAseq <- cbind(mutations.data, EIF.RNAseq.data)
   mutations.EIF.RNAseq <- na.omit(mutations.EIF.RNAseq)
@@ -590,7 +612,7 @@ sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
 ##  Kaplan-Meier curve with clinic and mutation data from SKCM  ##
 ##################################################################
 plot.km.mut.skcm <- function(ge) {
-  mycancerstudy <- getCancerStudies(mycgds)[197, 1]
+  mycancerstudy <- getCancerStudies(mycgds)[196, 1]
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
@@ -652,7 +674,7 @@ sapply(mutation.list, plot.km.mut.skcm)
 ##  Kaplan-Meier curve with clinic and EIF RNASeq data from LAML  ##
 ####################################################################
 plot.km.EIF.skcm <- function(EIF) {
-  mycancerstudy <- getCancerStudies(mycgds)[197, 1]        # "hnsc_tcga"
+  mycancerstudy <- getCancerStudies(mycgds)[196, 1]        # "hnsc_tcga"
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "hnsc_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
@@ -673,7 +695,7 @@ plot.km.EIF.skcm <- function(EIF) {
   df <- na.omit(df)
   km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
   stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0)
-  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1) 
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
   p.val <- signif(p.val, 3)
   black.bold.12pt <- element_text(face   = "bold",
                                   size   = 12,
@@ -697,12 +719,12 @@ plot.km.EIF.skcm <- function(EIF) {
             legend.position      = c(1,1),
             legend.justification = c(1,1)) +
       guides(fill = FALSE) +
-      scale_color_manual(values = c("red", "blue"), 
+      scale_color_manual(values = c("red", "blue"),
                          name   = paste(EIF, "mRNA expression"),
                          breaks = c("Bottom 20%", "Top 20%"),
                          labels = c("Bottom 20%, n = 93",
-                                    "Top 20%, n = 93")) + 
-      geom_point(size = 0.25) + 
+                                    "Top 20%, n = 93")) +
+      geom_point(size = 0.25) +
       annotate("text",
                x     = 300,
                y     = 0.85,
@@ -721,10 +743,11 @@ plot.km.EIF.skcm <- function(EIF) {
 plot.km.EIF.skcm("EIF4G1")
 sapply(EIF.gene, plot.km.EIF.skcm)
 
- EIF <- "EIF4G1"
-##########################################################################################
+EIF <- "EIF4G1"
+
+#########################################################################################
 ## Kaplan-Meier curve with clinic and EIF RNAseq data from all TCGA provisional groups ##
-##########################################################################################
+#########################################################################################
 plot.km.all.tcga <- function(EIF) {
 #  mycgds <- CGDS("http://www.cbioportal.org/")
 #  test(mycgds)
@@ -878,7 +901,7 @@ plot.km.all.tcga <- function(EIF) {
   pan.tcga.geneticprofile <- lapply(pan.tcga.study.list,
                                     geneticprofile)
   pan.caselist.RNAseq <- function(x) {
-    pan.tcga.caselist[[x]][grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna", 
+    pan.tcga.caselist[[x]][grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
                                 pan.tcga.caselist[[x]]$case_list_id), ][1, 1]
   } # pancancer group does not contain OS data
   pan.geneticprofile.RNAseq <- function(x) {
