@@ -269,11 +269,41 @@ boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in skcm")
 
 
 
+##########################################################
+tcga.pro.studies <- getCancerStudies(mycgds)[
+  grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
+tcga.study.list <- tcga.pro.studies$cancer_study_id
+names(tcga.study.list) <- tcga.study.list
+caselist <- function(x) getCaseLists(mycgds, x)
+geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
+tcga.pro.caselist <- lapply(tcga.study.list, caselist)
+tcga.pro.geneticprofile <- lapply(tcga.study.list, geneticprofile)
+caselist.RNAseq <- function(x) {
+  tcga.pro.caselist[[x]][
+    grep("tcga_rna_seq_v2_mrna",
+         tcga.pro.caselist[[x]]$case_list_id), ][1, 1]
+  }
+geneticprofile.RNAseq <- function(x) {
+  tcga.pro.geneticprofile[[x]][
+    grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
+         tcga.pro.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
+  }
+tcga.profiledata.RNAseq <- function(genename,
+                                    geneticprofile,
+                                    caselist) {
+  getProfileData(mycgds,
+                 genename,
+                 geneticprofile,
+                 caselist)
+  }
+EIF.tcga.RNAseq <- function(x, y) {
+  tcga.profiledata.RNAseq(x,
+                          geneticprofile.RNAseq(y),
+                          caselist.RNAseq(y))
+  }
 
 
-
-
-
+EIF.gene
 
 
 ##############################################################
