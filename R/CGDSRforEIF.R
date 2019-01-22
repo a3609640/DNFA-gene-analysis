@@ -268,7 +268,13 @@ EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
 boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in skcm")
 
 
-
+EIF.RNAseq.data <- getProfileData(mycgds,
+                                  c("EIF4A1","EIF4B","EIF4E",
+                                    "EIF4G1","EIF4EBP1","RPS6KB1","MYC"),
+                                  "dlbc_tcga_rna_seq_v2_mrna",
+                                  "dlbc_tcga_all")
+EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
+boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in dlbc")
 ##########################################################
 tcga.pro.studies <- getCancerStudies(mycgds)[
   grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]

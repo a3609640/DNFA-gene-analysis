@@ -10,8 +10,8 @@ library(ggplot2)
     "DNFA_generatedDataRoot",
     # unset = "/usr/local/DNFA-genfiles/data"
     unset = file.path(Sys.getenv("HOME"), "Downloads")
-    ))
-}
+  ))
+  }
 
 # Returns the fully-qualified local filename for GTEx data.  If the
 # file cannot be found at an expected location, fetches the data and
@@ -128,3 +128,58 @@ doGTEX <- function() {
 }
 
 doGTEX()
+
+
+plotGTEX <- function(x) {
+  gene_rpkm <- .get_gene_rpkm()
+  Annotations <- .get_annotations()
+  plot <- .plot_goi(gene_rpkm, Annotations, goi = x)
+  print(plot)
+  }
+
+EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
+lapply(EIF.gene, plotGTEX) # lapply runs extremely slow.
+
+doGTEX <- function() {
+  gene_rpkm <- .get_gene_rpkm()
+  Annotations <- .get_annotations()
+  plot1 <- .plot_goi(gene_rpkm, Annotations, goi = "EIF4A1")
+  plot2 <- .plot_goi(gene_rpkm, Annotations, goi = "EIF4E")
+  plot3 <- .plot_goi(gene_rpkm, Annotations, goi = "EIF4G1")
+  plot4 <- .plot_goi(gene_rpkm, Annotations, goi = "EIF4EBP1")
+  plot5 <- .plot_goi(gene_rpkm, Annotations, goi = "RPS6KB1")
+  plot6 <- .plot_goi(gene_rpkm, Annotations, goi = "MYC")
+  print(plot1)
+  print(plot2)
+  print(plot3)
+  print(plot4)
+  print(plot5)
+  print(plot6)
+  }
+
+doGTEX()
+
+## use %in% instead of == for subsetting rows!!
+
+# EIF <- gene[gene$Description == "EIF4A1",]
+
+EIF <- gene[gene$Description %in% c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC"),]
+EIF <- EIF[, -1]
+n <- EIF$Description
+## go is generated as a matrix, and it has to be converted into data frame.
+EIF <- as.data.frame(t(EIF[,-1]))
+colnames(EIF) <- n
+setDT(EIF, keep.rownames = TRUE)[]
+# colnames(EIF) <- c("SAMPID", "goi")
+ colnames(EIF) <- c("SAMPID", EIF.gene)
+## one line option is: df$names<-rownames(df)
+EIFexpression <- merge(EIF, Annotations, by = 'SAMPID')
+## somehow the numbers of SREBF1 columns are all changed into character
+EIFexpression$SMTSD <- as.factor(EIFexpression$SMTSD)
+
+sapply(EIFexpression, class)
+EIFexpression <- as.data.frame(EIFexpression[,-1])
+m <- "Pancreas"
+Pancreas <- EIFexpression[EIFexpression$SMTSD == m,]
+Pancreas <- Pancreas[,-7]
+boxplot(log2(Pancreas), main="EIF RNAseq data in Pancreas")
