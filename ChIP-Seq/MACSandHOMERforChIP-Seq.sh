@@ -86,18 +86,18 @@ md5sum ENCFF623PVZ.bam
 ln -s ENCFF623PVZ.bam K562-SREBP1-2.bam
 
 ################################################################################
-# Download Control IgG pulldown file
+# Download Control input pulldown file
 wget -c https://www.encodeproject.org/files/ENCFF156FED/@@download/ENCFF156FED.bam
 # quality check
 md5sum ENCFF156FED.bam
 # ee07408998c288c2b9b087589207caff  ENCFF156FED.bam
-cp ENCFF156FED.bam K562-IgG-1.bam
+cp ENCFF156FED.bam K562-Input-1.bam
 
 wget -c https://www.encodeproject.org/files/ENCFF577FNG/@@download/ENCFF577FNG.bam
 # quality check
 md5sum ENCFF577FNG.bam
 # 8e1a12112216401ff4c7aaaa8314e6a1  ENCFF577FNG.bam
-cp ENCFF577FNG.bam K562-IgG-2.bam
+cp ENCFF577FNG.bam K562-Input-2.bam
 
 md5sum K562-SREBP1-1.bam K562-SREBP1-2.bam K562-Input-1.bam K562-Input-2.bam
 # d02ed64f85f40829fcedc97b5e649267  K562-SREBP1-1.bam

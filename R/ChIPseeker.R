@@ -27,15 +27,15 @@ print(files)
 #############################################################
 #####  Profile of ChIP peaks binding to TSS regions  ########
 #############################################################
-tagMatrixList <- lapply(files, getTagMatrix, windows=promoter)
-plotAvgProf(tagMatrixList, xlim=c(-3000, 3000))
-tagHeatmap(tagMatrixList, xlim=c(-3000, 3000), color=NULL)
+tagMatrixList <- lapply(files, getTagMatrix, windows = promoter)
+plotAvgProf(tagMatrixList, xlim = c(-3000, 3000))
+tagHeatmap(tagMatrixList, xlim = c(-3000, 3000), color = NULL)
 
 ###########################################
 #### ChIP peak annotation comparision #####
 ###########################################
-peakAnnoList <- lapply(files, annotatePeak, TxDb=tx38,
-                       tssRegion=c(-3000, 3000), verbose=FALSE)
+peakAnnoList <- lapply(files, annotatePeak, TxDb = tx38,
+                       tssRegion = c(-3000, 3000), verbose = FALSE)
 plotAnnoBar(peakAnnoList)
 plotDistToTSS(peakAnnoList)
 
@@ -44,30 +44,30 @@ plotDistToTSS(peakAnnoList)
 ###########################################
 genes = lapply(peakAnnoList, function(i) as.data.frame(i)$geneId)
 names(genes) = sub("_", "\n", names(genes))
-compREA <- compareCluster(geneCluster   = genes,
+compREA <- compareCluster(geneCluster    = genes,
                            fun           = "enrichPathway",
                            pvalueCutoff  = 0.05,
                            pAdjustMethod = "BH")
-plot(compREA, showCategory = 20, title = "Pathway Enrichment Analysis")
-compKEGG <- compareCluster(genes, 
-                           fun="enrichKEGG",
-                           organism="hsa", 
-                           pvalueCutoff=0.05)
+plot(compREA,  showCategory = 20, title  = "Pathway Enrichment Analysis")
+compKEGG <- compareCluster(genes,
+                           fun          = "enrichKEGG",
+                           organism     = "hsa",
+                           pvalueCutoff = 0.05)
 plot(compKEGG, showCategory = 20, title = "Pathway Enrichment Analysis")
 
 CompareGO_BP <- compareCluster(genes,
-                               fun="enrichGO", 
-                               pvalueCutoff=0.05, 
-                               pAdjustMethod="BH", 
-                               OrgDb=org.Hs.eg.db,
-                               ont="BP",
-                               readable=T)
+                               fun           = "enrichGO",
+                               pvalueCutoff  = 0.05,
+                               pAdjustMethod = "BH",
+                               OrgDb         = org.Hs.eg.db,
+                               ont           = "BP",
+                               readable      = T)
 
 dotplot(CompareGO_BP, showCategory=30, title="GO - Biological Process")
 
 
 vennplot(genes)
-shuffle(p, TxDb=tx38)
+shuffle(p, TxDb = tx38)
 enrichPeakOverlap(queryPeak     = files[[1]],
                   targetPeak    = unlist(files[2:4]),
                   TxDb          = tx38,
@@ -83,12 +83,16 @@ enrichPeakOverlap(queryPeak     = files[[1]],
                   nShuffle      = 50,
                   chainFile     = NULL,
                   verbose       = FALSE)
-enrichAnnoOverlap(files[[1]], unlist(files[1:3]), TxDb = NULL, pAdjustMethod = "BH",
-                  chainFile = NULL, distanceToTSS_cutoff = NULL)
+enrichAnnoOverlap(files[[1]],
+                  unlist(files[1:3]),
+                  TxDb                 = NULL,
+                  pAdjustMethod        = "BH",
+                  chainFile            = NULL,
+                  distanceToTSS_cutoff = NULL)
 files <- getSampleFiles()
 
 data(gcSample)
-res <- compareCluster(gcSample, fun="enrichPathway")
+res <- compareCluster(gcSample, fun = "enrichPathway")
 plot(res)
 
 }

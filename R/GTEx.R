@@ -51,7 +51,8 @@ library(ggplot2)
 
 # Looks like this site might be a useful pointer towards a source for the data:
 # https://github.com/joed3/GTExV6PRareVariation
-## showProgress = T is necessary, otherwise "Error: isLOGICAL(showProgress) is not TRUE"
+## showProgress = T is necessary, 
+## otherwise "Error: isLOGICAL(showProgress) is not TRUE"
 .get_gene_rpkm <- function() {
   gene <- data.table::fread(.get_gtex_data_filename(), header = T, showProgress = T)
   return(gene)
@@ -67,40 +68,49 @@ library(ggplot2)
 .plot_goi <- function(gene, Annotations, goi) {
   go <- gene[gene$Description == goi,]
   go <- t(go)
-  ## SREBP1 is generated as a matrix somehow, and it needs to be converted into data frame
+  ## go is generated as a matrix, and it has to be converted into data frame.
   go <- data.frame(go)
   setDT(go, keep.rownames = TRUE)[]
   colnames(go) <- c("SAMPID", "goi")
-  #A one line option is: df$names<-rownames(df)
+  ## one line option is: df$names<-rownames(df)
   goexpression <- merge(go, Annotations, by = 'SAMPID')
-  ## somehow the numbers of SREBF1 columns are all changed into character 
+  ## somehow the numbers of SREBF1 columns are all changed into character
   goexpression$SMTSD <- as.factor(goexpression$SMTSD)
-  #  In particular, as.numeric applied to a factor is meaningless, and may happen by implicit coercion. 
-  #  To transform a factor f to approximately its original numeric values, as.numeric(levels(f))[f] is recommended. 
+  #  In particular, as.numeric applied to a factor is meaningless,
+  #  and may happen by implicit coercion.
+  #  To transform a factor f to approximately its original numeric values,
+  #  as.numeric(levels(f))[f] is recommended.
   goexpression$goi <- as.numeric(levels(goexpression$goi))[goexpression$goi]
   goexpression <- as.data.frame(goexpression)
   ## draw boxplot for FASN expression across different tissues
   mean <- within(goexpression, SMTSD <- reorder(SMTSD, log2(goi), median))
-  black.bold.12pt <- ggplot2::element_text(face = "bold", size = 12, colour = "black")
-  genePlot <- ggplot(mean, aes(x = SMTSD, y = log2(goi))) + geom_boxplot() + theme_bw() + 
-    labs(x = "Tissue types (GTEx)",
-         y = paste("log2(", goi, "RNA counts)")) +
-    theme(axis.title = black.bold.12pt,
-          axis.text = ggplot2::element_text(size = 12, angle = 90, hjust = 1, face = "bold", color = "black"),
-          axis.line.x = ggplot2::element_line(color = "black"),
-          axis.line.y = ggplot2::element_line(color = "black"),
-          panel.grid = ggplot2::element_blank(),
-          strip.text = black.bold.12pt,
-          legend.text = black.bold.12pt,
-          legend.title = black.bold.12pt,
-          legend.justification = c(1,1)) + guides(fill = guide_legend(title = NULL))
-  print(genePlot)
+  black.bold.12pt <- ggplot2::element_text(face   = "bold",
+                                           size   = 12,
+                                           colour = "black")
+  genePlot <- ggplot(mean, aes(x = SMTSD, y = log2(goi))) +
+   geom_boxplot() + theme_bw() +
+   labs(x = "Tissue types (GTEx)",
+        y = paste("log2(", goi, "RNA counts)")) +
+        theme(axis.title           = black.bold.12pt,
+              axis.text            = ggplot2::element_text(size  = 12,
+                                                           angle = 90,
+                                                           hjust = 1,
+                                                           face  = "bold",
+                                                           color = "black"),
+              axis.line.x          = ggplot2::element_line(color = "black"),
+              axis.line.y          = ggplot2::element_line(color = "black"),
+              panel.grid           = ggplot2::element_blank(),
+              strip.text           = black.bold.12pt,
+              legend.text          = black.bold.12pt,
+              legend.title         = black.bold.12pt,
+              legend.justification = c(1,1)) +
+              guides(fill = guide_legend(title = NULL))
+              print(genePlot)
 }
 
 doGTEX <- function() {
   gene_rpkm <- .get_gene_rpkm()
   Annotations <- .get_annotations()
-
   plot1 <- .plot_goi(gene_rpkm, Annotations, goi = "FASN")
   plot2 <- .plot_goi(gene_rpkm, Annotations, goi = "SCD")
   plot3 <- .plot_goi(gene_rpkm, Annotations, goi = "SREBF1")

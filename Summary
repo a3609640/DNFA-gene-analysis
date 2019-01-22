@@ -3,9 +3,10 @@ This github repository was initially generated to support the academic publicati
 There are several major pipelines used in the manuscript.
 
 1.	DNFA gene expression analysis with TCGA and GTEx databases.
-    Including the R script:   TCGA.R
-                              GTEx.R
-                              Xena.R
+    Including the R script:   CGDSR.R (preferred script for TCGA data analysis)
+                              TCGA.R
+                              GTEx.R (preferred script for GTEx data analysis)
+                              Xena.R (script to analyze both TCGA and GTEx data)
 
 2.	DNFA gene expression analysis on single cell RNA-seq dataset
     Including the R script:   scRNA-Seq.R
