@@ -5,46 +5,48 @@ library(ggplot2)
 # Return the value of the DNFA_generatedDataRoot environment variable.  If
 # that variable isn't set, return "/usr/local/DNFA-genfiles/data".
 .getDataDir3 <- function() {
-  return(Sys.getenv("DNFA_generatedDataRoot", unset = "/usr/local/DNFA-genfiles/data"))
+  # Sys.setenv("HOME" = "C:/Users/dlrox")  # TODO(dlroxe): windows glitch
+  return(Sys.getenv(
+    "DNFA_generatedDataRoot",
+    # unset = "/usr/local/DNFA-genfiles/data"
+    unset = file.path(Sys.getenv("HOME"), "Downloads")
+    ))
 }
 
-# In case of difficulty coordinating with Makefile output, this function
-# can be adjusted to return some other string, e.g. return("~/foo.txt.gz").
-# In theory, we could return a URL to a .gz file here as well, but then it
-# would be difficult to ensure that the file remains available locally for
-# repeated invocations.  It should be possible to execute this program
-# many times after downloading the file only once.  A possible alternative
-# is to check the existence of the local file, then resort to a URL
-# if the local file is missing.
+# Returns the fully-qualified local filename for GTEx data.  If the
+# file cannot be found at an expected location, fetches the data and
+# stores it there.  (In theory the Makefile should download and store
+# the file before this script is run; but perhaps it makes more sense
+# to take that responsibility away from the Makefil and so avoid any
+# difficulty coordinating between its output and this script's input.)
 .get_gtex_data_filename <- function() {
   local_file = file.path(
     .getDataDir3(),
-    "r-extdata",
+    # "r-extdata",  # TODO(dlroxe): probably, stop using r-extdata in Makefile
     "GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz")
-
-  if (file.exists(local_file)) {
-    return(local_file)
+  
+  if (!file.exists(local_file)) {
+    download.file(
+      url = "http://storage.googleapis.com/gtex_analysis_v6p/rna_seq_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz",
+      destfile = local_file)
   }
-
-  # TODO(dlroxe): fread() supposedly supports URLs, but this seems not to work;
-  # for now it's best if the file exists locally (because it was fetched by the
-  # Makefile).
-  return("http://storage.googleapis.com/gtex_analysis_v6p/rna_seq_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz")
+  
+  return(local_file)
 }
 
 .get_gtex_annotations_filename <- function() {
   local_file = file.path(
     .getDataDir3(),
-    "r-extdata",
+    # "r-extdata",  # TODO(dlroxe): probably, stop using r-extdata in Makefile
     "GTEx_Data_V6_Annotations_SampleAttributesDS.txt")
-  if (file.exists(local_file)) {
-    return(local_file)
-  }
 
-  # TODO(dlroxe): fread() supposedly supports URLs, but this seems not to work;
-  # for now it's best if the file exists locally (because it was fetched by the
-  # Makefile).
-  return("http://storage.googleapis.com/gtex_analysis_v6p/annotations/GTEx_Data_V6_Annotations_SampleAttributesDS.txt")
+  if (!file.exists(local_file)) {
+    download.file(
+      url = "http://storage.googleapis.com/gtex_analysis_v6p/annotations/GTEx_Data_V6_Annotations_SampleAttributesDS.txt",
+      destfile = local_file)
+  }
+  
+  return(local_file)
 }
 
 # Looks like this site might be a useful pointer towards a source for the data:
