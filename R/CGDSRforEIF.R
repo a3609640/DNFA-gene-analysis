@@ -275,6 +275,14 @@ EIF.RNAseq.data <- getProfileData(mycgds,
                                   "dlbc_tcga_all")
 EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
 boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in dlbc")
+
+EIF.RNAseq.data <- getProfileData(mycgds,
+                                  c("EIF4A1","EIF4B","EIF4E",
+                                    "EIF4G1","EIF4EBP1","RPS6KB1","MYC"),
+                                  "esca_tcga_rna_seq_v2_mrna",
+                                  "esca_tcga_all")
+EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
+boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in Esophageal cancer")
 ##########################################################
 tcga.pro.studies <- getCancerStudies(mycgds)[
   grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
@@ -710,14 +718,14 @@ sapply(mutation.list, plot.km.mut.skcm)
 ##  Kaplan-Meier curve with clinic and EIF RNASeq data from LAML  ##
 ####################################################################
 plot.km.EIF.skcm <- function(EIF) {
-  mycancerstudy <- getCancerStudies(mycgds)[196, 1]        # "hnsc_tcga"
+  mycancerstudy <- getCancerStudies(mycgds)[66, 1]        # "esca_tcga"
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "hnsc_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
   skcm.RNAseq.data <- getProfileData(mycgds,
                                      EIF,
-                                     "skcm_tcga_rna_seq_v2_mrna",
-                                     "skcm_tcga_all")
+                                     "esca_tcga_rna_seq_v2_mrna",
+                                     "esca_tcga_all")
   skcm.RNAseq.data <- as.data.frame(skcm.RNAseq.data)
   skcm.RNAseq.data$rn <- rownames(skcm.RNAseq.data)
   df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],

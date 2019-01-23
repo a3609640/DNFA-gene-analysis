@@ -160,12 +160,14 @@ doGTEX <- function() {
 doGTEX()
 
 
+##################################################################
+### TO DO: organize the following scripts , (they worked)
 gene <- data.table::fread(.get_gtex_data_filename(), header = T, showProgress = T)
 Annotations <- data.table::fread(
   .get_gtex_annotations_filename(), header = T, showProgress = T)
 Annotations <- Annotations[,c(1,7)]
 ## use %in% instead of == for subsetting rows!!
-EIF <- gene[gene$Description %in% c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC"),]
+EIF <- gene[gene$Description %in% c("EIF4A1","EIF4B","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC"),]
 EIF <- EIF[, -1]
 n <- EIF$Description
 ## go is generated as a matrix, and it has to be converted into data frame.
@@ -173,7 +175,7 @@ EIF <- as.data.frame(t(EIF[,-1]))
 colnames(EIF) <- n
 setDT(EIF, keep.rownames = TRUE)[]
 # colnames(EIF) <- c("SAMPID", "goi")
-EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
+EIF.gene <- c("EIF4A1","EIF4B","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
 colnames(EIF) <- c("SAMPID", EIF.gene)
 ## one line option is: df$names<-rownames(df)
 EIFexpression <- merge(EIF, Annotations, by = 'SAMPID')
@@ -182,10 +184,25 @@ EIFexpression$SMTSD <- as.factor(EIFexpression$SMTSD)
 
 sapply(EIFexpression, class)
 EIFexpression <- as.data.frame(EIFexpression[,-1])
-m <- "Muscle - Skeletal"
-Pancreas <- EIFexpression[EIFexpression$SMTSD == m,]
-Pancreas <- Pancreas[,-7]
-boxplot(log2(Pancreas), main="EIF RNAseq data in Muscle - Skeletal")
+tissues <- levels(EIFexpression$SMTSD)
+class(tissues)
+m <- "Whole Blood"
+
+plotEIFtissue <- function (m) {
+  tissue <- EIFexpression[EIFexpression$SMTSD == m,]
+  tissue$SMTSD <- NULL
+  boxplot(log2(tissue), main= paste0("EIF RNAseq data in ",m))
+}
+plotEIFtissue ("Whole Blood")
+sapply(tissues, plotEIFtissue)
+
+alltissues <- EIFexpression
+alltissues$SMTSD <- NULL
+boxplot(log2(alltissues), main= paste0("EIF RNAseq data in all healthy tissues"))
+
+
+
+
 
 longformat <- melt(EIFexpression)
 head(longformat)
@@ -193,3 +210,39 @@ library(ggplot2)
 plotEIF <- ggplot(longformat, aes(x = variable, y = value, group = variable)) + 
   geom_boxplot(aes(fill = variable)) + scale_y_continuous(trans='log2') + facet_wrap(~ SMTSD)
 plotEIF
+
+ggplot(longformat, aes(x = log2(value), color=variable)) +
+  geom_density(alpha = 0.2)
+
+
+EIFscore <- EIFexpression
+EIFscore$EIF4G1score <- EIFexpression$EIF4G1/EIFexpression$EIF4E
+EIFscore$EIF4EBP1score <- EIFexpression$EIF4EBP1/EIFexpression$EIF4E
+EIFscore$RPS6KB1score <- EIFexpression$RPS6KB1/EIFexpression$EIF4E
+# EIFscore <- EIFscore [, 8:11]
+plotEIFscore <- function (m) {
+  tissue <- EIFscore[EIFscore$SMTSD == m,]
+  tissue$SMTSD <- NULL
+  boxplot(log2(tissue), main= paste0("EIF RNAseq data in ",m))
+}
+plotEIFscore ("Muscle - Skeletal")
+sapply(tissues, plotEIFscore)
+
+
+alltissuescore <- EIFscore
+alltissuescore$SMTSD <- NULL
+boxplot(log2(alltissuescore[, c("EIF4G1score", "EIF4EBP1score")]), 
+        main= paste0("EIF RNAseq data in all healthy tissues"))
+
+
+
+
+scatterplot(log2(EIF4E) ~ log2(EIF4G1score) | SMTSD, data=EIFscore,
+            xlab="Weight of Car", ylab="Miles Per Gallon", legend.plot = FALSE, 
+            main="Enhanced Scatter Plot") 
+
+ggplot(EIFscore, aes(log2(EIF4G1), log2(EIF4EBP1)))+
+  geom_point()+
+  facet_wrap(~SMTSD)
+
+  
