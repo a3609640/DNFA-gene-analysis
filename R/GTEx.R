@@ -159,10 +159,12 @@ doGTEX <- function() {
 
 doGTEX()
 
+
+gene <- data.table::fread(.get_gtex_data_filename(), header = T, showProgress = T)
+Annotations <- data.table::fread(
+  .get_gtex_annotations_filename(), header = T, showProgress = T)
+Annotations <- Annotations[,c(1,7)]
 ## use %in% instead of == for subsetting rows!!
-
-# EIF <- gene[gene$Description == "EIF4A1",]
-
 EIF <- gene[gene$Description %in% c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC"),]
 EIF <- EIF[, -1]
 n <- EIF$Description
@@ -171,7 +173,8 @@ EIF <- as.data.frame(t(EIF[,-1]))
 colnames(EIF) <- n
 setDT(EIF, keep.rownames = TRUE)[]
 # colnames(EIF) <- c("SAMPID", "goi")
- colnames(EIF) <- c("SAMPID", EIF.gene)
+EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
+colnames(EIF) <- c("SAMPID", EIF.gene)
 ## one line option is: df$names<-rownames(df)
 EIFexpression <- merge(EIF, Annotations, by = 'SAMPID')
 ## somehow the numbers of SREBF1 columns are all changed into character
@@ -179,7 +182,14 @@ EIFexpression$SMTSD <- as.factor(EIFexpression$SMTSD)
 
 sapply(EIFexpression, class)
 EIFexpression <- as.data.frame(EIFexpression[,-1])
-m <- "Pancreas"
+m <- "Muscle - Skeletal"
 Pancreas <- EIFexpression[EIFexpression$SMTSD == m,]
 Pancreas <- Pancreas[,-7]
-boxplot(log2(Pancreas), main="EIF RNAseq data in Pancreas")
+boxplot(log2(Pancreas), main="EIF RNAseq data in Muscle - Skeletal")
+
+longformat <- melt(EIFexpression)
+head(longformat)
+library(ggplot2)
+plotEIF <- ggplot(longformat, aes(x = variable, y = value, group = variable)) + 
+  geom_boxplot(aes(fill = variable)) + scale_y_continuous(trans='log2') + facet_wrap(~ SMTSD)
+plotEIF
