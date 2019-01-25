@@ -1,5 +1,6 @@
 library(data.table)
 library(ggplot2)
+library(gridExtra)
 
 # TODO(dlroxe): unify this with identical function in data prep .R file.
 # Return the value of the DNFA_generatedDataRoot environment variable.  If
@@ -162,6 +163,9 @@ doGTEX()
 
 ##################################################################
 ### TO DO: organize the following scripts , (they worked)
+
+
+
 gene <- data.table::fread(.get_gtex_data_filename(), header = T, showProgress = T)
 Annotations <- data.table::fread(
   .get_gtex_annotations_filename(), header = T, showProgress = T)
@@ -181,68 +185,100 @@ colnames(EIF) <- c("SAMPID", EIF.gene)
 EIFexpression <- merge(EIF, Annotations, by = 'SAMPID')
 ## somehow the numbers of SREBF1 columns are all changed into character
 EIFexpression$SMTSD <- as.factor(EIFexpression$SMTSD)
-
 sapply(EIFexpression, class)
 EIFexpression <- as.data.frame(EIFexpression[,-1])
 tissues <- levels(EIFexpression$SMTSD)
 class(tissues)
-m <- "Whole Blood"
 
-plotEIFtissue <- function (m) {
-  tissue <- EIFexpression[EIFexpression$SMTSD == m,]
-  tissue$SMTSD <- NULL
-  boxplot(log2(tissue), main= paste0("EIF RNAseq data in ",m))
-}
-plotEIFtissue ("Whole Blood")
-sapply(tissues, plotEIFtissue)
-
-alltissues <- EIFexpression
-alltissues$SMTSD <- NULL
-boxplot(log2(alltissues), main= paste0("EIF RNAseq data in all healthy tissues"))
-
-
-
-
-
-longformat <- melt(EIFexpression)
-head(longformat)
-library(ggplot2)
-plotEIF <- ggplot(longformat, aes(x = variable, y = value, group = variable)) + 
-  geom_boxplot(aes(fill = variable)) + scale_y_continuous(trans='log2') + facet_wrap(~ SMTSD)
-plotEIF
-
-ggplot(longformat, aes(x = log2(value), color=variable)) +
-  geom_density(alpha = 0.2)
-
-
+# rm(EIFscore)
 EIFscore <- EIFexpression
+EIFscore$EIF4Escore <- EIFexpression$EIF4E/EIFexpression$EIF4E
 EIFscore$EIF4G1score <- EIFexpression$EIF4G1/EIFexpression$EIF4E
 EIFscore$EIF4EBP1score <- EIFexpression$EIF4EBP1/EIFexpression$EIF4E
 EIFscore$RPS6KB1score <- EIFexpression$RPS6KB1/EIFexpression$EIF4E
-# EIFscore <- EIFscore [, 8:11]
+EIFscore <- EIFscore [, 8:12]
+
+
+## TO do: divide different tissues into groups by comparing means of 
+## EIF4Gscore to EIF4EBP1score
+
 plotEIFscore <- function (m) {
-  tissue <- EIFscore[EIFscore$SMTSD == m,]
-  tissue$SMTSD <- NULL
-  boxplot(log2(tissue), main= paste0("EIF RNAseq data in ",m))
+  EIFexpression <- EIFexpression[EIFexpression$SMTSD == m,]
+  EIFscore <- EIFscore[EIFscore$SMTSD == m,]
+  medianEIF4G1score <- median(EIFscore$EIF4G1score)
+  medianEIF4EBP1score <- median(EIFscore$EIF4EBP1score)
+  # tissue$SMTSD <- NULL
+  if (medianEIF4G1score < medianEIF4EBP1score )
+  {par(mfrow=c(1,2))
+   boxplot(log2(EIFexpression[, c("EIF4E", "EIF4G1", "EIF4EBP1", "RPS6KB1")]), 
+          main= paste0("EIF RNAseq counts in ",m),
+          las = 2)
+   boxplot(log2(EIFscore[, c("EIF4Escore", "EIF4G1score", "EIF4EBP1score", "RPS6KB1score")]), 
+          main= paste0("EIF scores in ",m),
+          las = 2)
+   print(paste("EIF is inhibited in", m))}
+  else {print(paste("EIF is activated in", m))}
 }
 plotEIFscore ("Muscle - Skeletal")
 sapply(tissues, plotEIFscore)
 
+m <- "Muscle - Skeletal"
 
-alltissuescore <- EIFscore
-alltissuescore$SMTSD <- NULL
-boxplot(log2(alltissuescore[, c("EIF4G1score", "EIF4EBP1score")]), 
-        main= paste0("EIF RNAseq data in all healthy tissues"))
+RNAcounts <- melt(EIFexpression)
+EIFScore <- melt(EIFscore)
+names(RNAcounts)
+names(EIFScore)
+
+plotEIF <-  function (x) {
+  name <- deparse(substitute(x))
+  ggplot(x,
+         aes(x = variable,
+             y = log2(value))) +
+    geom_boxplot(alpha    = .01, 
+                 size     = .75,
+                 width    = .75,
+                 position = position_dodge(width = .9)) +
+    labs(title = paste0(name," in all healthy tissues, n = 8555"),
+         x     = "EIF complex components",
+         y     = paste0("log2(", name, ")")) +
+    theme_bw() +
+    theme(plot.title  = element_text(color  = "black", 
+                                     face   = "bold",
+                                     family = "Tahoma", 
+                                     size   = 12),
+          axis.title  = element_text(color  = "black", 
+                                     face   = "bold",
+                                     family = "Tahoma", 
+                                     size   = 12),
+          axis.text.x = element_text(color  = "black",
+                                     face   = "bold",
+                                     family = "Tahoma", 
+                                     size   = 12, 
+                                     angle  = 45,
+                                     hjust  = 1), # 0.5 means middle-justified
+          axis.text.y = element_text(color  = "black",
+                                     face   = "bold",
+                                     family = "Tahoma", 
+                                     size   = 12,  
+                                     angle  = 0,
+                                     hjust  = 1),  # 1 means right-justified
+          axis.line.x = element_line(color  = "black"),
+          axis.line.y = element_line(color  = "black"),
+          panel.grid  = element_blank(),
+          strip.text  = element_text(color  = "black", 
+                                     face   = "bold",
+                                     family = "Tahoma", 
+                                     size   = 12),
+          legend.position = "none")}
+
+plotEIF(RNAcounts)  
+plotEIF(EIFScore)  
+grid.arrange(plotEIF(RNAcounts), plotEIF(EIFScore), ncol=2)
 
 
 
 
-scatterplot(log2(EIF4E) ~ log2(EIF4G1score) | SMTSD, data=EIFscore,
-            xlab="Weight of Car", ylab="Miles Per Gallon", legend.plot = FALSE, 
-            main="Enhanced Scatter Plot") 
 
-ggplot(EIFscore, aes(log2(EIF4G1), log2(EIF4EBP1)))+
-  geom_point()+
-  facet_wrap(~SMTSD)
+
 
   
