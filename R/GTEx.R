@@ -6,10 +6,8 @@ library(gridExtra)
 # Return the value of the DNFA_generatedDataRoot environment variable.  If
 # that variable isn't set, return "/usr/local/DNFA-genfiles/data".
 .getDataDir3 <- function() {
-  # Sys.setenv("HOME" = "C:/Users/dlrox")  # TODO(dlroxe): windows glitch
   return(Sys.getenv(
     "DNFA_generatedDataRoot",
-    # unset = "/usr/local/DNFA-genfiles/data"
     unset = file.path(Sys.getenv("HOME"), "Downloads")
   ))
   }
@@ -54,12 +52,12 @@ library(gridExtra)
 # https://github.com/joed3/GTExV6PRareVariation
 ## showProgress = T is necessary, 
 ## otherwise "Error: isLOGICAL(showProgress) is not TRUE"
-.get_gene_rpkm <- function() {
+.get_gene <- function() {
   gene <- data.table::fread(.get_gtex_data_filename(), header = T, showProgress = T)
   return(gene)
 }
 
-.get_annotations <- function() {
+.get_gene_annotations <- function() {
   Annotations <- data.table::fread(
     .get_gtex_annotations_filename(), header = T, showProgress = T)
   Annotations <- Annotations[,c(1,7)]
@@ -109,16 +107,14 @@ library(gridExtra)
               print(genePlot)
 }
 
-doGTEX <- function() {
-  gene_rpkm <- .get_gene_rpkm()
-  Annotations <- .get_annotations()
-  plot1 <- .plot_goi(gene_rpkm, Annotations, goi = "FASN")
-  plot2 <- .plot_goi(gene_rpkm, Annotations, goi = "SCD")
-  plot3 <- .plot_goi(gene_rpkm, Annotations, goi = "SREBF1")
-  plot4 <- .plot_goi(gene_rpkm, Annotations, goi = "HMGCR")
-  plot5 <- .plot_goi(gene_rpkm, Annotations, goi = "HMGCS1")
-  plot6 <- .plot_goi(gene_rpkm, Annotations, goi = "SREBF2")
-  plot7 <- .plot_goi(gene_rpkm, Annotations, goi = "MITF")
+plotGOI_DNFA <- function(gene, annotations) {
+  plot1 <- .plot_goi(gene, annotations, goi = "FASN")
+  plot2 <- .plot_goi(gene, annotations, goi = "SCD")
+  plot3 <- .plot_goi(gene, annotations, goi = "SREBF1")
+  plot4 <- .plot_goi(gene, annotations, goi = "HMGCR")
+  plot5 <- .plot_goi(gene, annotations, goi = "HMGCS1")
+  plot6 <- .plot_goi(gene, annotations, goi = "SREBF2")
+  plot7 <- .plot_goi(gene, annotations, goi = "MITF")
   print(plot1)
   print(plot2)
   print(plot3)
@@ -128,48 +124,94 @@ doGTEX <- function() {
   print(plot7)
 }
 
-doGTEX()
-
-
-plotGTEX <- function(x) {
-  gene_rpkm <- .get_gene_rpkm()
-  Annotations <- .get_annotations()
-  plot <- .plot_goi(gene_rpkm, Annotations, goi = x)
-  print(plot)
-  }
-
-EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
-lapply(EIF.gene, plotGTEX) # lapply runs extremely slow.
-
-doGTEX <- function() {
-  gene_rpkm <- .get_gene_rpkm()
-  Annotations <- .get_annotations()
-  plot1 <- .plot_goi(gene_rpkm, Annotations, goi = "EIF4A1")
-  plot2 <- .plot_goi(gene_rpkm, Annotations, goi = "EIF4E")
-  plot3 <- .plot_goi(gene_rpkm, Annotations, goi = "EIF4G1")
-  plot4 <- .plot_goi(gene_rpkm, Annotations, goi = "EIF4EBP1")
-  plot5 <- .plot_goi(gene_rpkm, Annotations, goi = "RPS6KB1")
-  plot6 <- .plot_goi(gene_rpkm, Annotations, goi = "MYC")
+plotGOI_EIF <- function(gene, annotations) {
+  plot1 <- .plot_goi(gene, annotations, goi = "EIF4A1")
+  plot2 <- .plot_goi(gene, annotations, goi = "EIF4E")
+  plot3 <- .plot_goi(gene, annotations, goi = "EIF4G1")
+  plot4 <- .plot_goi(gene, annotations, goi = "EIF4EBP1")
+  plot5 <- .plot_goi(gene, annotations, goi = "RPS6KB1")
+  plot6 <- .plot_goi(gene, annotations, goi = "MYC")
   print(plot1)
   print(plot2)
   print(plot3)
   print(plot4)
   print(plot5)
   print(plot6)
+}
+
+## TO do: divide different tissues into groups by comparing means of 
+## EIF4Gscore to EIF4EBP1score
+
+plotEIFscore <- function (m) {
+  EIFexpression <- EIFexpression[EIFexpression$SMTSD == m,]
+  EIFscore <- EIFscore[EIFscore$SMTSD == m,]
+  medianEIF4G1score <- median(EIFscore$EIF4G1score)
+  medianEIF4EBP1score <- median(EIFscore$EIF4EBP1score)
+  # tissue$SMTSD <- NULL
+  if (medianEIF4G1score < medianEIF4EBP1score ) {
+    par(mfrow=c(1,2))
+    boxplot(log2(EIFexpression[, c("EIF4E", "EIF4G1", "EIF4EBP1", "RPS6KB1")]), 
+            main= paste0("EIF RNAseq counts in ",m),
+            las = 2)
+    boxplot(
+      log2(
+        EIFscore[,
+                 c("EIF4Escore",
+                   "EIF4G1score",
+                   "EIF4EBP1score",
+                   "RPS6KB1score")]),
+      main= paste0("EIF scores in ", m),
+      las = 2)
+    print(paste("EIF is inhibited in", m))
+  } else {
+    print(paste("EIF is activated in", m))
   }
+}
 
-doGTEX()
+plotEIF <-  function (x) {
+  name <- deparse(substitute(x))
+  black_bold_tahoma_12 <- element_text(color  = "black", 
+                                       face   = "bold",
+                                       family = "Tahoma", 
+                                       size   = 12)
 
+  black_bold_tahoma_12_45 <- element_text(color  = "black",
+                                          face   = "bold",
+                                          family = "Tahoma", 
+                                          size   = 12, 
+                                          angle  = 45,
+                                          hjust  = 1)
+  ggplot(x,
+         aes(x = variable,
+             y = log2(value))) +
+    geom_boxplot(alpha    = .01, 
+                 size     = .75,
+                 width    = .75,
+                 position = position_dodge(width = .9)) +
+    labs(title = paste0(name," in all healthy tissues, n = 8555"),
+         x     = "EIF complex components",
+         y     = paste0("log2(", name, ")")) +
+    theme_bw() +
+    theme(plot.title  = black_bold_tahoma_12,
+          axis.title  = black_bold_tahoma_12,
+          axis.text.x = black_bold_tahoma_12_45,
+          axis.text.y = black_bold_tahoma_12,
+          axis.line.x = element_line(color  = "black"),
+          axis.line.y = element_line(color  = "black"),
+          panel.grid  = element_blank(),
+          strip.text  = black_bold_tahoma_12,
+          legend.position = "none")
+  }
 
 ##################################################################
 ### TO DO: organize the following scripts , (they worked)
 
+gene <- .get_gene()
+gene_annotations <- .get_gene_annotations()
 
+plotGOI_DNFA(gene, gene_annotations)
+plotGOI_EIF(gene, gene_annotations)
 
-gene <- data.table::fread(.get_gtex_data_filename(), header = T, showProgress = T)
-Annotations <- data.table::fread(
-  .get_gtex_annotations_filename(), header = T, showProgress = T)
-Annotations <- Annotations[,c(1,7)]
 ## use %in% instead of == for subsetting rows!!
 EIF <- gene[gene$Description %in% c("EIF4A1","EIF4B","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC"),]
 EIF <- EIF[, -1]
@@ -182,7 +224,7 @@ setDT(EIF, keep.rownames = TRUE)[]
 EIF.gene <- c("EIF4A1","EIF4B","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
 colnames(EIF) <- c("SAMPID", EIF.gene)
 ## one line option is: df$names<-rownames(df)
-EIFexpression <- merge(EIF, Annotations, by = 'SAMPID')
+EIFexpression <- merge(EIF, gene_annotations, by = 'SAMPID')
 ## somehow the numbers of SREBF1 columns are all changed into character
 EIFexpression$SMTSD <- as.factor(EIFexpression$SMTSD)
 sapply(EIFexpression, class)
@@ -199,26 +241,6 @@ EIFscore$RPS6KB1score <- EIFexpression$RPS6KB1/EIFexpression$EIF4E
 EIFscore <- EIFscore [, 8:12]
 
 
-## TO do: divide different tissues into groups by comparing means of 
-## EIF4Gscore to EIF4EBP1score
-
-plotEIFscore <- function (m) {
-  EIFexpression <- EIFexpression[EIFexpression$SMTSD == m,]
-  EIFscore <- EIFscore[EIFscore$SMTSD == m,]
-  medianEIF4G1score <- median(EIFscore$EIF4G1score)
-  medianEIF4EBP1score <- median(EIFscore$EIF4EBP1score)
-  # tissue$SMTSD <- NULL
-  if (medianEIF4G1score < medianEIF4EBP1score )
-  {par(mfrow=c(1,2))
-   boxplot(log2(EIFexpression[, c("EIF4E", "EIF4G1", "EIF4EBP1", "RPS6KB1")]), 
-          main= paste0("EIF RNAseq counts in ",m),
-          las = 2)
-   boxplot(log2(EIFscore[, c("EIF4Escore", "EIF4G1score", "EIF4EBP1score", "RPS6KB1score")]), 
-          main= paste0("EIF scores in ",m),
-          las = 2)
-   print(paste("EIF is inhibited in", m))}
-  else {print(paste("EIF is activated in", m))}
-}
 plotEIFscore ("Muscle - Skeletal")
 sapply(tissues, plotEIFscore)
 
@@ -229,56 +251,7 @@ EIFScore <- melt(EIFscore)
 names(RNAcounts)
 names(EIFScore)
 
-plotEIF <-  function (x) {
-  name <- deparse(substitute(x))
-  ggplot(x,
-         aes(x = variable,
-             y = log2(value))) +
-    geom_boxplot(alpha    = .01, 
-                 size     = .75,
-                 width    = .75,
-                 position = position_dodge(width = .9)) +
-    labs(title = paste0(name," in all healthy tissues, n = 8555"),
-         x     = "EIF complex components",
-         y     = paste0("log2(", name, ")")) +
-    theme_bw() +
-    theme(plot.title  = element_text(color  = "black", 
-                                     face   = "bold",
-                                     family = "Tahoma", 
-                                     size   = 12),
-          axis.title  = element_text(color  = "black", 
-                                     face   = "bold",
-                                     family = "Tahoma", 
-                                     size   = 12),
-          axis.text.x = element_text(color  = "black",
-                                     face   = "bold",
-                                     family = "Tahoma", 
-                                     size   = 12, 
-                                     angle  = 45,
-                                     hjust  = 1), # 0.5 means middle-justified
-          axis.text.y = element_text(color  = "black",
-                                     face   = "bold",
-                                     family = "Tahoma", 
-                                     size   = 12,  
-                                     angle  = 0,
-                                     hjust  = 1),  # 1 means right-justified
-          axis.line.x = element_line(color  = "black"),
-          axis.line.y = element_line(color  = "black"),
-          panel.grid  = element_blank(),
-          strip.text  = element_text(color  = "black", 
-                                     face   = "bold",
-                                     family = "Tahoma", 
-                                     size   = 12),
-          legend.position = "none")}
 
 plotEIF(RNAcounts)  
 plotEIF(EIFScore)  
 grid.arrange(plotEIF(RNAcounts), plotEIF(EIFScore), ncol=2)
-
-
-
-
-
-
-
-  
