@@ -143,7 +143,59 @@ plotGOI_EIF <- function(gene, annotations) {
 ## TO do: divide different tissues into groups by comparing means of 
 ## EIF4Gscore to EIF4EBP1score
 
-plotEIFscore <- function (m) {
+
+
+
+
+##################################################################
+### TO DO: organize the following scripts , (they worked)
+
+
+# plotGOI_DNFA(gene, gene_annotations)
+# plotGOI_EIF(gene, gene_annotations)
+## important to keep gene and gene_annotations as global variable. They are too big in size.
+## make sure read them once and avoid to construc functions over them.
+gene <- .get_gene()
+gene_annotations <- .get_gene_annotations()
+
+get.EIFexpression.GTEx <- function(){
+  ## use %in% instead of == for subsetting rows!!
+  EIF.gene <- c("EIF4A1","EIF4B","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
+  EIF <- gene[gene$Description %in% EIF.gene,]
+  EIF <- EIF[, -1]
+  n <- EIF$Description
+  ## go is generated as a matrix, and it has to be converted into data frame.
+  EIF <- as.data.frame(t(EIF[,-1]))
+  colnames(EIF) <- n
+  setDT(EIF, keep.rownames = TRUE)[]
+# colnames(EIF) <- c("SAMPID", "goi")
+  colnames(EIF) <- c("SAMPID", EIF.gene)
+## one line option is: df$names<-rownames(df)
+  EIFexpression <- merge(EIF, gene_annotations, by = 'SAMPID')
+## somehow the numbers of SREBF1 columns are all changed into character
+  EIFexpression$SMTSD <- as.factor(EIFexpression$SMTSD)
+  sapply(EIFexpression, class)
+  EIFexpression <- as.data.frame(EIFexpression[,-1])
+  tissues <- levels(EIFexpression$SMTSD)
+  class(tissues)
+  return(EIFexpression)
+  }
+
+get.EIFscore.GTEx <- function(){
+# rm(EIFscore)
+  EIFexpression <- get.EIFexpression.GTEx()
+  EIFscore <- EIFexpression
+  EIFscore$EIF4Escore <- EIFexpression$EIF4E/EIFexpression$EIF4E
+  EIFscore$EIF4G1score <- EIFexpression$EIF4G1/EIFexpression$EIF4E
+  EIFscore$EIF4EBP1score <- EIFexpression$EIF4EBP1/EIFexpression$EIF4E
+  EIFscore$RPS6KB1score <- EIFexpression$RPS6KB1/EIFexpression$EIF4E
+  EIFscore <- EIFscore [, 8:12]
+  return(EIFscore)
+  }
+
+plot.EIF.expression.score <- function (m) {
+  EIFexpression <- get.EIFexpression.GTEx()
+  EIFscore <- get.EIFscore.GTEx()
   EIFexpression <- EIFexpression[EIFexpression$SMTSD == m,]
   EIFscore <- EIFscore[EIFscore$SMTSD == m,]
   medianEIF4G1score <- median(EIFscore$EIF4G1score)
@@ -151,23 +203,25 @@ plotEIFscore <- function (m) {
   # tissue$SMTSD <- NULL
   if (medianEIF4G1score < medianEIF4EBP1score ) {
     par(mfrow=c(1,2))
-    boxplot(log2(EIFexpression[, c("EIF4E", "EIF4G1", "EIF4EBP1", "RPS6KB1")]), 
+    boxplot(log2(EIFexpression[, 
+                               c("EIF4E", "EIF4G1", "EIF4EBP1", "RPS6KB1")]), 
             main= paste0("EIF RNAseq counts in ",m),
             las = 2)
-    boxplot(
-      log2(
-        EIFscore[,
-                 c("EIF4Escore",
-                   "EIF4G1score",
-                   "EIF4EBP1score",
-                   "RPS6KB1score")]),
-      main= paste0("EIF scores in ", m),
-      las = 2)
+    boxplot(log2(EIFscore[,
+                          c("EIF4Escore","EIF4G1score","EIF4EBP1score","RPS6KB1score")]),
+            main= paste0("EIF scores in ", m),
+            las = 2)
     print(paste("EIF is inhibited in", m))
   } else {
     print(paste("EIF is activated in", m))
   }
 }
+
+plot.EIF.expression.score ("Muscle - Skeletal")
+EIFexpression <- get.EIFexpression.GTEx()
+tissues <- levels(EIFexpression$SMTSD)
+sapply(tissues, plot.EIF.expression.score)
+
 
 plotEIF <-  function (x) {
   name <- deparse(substitute(x))
@@ -175,7 +229,7 @@ plotEIF <-  function (x) {
                                        face   = "bold",
                                        family = "Tahoma", 
                                        size   = 12)
-
+  
   black_bold_tahoma_12_45 <- element_text(color  = "black",
                                           face   = "bold",
                                           family = "Tahoma", 
@@ -202,60 +256,21 @@ plotEIF <-  function (x) {
           panel.grid  = element_blank(),
           strip.text  = black_bold_tahoma_12,
           legend.position = "none")
+}
+
+plot.EIFandScore.alltissues <- function (){
+  EIFexpression <- get.EIFexpression.GTEx()
+  EIFscore <- get.EIFscore.GTEx()
+  RNAcounts <- melt(EIFexpression)
+  EIFscore <- melt(EIFscore)
+  plotEIF(RNAcounts)  
+  plotEIF(EIFscore)  
+  grid.arrange(plotEIF(RNAcounts), plotEIF(EIFscore), ncol=2)
   }
-
-##################################################################
-### TO DO: organize the following scripts , (they worked)
-
-gene <- .get_gene()
-gene_annotations <- .get_gene_annotations()
-
-plotGOI_DNFA(gene, gene_annotations)
-plotGOI_EIF(gene, gene_annotations)
-
-## use %in% instead of == for subsetting rows!!
-EIF <- gene[gene$Description %in% c("EIF4A1","EIF4B","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC"),]
-EIF <- EIF[, -1]
-n <- EIF$Description
-## go is generated as a matrix, and it has to be converted into data frame.
-EIF <- as.data.frame(t(EIF[,-1]))
-colnames(EIF) <- n
-setDT(EIF, keep.rownames = TRUE)[]
-# colnames(EIF) <- c("SAMPID", "goi")
-EIF.gene <- c("EIF4A1","EIF4B","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
-colnames(EIF) <- c("SAMPID", EIF.gene)
-## one line option is: df$names<-rownames(df)
-EIFexpression <- merge(EIF, gene_annotations, by = 'SAMPID')
-## somehow the numbers of SREBF1 columns are all changed into character
-EIFexpression$SMTSD <- as.factor(EIFexpression$SMTSD)
-sapply(EIFexpression, class)
-EIFexpression <- as.data.frame(EIFexpression[,-1])
-tissues <- levels(EIFexpression$SMTSD)
-class(tissues)
-
-# rm(EIFscore)
-EIFscore <- EIFexpression
-EIFscore$EIF4Escore <- EIFexpression$EIF4E/EIFexpression$EIF4E
-EIFscore$EIF4G1score <- EIFexpression$EIF4G1/EIFexpression$EIF4E
-EIFscore$EIF4EBP1score <- EIFexpression$EIF4EBP1/EIFexpression$EIF4E
-EIFscore$RPS6KB1score <- EIFexpression$RPS6KB1/EIFexpression$EIF4E
-EIFscore <- EIFscore [, 8:12]
+plot.EIFandScore.alltissues()
 
 
-plotEIFscore ("Muscle - Skeletal")
-sapply(tissues, plotEIFscore)
 
-m <- "Muscle - Skeletal"
-
-RNAcounts <- melt(EIFexpression)
-EIFScore <- melt(EIFscore)
-names(RNAcounts)
-names(EIFScore)
-
-
-plotEIF(RNAcounts)  
-plotEIF(EIFScore)  
-grid.arrange(plotEIF(RNAcounts), plotEIF(EIFScore), ncol=2)
 plotEIF(RNAcounts) + 
   stat_compare_means(method = "anova", label.y = 12) + # Add global p-value
   stat_compare_means(label = "p.signif", method = "t.test",
