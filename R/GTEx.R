@@ -1,5 +1,6 @@
 library(data.table)
 library(ggplot2)
+library(ggpubr)
 library(gridExtra)
 
 # TODO(dlroxe): unify this with identical function in data prep .R file.
@@ -255,3 +256,27 @@ names(EIFScore)
 plotEIF(RNAcounts)  
 plotEIF(EIFScore)  
 grid.arrange(plotEIF(RNAcounts), plotEIF(EIFScore), ncol=2)
+plotEIF(RNAcounts) + 
+  stat_compare_means(method = "anova", label.y = 12) + # Add global p-value
+  stat_compare_means(label = "p.signif", method = "t.test",
+                     ref.group = "EIF4E") # Pairwise comparison against EIF4E
+plotEIF(EIFScore)  
+grid.arrange(plotEIF(RNAcounts), plotEIF(EIFScore), ncol=2)
+
+
+
+
+my_comparisons <- list( c("EIF4Escore", "EIF4G1score"), 
+                        c("EIF4G1score", "EIF4EBP1score"), 
+                        c("EIF4Escore", "EIF4EBP1score"),
+                        c("EIF4Escore", "RPS6KB1score"))
+my_comparisons <- combn(levels(EIFScore$variable), 2, simplify = FALSE)
+p <- plotEIF(EIFScore) + 
+  stat_compare_means(comparisons = my_comparisons)+
+  stat_compare_means(label.y = 16, size = 5)
+p$layers[[2]]$aes_params$textsize <- 5
+p
+
+
+
+                        
