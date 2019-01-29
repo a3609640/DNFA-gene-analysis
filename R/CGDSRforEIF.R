@@ -322,7 +322,7 @@ get.EIFRNAseq.tcga <- function(x) {
                                              caselist.RNAseq(x))
   EIF.tcga.RNAseq$rn <- rownames(EIF.tcga.RNAseq)
   return(EIF.tcga.RNAseq)
-}
+  }
 EIFexpression <- get.EIFRNAseq.tcga("skcm_tcga")
 
 get.EIFscore.tcga <- function(x){
@@ -334,20 +334,24 @@ get.EIFscore.tcga <- function(x){
   EIFscore$RPS6KB1score <- get.EIFRNAseq.tcga$RPS6KB1/get.EIFRNAseq.tcga$EIF4E
   EIFscore <- EIFscore [, 8:12]
   return(EIFscore)
-}
+  }
 EIFscore <- get.EIFscore.tcga("skcm_tcga")
  
 plot.EIF.expression.score <- function (x) {
   EIFexpression <- get.EIFRNAseq.tcga(x)
   EIFscore <- get.EIFscore.tcga(x)
   par(mfrow=c(1,2))
-  boxplot(log2(EIFexpression[, c("EIF4E", "EIF4G1", "EIF4EBP1", "RPS6KB1")]),
+  boxplot(log2(EIFexpression[, 
+                             c("EIF4E", "EIF4G1", 
+                               "EIF4EBP1", "RPS6KB1")]),
           main= paste0("EIF RNAseq counts in ", x),
           las = 2)
   boxplot(log2(EIFscore[,
-                        c("EIF4Escore","EIF4G1score","EIF4EBP1score","RPS6KB1score")]),
+                        c("EIF4Escore","EIF4G1score",
+                          "EIF4EBP1score","RPS6KB1score")]),
           main= paste0("EIF scores in ", x),
-          las = 2)}
+          las = 2)
+  }
 
 plot.EIF.expression.score("skcm_tcga")
 lapply(tcga.study.list, plot.EIF.expression.score)
@@ -740,7 +744,7 @@ plot.km.mut.skcm <- function(ge) {
     autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
-             main = "Kaplan-Meier plot") +
+             main = paste("Kaplan-Meier plot", ge)) +
       theme(axis.title      = black.bold.12pt,
             axis.text       = black.bold.12pt,
             axis.line.x     = element_line(color  = "black"),
@@ -950,6 +954,9 @@ plot.km.all.pro.tcga <- function(EIF) {
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
 #  df <- na.omit(df)
   km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0)
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
+  p.val <- signif(p.val, 3)
   black.bold.12pt <- element_text(face   = "bold",
                                   size   = 12,
                                   colour = "black")
@@ -967,9 +974,24 @@ plot.km.all.pro.tcga <- function(EIF) {
             strip.text           = black.bold.12pt,
             legend.text          = black.bold.12pt ,
             legend.title         = black.bold.12pt ,
-            legend.justification = c(1,1)))
+            legend.justification = c(1,1)) +
+      guides(fill = FALSE) +
+      scale_color_manual(values = c("red", "blue"),
+                         name   = paste(EIF, "mRNA expression"),
+                         breaks = c("Bottom 20%", "Top 20%"),
+                         labels = c("Bottom 20%, n = 1859",
+                                    "Top 20%, n = 1859")) +
+      geom_point(size = 0.25) +
+      annotate("text",
+               x     = 300,
+               y     = 0.85,
+               label = paste("log-rank test, p.val = ", p.val),
+               size  = 4.5,
+               hjust = 1,
+               fontface = "bold")
+    )
   # rho = 1 the Gehan-Wilcoxon test
-  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
+#  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
   print(EIF)
   print(stats)
   }
@@ -1094,6 +1116,9 @@ plot.km.all.pan.tcga <- function(EIF) {
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
   #  df <- na.omit(df)
   km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0)
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
+  p.val <- signif(p.val, 3)
   black.bold.12pt <- element_text(face   = "bold",
                                   size   = 12,
                                   colour = "black")
@@ -1102,22 +1127,36 @@ plot.km.all.pan.tcga <- function(EIF) {
              ylab = "Survival Probability",
              main = paste("Kaplan-Meier plot", EIF, 
                           "RNA expression in all TCGA pancancer groups"),
-             xlim = c(0, 250)) +
+             xlim = c(0, 300)) +
 #      scale_fill_discrete(name="Experimental\nCondition",
 #                          breaks=c("Top 20%", "Bottom 20%"),
 #                          labels=c("Top 20%, n = 1931", "Bottom 20%, n = 1931"))+
-      theme(axis.title           = black.bold.12pt,
-            axis.text            = black.bold.12pt,
-            axis.line.x          = element_line(color  = "black"),
-            axis.line.y          = element_line(color  = "black"),
-            panel.grid           = element_blank(),
-            strip.text           = black.bold.12pt,
-            legend.text          = black.bold.12pt,
-            legend.title         = black.bold.12pt,
-            legend.position      = c(1,1),
-            legend.justification = c(1,1))
+    theme(axis.title           = black.bold.12pt,
+          axis.text            = black.bold.12pt,
+          axis.line.x          = element_line(color  = "black"),
+          axis.line.y          = element_line(color  = "black"),
+          panel.grid           = element_blank(),
+          strip.text           = black.bold.12pt,
+          legend.text          = black.bold.12pt ,
+          legend.title         = black.bold.12pt ,
+          legend.justification = c(1,1)) +
+    guides(fill = FALSE) +
+    scale_color_manual(values = c("red", "blue"),
+                       name   = paste(EIF, "mRNA expression"),
+                       breaks = c("Bottom 20%", "Top 20%"),
+                       labels = c("Bottom 20%, n = 1859",
+                                  "Top 20%, n = 1859")) +
+    geom_point(size = 0.25) +
+    annotate("text",
+             x     = 300,
+             y     = 0.85,
+             label = paste("log-rank test, p.val = ", p.val),
+             size  = 4.5,
+             hjust = 1,
+             fontface = "bold")
+
   # rho = 1 the Gehan-Wilcoxon test
-  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
+#  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
 #  my_text <- "This text is at x=0.7 and y=0.8!"
 #  my_grob = grid.text(my_text, x=0.7,  y=0.8, gp=gpar(col="firebrick", fontsize=14, fontface="bold"))
 #  p + annotation_custom(my_grob)
