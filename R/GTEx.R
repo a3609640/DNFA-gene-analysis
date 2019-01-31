@@ -188,8 +188,8 @@ get.EIF.score.GTEx <- function(){
   EIF.score.GTEx$EIF4Escore <- EIF.RNAseq.GTEx$EIF4E/EIF.RNAseq.GTEx$EIF4E
   EIF.score.GTEx$EIF4G1score <- EIF.RNAseq.GTEx$EIF4G1/EIF.RNAseq.GTEx$EIF4E
   EIF.score.GTEx$EIF4EBP1score <- EIF.RNAseq.GTEx$EIF4EBP1/EIF.RNAseq.GTEx$EIF4E
-  EIF.score.GTEx$RPS6KB1score <- EIF.RNAseq.GTEx$RPS6KB1/EIF.RNAseq.GTEx$EIF4E
-  EIF.score.GTEx <- EIF.score.GTEx [, 8:12]
+#  EIF.score.GTEx$RPS6KB1score <- EIF.RNAseq.GTEx$RPS6KB1/EIF.RNAseq.GTEx$EIF4E
+  EIF.score.GTEx <- EIF.score.GTEx [, 8:11]
   return(EIF.score.GTEx)
   }
 
@@ -208,7 +208,7 @@ plot.EIF.RNAseq.score <- function (m) {
             main= paste0("EIF RNAseq counts in ",m),
             las = 2)
     boxplot(log2(EIF.score.GTEx[,
-                          c("EIF4Escore","EIF4G1score","EIF4EBP1score","RPS6KB1score")]),
+                          c("EIF4Escore","EIF4G1score","EIF4EBP1score")]),
             main= paste0("EIF scores in ", m),
             las = 2)
     print(paste("EIF is inhibited in", m))
@@ -275,8 +275,7 @@ plot.EIFandScore.all.tissues <- function (){
                           c("EIF4E", "RPS6KB1"))
   my_comparison2 <- list( c("EIF4Escore", "EIF4G1score"), 
                           c("EIF4G1score", "EIF4EBP1score"), 
-                          c("EIF4Escore", "EIF4EBP1score"),
-                          c("EIF4Escore", "RPS6KB1score"))
+                          c("EIF4Escore", "EIF4EBP1score"))
   p1 <- plotEIF(EIF.RNAseq.GTEx.all.tissues) +
     labs(title = paste0("All healthy tissues n = ", number),
          x     = "eIF4F subunit RNAseq",
