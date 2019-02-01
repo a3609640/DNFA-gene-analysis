@@ -23,11 +23,13 @@ library(gridExtra)
   local_file = file.path(
     .getDataDir3(),
     # "r-extdata",  # TODO(dlroxe): probably, stop using r-extdata in Makefile
-    "GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz")
+#    "GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz")
+    "GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct.gz")
   
   if (!file.exists(local_file)) {
     download.file(
-      url = "http://storage.googleapis.com/gtex_analysis_v6p/rna_seq_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz",
+#      url = "http://storage.googleapis.com/gtex_analysis_v6p/rna_seq_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz",
+      url = "https://storage.googleapis.com/gtex_analysis_v7/rna_seq_data/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct.gz",
       destfile = local_file)
   }
   
@@ -38,11 +40,13 @@ library(gridExtra)
   local_file = file.path(
     .getDataDir3(),
     # "r-extdata",  # TODO(dlroxe): probably, stop using r-extdata in Makefile
-    "GTEx_Data_V6_Annotations_SampleAttributesDS.txt")
+ #   "GTEx_Data_V6_Annotations_SampleAttributesDS.txt")
+    "GTEx_v7_Annotations_SampleAttributesDS.txt")
 
   if (!file.exists(local_file)) {
     download.file(
-      url = "http://storage.googleapis.com/gtex_analysis_v6p/annotations/GTEx_Data_V6_Annotations_SampleAttributesDS.txt",
+ #     url = "http://storage.googleapis.com/gtex_analysis_v6p/annotations/GTEx_Data_V6_Annotations_SampleAttributesDS.txt",
+      url = "https://storage.googleapis.com/gtex_analysis_v7/annotations/GTEx_v7_Annotations_SampleAttributesDS.txt",
       destfile = local_file)
   }
   
