@@ -276,11 +276,13 @@ plot.EIFandScore.all.tissues <- function (){
   my_comparison1 <- list( c("EIF4E", "EIF4G1"), 
                           c("EIF4G1", "EIF4EBP1"), 
                           c("EIF4E", "EIF4EBP1"),
-                          c("EIF4E", "RPS6KB1"))
+                          c("EIF4E", "RPS6KB1"),
+                          c("EIF4EBP1", "RPS6KB1"))
   my_comparison2 <- list( c("EIF4Escore", "EIF4G1score"), 
                           c("EIF4G1score", "EIF4EBP1score"), 
                           c("EIF4Escore", "EIF4EBP1score"),
-                          c("EIF4Escore", "RPS6KB1score"))
+                          c("EIF4Escore", "RPS6KB1score"),
+                          c("EIF4EBP1score", "RPS6KB1score"))
   p1 <- plotEIF(EIF.RNAseq.GTEx.all.tissues) +
     labs(title = paste0("All healthy tissues n = ", number),
          x     = "eIF4F subunit RNAseq",

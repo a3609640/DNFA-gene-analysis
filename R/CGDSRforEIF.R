@@ -474,11 +474,13 @@ plot.EIFandScore.all.tumors <- function (){
   my_comparison1 <- list( c("EIF4E", "EIF4G1"), 
                           c("EIF4G1", "EIF4EBP1"), 
                           c("EIF4E", "EIF4EBP1"),
-                          c("EIF4E", "RPS6KB1"))
+                          c("EIF4E", "RPS6KB1"),
+                          c("EIF4EBP1", "RPS6KB1"))
   my_comparison2 <- list( c("EIF4Escore", "EIF4G1score"), 
                           c("EIF4G1score", "EIF4EBP1score"), 
                           c("EIF4Escore", "EIF4EBP1score"),
-                          c("EIF4Escore", "RPS6KB1score"))
+                          c("EIF4Escore", "RPS6KB1score"),
+                          c("EIF4EBP1score", "RPS6KB1score"))
   p1 <- plotEIF(EIF.RNAseq.tcga.all.tumors) +
     labs(title = paste0("All tumors n = ", number),
          x     = "eIF4F subunit RNAseq",
@@ -490,7 +492,7 @@ plot.EIFandScore.all.tumors <- function (){
          x     = "eIF4E ratio score",
          y     = paste0("log2(value)")) +
     stat_compare_means(comparisons = my_comparison2, method = "t.test")
-  p2$layers[[2]]$aes_params$textsize <- 5
+   p2$layers[[2]]$aes_params$textsize <- 5
   grid.arrange(p1, p2, ncol=2)
 }
 plot.EIFandScore.all.tumors()
