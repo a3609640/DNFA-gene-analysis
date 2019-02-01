@@ -23,11 +23,13 @@ library(gridExtra)
   local_file = file.path(
     .getDataDir3(),
     # "r-extdata",  # TODO(dlroxe): probably, stop using r-extdata in Makefile
-    "GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz")
+#    "GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz")
+    "GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct.gz")
   
   if (!file.exists(local_file)) {
     download.file(
-      url = "http://storage.googleapis.com/gtex_analysis_v6p/rna_seq_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz",
+#      url = "http://storage.googleapis.com/gtex_analysis_v6p/rna_seq_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz",
+      url = "https://storage.googleapis.com/gtex_analysis_v7/rna_seq_data/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct.gz",
       destfile = local_file)
   }
   
@@ -38,11 +40,13 @@ library(gridExtra)
   local_file = file.path(
     .getDataDir3(),
     # "r-extdata",  # TODO(dlroxe): probably, stop using r-extdata in Makefile
-    "GTEx_Data_V6_Annotations_SampleAttributesDS.txt")
+ #   "GTEx_Data_V6_Annotations_SampleAttributesDS.txt")
+    "GTEx_v7_Annotations_SampleAttributesDS.txt")
 
   if (!file.exists(local_file)) {
     download.file(
-      url = "http://storage.googleapis.com/gtex_analysis_v6p/annotations/GTEx_Data_V6_Annotations_SampleAttributesDS.txt",
+ #     url = "http://storage.googleapis.com/gtex_analysis_v6p/annotations/GTEx_Data_V6_Annotations_SampleAttributesDS.txt",
+      url = "https://storage.googleapis.com/gtex_analysis_v7/annotations/GTEx_v7_Annotations_SampleAttributesDS.txt",
       destfile = local_file)
   }
   
@@ -272,10 +276,17 @@ plot.EIFandScore.all.tissues <- function (){
   my_comparison1 <- list( c("EIF4E", "EIF4G1"), 
                           c("EIF4G1", "EIF4EBP1"), 
                           c("EIF4E", "EIF4EBP1"),
-                          c("EIF4E", "RPS6KB1"))
+                          c("EIF4E", "RPS6KB1"),
+                          c("EIF4EBP1", "RPS6KB1"))
   my_comparison2 <- list( c("EIF4Escore", "EIF4G1score"), 
                           c("EIF4G1score", "EIF4EBP1score"), 
+<<<<<<< HEAD
                           c("EIF4Escore", "EIF4EBP1score"))
+=======
+                          c("EIF4Escore", "EIF4EBP1score"),
+                          c("EIF4Escore", "RPS6KB1score"),
+                          c("EIF4EBP1score", "RPS6KB1score"))
+>>>>>>> 01d5abbcea92205623eab56bc8b5aa60a76d6ed0
   p1 <- plotEIF(EIF.RNAseq.GTEx.all.tissues) +
     labs(title = paste0("All healthy tissues n = ", number),
          x     = "eIF4F subunit RNAseq",
