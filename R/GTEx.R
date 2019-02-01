@@ -24,12 +24,14 @@ library(gridExtra)
     .getDataDir3(),
     # "r-extdata",  # TODO(dlroxe): probably, stop using r-extdata in Makefile
 #    "GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz")
-    "GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct.gz")
+#    "GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct.gz")
+   "GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_tpm.gct.gz")
   
   if (!file.exists(local_file)) {
     download.file(
 #      url = "http://storage.googleapis.com/gtex_analysis_v6p/rna_seq_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz",
-      url = "https://storage.googleapis.com/gtex_analysis_v7/rna_seq_data/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct.gz",
+#      url = "https://storage.googleapis.com/gtex_analysis_v7/rna_seq_data/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct.gz",
+      url = "https://storage.googleapis.com/gtex_analysis_v7/rna_seq_data/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_tpm.gct.gz",
       destfile = local_file)
   }
   
@@ -69,7 +71,7 @@ library(gridExtra)
   return(Annotations)
 }
 
-.plot_goi <- function(gene, Annotations, goi) {
+.plot_goi <- function(gene, goi) {
   go <- gene[gene$Description == goi,]
   go <- t(go)
   ## go is generated as a matrix, and it has to be converted into data frame.
@@ -77,7 +79,7 @@ library(gridExtra)
   setDT(go, keep.rownames = TRUE)[]
   colnames(go) <- c("SAMPID", "goi")
   ## one line option is: df$names<-rownames(df)
-  goexpression <- merge(go, Annotations, by = 'SAMPID')
+  goexpression <- merge(go, gene_annotations, by = 'SAMPID')
   ## somehow the numbers of SREBF1 columns are all changed into character
   goexpression$SMTSD <- as.factor(goexpression$SMTSD)
   #  In particular, as.numeric applied to a factor is meaningless,
@@ -192,8 +194,8 @@ get.EIF.score.GTEx <- function(){
   EIF.score.GTEx$EIF4Escore <- EIF.RNAseq.GTEx$EIF4E/EIF.RNAseq.GTEx$EIF4E
   EIF.score.GTEx$EIF4G1score <- EIF.RNAseq.GTEx$EIF4G1/EIF.RNAseq.GTEx$EIF4E
   EIF.score.GTEx$EIF4EBP1score <- EIF.RNAseq.GTEx$EIF4EBP1/EIF.RNAseq.GTEx$EIF4E
-#  EIF.score.GTEx$RPS6KB1score <- EIF.RNAseq.GTEx$RPS6KB1/EIF.RNAseq.GTEx$EIF4E
-  EIF.score.GTEx <- EIF.score.GTEx [, 8:11]
+  EIF.score.GTEx$RPS6KB1score <- EIF.RNAseq.GTEx$RPS6KB1/EIF.RNAseq.GTEx$EIF4E
+  EIF.score.GTEx <- EIF.score.GTEx [, 8:12]
   return(EIF.score.GTEx)
   }
 
@@ -280,13 +282,8 @@ plot.EIFandScore.all.tissues <- function (){
                           c("EIF4EBP1", "RPS6KB1"))
   my_comparison2 <- list( c("EIF4Escore", "EIF4G1score"), 
                           c("EIF4G1score", "EIF4EBP1score"), 
-<<<<<<< HEAD
-                          c("EIF4Escore", "EIF4EBP1score"))
-=======
                           c("EIF4Escore", "EIF4EBP1score"),
-                          c("EIF4Escore", "RPS6KB1score"),
                           c("EIF4EBP1score", "RPS6KB1score"))
->>>>>>> 01d5abbcea92205623eab56bc8b5aa60a76d6ed0
   p1 <- plotEIF(EIF.RNAseq.GTEx.all.tissues) +
     labs(title = paste0("All healthy tissues n = ", number),
          x     = "eIF4F subunit RNAseq",

@@ -478,13 +478,9 @@ plot.EIFandScore.all.tumors <- function (){
                           c("EIF4EBP1", "RPS6KB1"))
   my_comparison2 <- list( c("EIF4Escore", "EIF4G1score"), 
                           c("EIF4G1score", "EIF4EBP1score"), 
-<<<<<<< HEAD
-                          c("EIF4Escore", "EIF4EBP1score"))
-=======
                           c("EIF4Escore", "EIF4EBP1score"),
                           c("EIF4Escore", "RPS6KB1score"),
                           c("EIF4EBP1score", "RPS6KB1score"))
->>>>>>> 01d5abbcea92205623eab56bc8b5aa60a76d6ed0
   p1 <- plotEIF(EIF.RNAseq.tcga.all.tumors) +
     labs(title = paste0("All tumors n = ", number),
          x     = "eIF4F subunit RNAseq",

@@ -20,8 +20,8 @@ EIFTCGAGTEX <- droplevels(EIFTCGAGTEX[!EIFTCGAGTEX$`_sample_type` == 'Solid Tiss
 EIFTCGAGTEX <- droplevels(EIFTCGAGTEX[!EIFTCGAGTEX$`_sample_type` == 'Cell Line',])
 EIFGTEX <- EIFTCGAGTEX[EIFTCGAGTEX$`_study` == 'GTEX',]
 EIFTCGA <- EIFTCGAGTEX[EIFTCGAGTEX$`_study` == 'TCGA',]
-EIFGTEX <- EIFGTEX[, c(2,3,4,5)]
-EIFTCGA <- EIFTCGA[, c(2,3,4,5)]
+EIFGTEX <- EIFGTEX[, c(3,4,5,6)]
+EIFTCGA <- EIFTCGA[, c(3,4,5,6)]
 par(mfrow=c(1,2))
 boxplot(EIFGTEX, main="EIF RNAseq in healthy tissues, n=8152")
 boxplot(EIFTCGA, main="EIF RNAseq in tumor tissues, n=10531")
