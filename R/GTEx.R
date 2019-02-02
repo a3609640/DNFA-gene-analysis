@@ -69,8 +69,10 @@ library(gridExtra)
   return(Annotations)
 }
 
+
 .plot_goi <- function(goi, gene, gene_annotations) {
   go <- gene[gene$Description == goi,]
+  go <- go[, -c(1,2)]
   go <- t(go)
   ## go is generated as a matrix, and it has to be converted into data frame.
   go <- data.frame(go)
@@ -84,17 +86,17 @@ library(gridExtra)
   #  and may happen by implicit coercion.
   #  To transform a factor f to approximately its original numeric values,
   #  as.numeric(levels(f))[f] is recommended.
-  goexpression$goi <- as.numeric(levels(goexpression$goi))[goexpression$goi]
+#  goexpression$goi <- as.numeric(levels(goexpression$goi))[goexpression$goi]
   goexpression <- as.data.frame(goexpression)
   ## draw boxplot for FASN expression across different tissues
-  mean <- within(goexpression, SMTSD <- reorder(SMTSD, log2(goi), median))
+  mean <- within(goexpression, SMTSD <- reorder(SMTSD, log10(goi), median))
   black.bold.12pt <- ggplot2::element_text(face   = "bold",
                                            size   = 12,
                                            colour = "black")
-  genePlot <- ggplot(mean, aes(x = SMTSD, y = log2(goi))) +
+  genePlot <- ggplot(mean, aes(x = SMTSD, y = log10(goi))) +
    geom_boxplot() + theme_bw() +
    labs(x = "Tissue types (GTEx)",
-        y = paste("log2(", goi, "RNA counts)")) +
+        y = paste("log10(", goi, "RNA counts)")) +
         theme(axis.title           = black.bold.12pt,
               axis.text            = ggplot2::element_text(size  = 12,
                                                            angle = 90,
@@ -129,7 +131,7 @@ get.EIF.RNAseq.GTEx <- function(gene, gene_annotations){
   colnames(EIF) <- n
   setDT(EIF, keep.rownames = TRUE)[]
 # colnames(EIF) <- c("SAMPID", "goi")
-  colnames(EIF) <- c("SAMPID", EIF.gene)
+  colnames(EIF) <- c("SAMPID", n)
 ## one line option is: df$names<-rownames(df)
   EIF.RNAseq.GTEx <- merge(EIF, gene_annotations, by = 'SAMPID')
 ## somehow the numbers of SREBF1 columns are all changed into character
@@ -244,7 +246,7 @@ plot.EIFandScore.each.tissue <-
       "EIF4G1score",
       "EIF4EBP1score",
       "RPS6KB1score",
-      "SMTSDscore"
+      "SMTSD"
     )
   EIF.RNAseq.GTEx <- get.EIF.RNAseq.GTEx(gene, gene_annotations)
   EIF.RNAseq.GTEx <- EIF.RNAseq.GTEx[, gene_names]
@@ -296,7 +298,6 @@ plot.EIFandScore.each.tissue <-
     ) +
     stat_compare_means(comparisons = my_comparison2, method = "t.test")
   p2$layers[[2]]$aes_params$textsize <- 5
-  
   grid.arrange(p1, p2, ncol = 2)
 }
 
@@ -304,7 +305,7 @@ plot.EIFandScore.each.tissue <-
 gene <- .get_gene()
 gene_annotations <- .get_gene_annotations()
 
-.plot_goi("EIF4G1", gene, gene_annotations)
+.plot_goi("EIF4EBP1", gene, gene_annotations)
 
 EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
 names(EIF.gene) <- EIF.gene
@@ -329,17 +330,6 @@ sapply(tissues, plot.EIFandScore.each.tissue,
 
 
 
-
-
-
-
-
-plotEIF(EIF.RNAseq.GTEx.all.tissues) + 
-  stat_compare_means(method = "anova", label.y = 12) + # Add global p-value
-  stat_compare_means(label = "p.signif", method = "t.test",
-                     ref.group = "EIF4E") # Pairwise comparison against EIF4E
-plotEIF(EIFScore)  
-grid.arrange(plotEIF(RNAcounts), plotEIF(EIFScore), ncol=2)
 
 
 
