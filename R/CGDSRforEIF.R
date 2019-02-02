@@ -468,7 +468,10 @@ plot.EIFandScore.all.tumors <- function (){
 #  x1  = factor(x, levels=c("B", "C", "A"))
 #  levels(EIF.RNAseq.tcga.all.tumors$variable)
   EIF.RNAseq.tcga.all.tumors$variable <- ordered(EIF.RNAseq.tcga.all.tumors$variable, 
-                                                 levels = c("EIF4E","EIF4G1","EIF4EBP1","RPS6KB1"))
+                                                 levels = c("EIF4E",
+                                                            "EIF4G1",
+                                                            "EIF4EBP1",
+                                                            "RPS6KB1"))
   number <- nrow(EIF.RNAseq.tcga.all.tumors)/4
   EIF.score.tcga.all.tumors <- melt(EIF.score.tcga)
   my_comparison1 <- list( c("EIF4E", "EIF4G1"), 
@@ -499,7 +502,53 @@ plot.EIFandScore.all.tumors()
 
 
 
-
+plot.EIFandScore.each.tissue <- function (m){
+  EIF.RNAseq.tcga <- lapply(tcga.study.list, get.EIF.RNAseq.tcga)
+  EIF.score.tcga <- lapply(tcga.study.list, get.EIF.score.tcga)
+  EIF.RNAseq.GTEx <- EIF.RNAseq.GTEx[, 
+                                     c("EIF4A1","EIF4E",
+                                       "EIF4G1","EIF4EBP1",
+                                       "RPS6KB1","SMTSD")]
+  EIF.score.GTEx <- get.EIF.score.GTEx()
+  EIF.score.GTEx <- EIF.score.GTEx[, c("EIF4A1score","EIF4Escore",
+                                       "EIF4G1score","EIF4EBP1score",
+                                       "RPS6KB1score","SMTSD")]
+  EIF.RNAseq.GTEx <- EIF.RNAseq.GTEx[EIF.RNAseq.GTEx$SMTSD == m,]
+  EIF.score.GTEx <- EIF.score.GTEx[EIF.score.GTEx$SMTSD == m,]
+  medianEIF4G1score <- median(EIF.score.GTEx$EIF4G1score)
+  medianEIF4EBP1score <- median(EIF.score.GTEx$EIF4EBP1score)
+  # tissue$SMTSD <- NULL
+  number <- nrow(EIF.RNAseq.GTEx)
+  EIF.RNAseq.GTEx.each.tissues <- melt(EIF.RNAseq.GTEx)
+  EIF.score.GTEx.each.tissues <- melt(EIF.score.GTEx)
+  my_comparison1 <- list( c("EIF4E", "EIF4G1"), 
+                          c("EIF4G1", "EIF4EBP1"), 
+                          c("EIF4E", "EIF4EBP1"),
+                          c("EIF4E", "RPS6KB1"))
+  my_comparison2 <- list( c("EIF4Escore", "EIF4G1score"), 
+                          c("EIF4G1score", "EIF4EBP1score"), 
+                          c("EIF4Escore", "EIF4EBP1score"),
+                          c("EIF4Escore", "RPS6KB1score"))
+  if (medianEIF4G1score < medianEIF4EBP1score ) {
+    par(mfrow=c(1,2))
+    p1 <- plotEIF(EIF.RNAseq.GTEx.each.tissues) +     
+      labs(title = paste0(m," n = ", number),
+           x     = "eIF4F subunit RNAseq",
+           y     = paste0("log2(value)")) +
+      stat_compare_means(comparisons = my_comparison1, method = "t.test")
+    p1$layers[[2]]$aes_params$textsize <- 5  
+    p2 <- plotEIF(EIF.score.GTEx.each.tissues) + 
+      labs(title = paste0(m," n = ", number),
+           x     = "eIF4E ratio score",
+           y     = paste0("log2(value)")) +
+      stat_compare_means(comparisons = my_comparison2, method = "t.test")
+    p2$layers[[2]]$aes_params$textsize <- 5
+    grid.arrange(p1, p2, ncol=2)
+    print(paste("EIF is inhibited in", m))
+  } else {
+    print(paste("EIF is activated in", m))
+  }
+}
 
 
 
