@@ -69,9 +69,7 @@ library(gridExtra)
   return(Annotations)
 }
 
-.plot_goi <- function(goi) {
-  gene <- .get_gene()
-  Annotations <- .get_gene_annotations()
+.plot_goi <- function(goi, gene, gene_annotations) {
   go <- gene[gene$Description == goi,]
   go <- t(go)
   ## go is generated as a matrix, and it has to be converted into data frame.
@@ -79,7 +77,7 @@ library(gridExtra)
   setDT(go, keep.rownames = TRUE)[]
   colnames(go) <- c("SAMPID", "goi")
   ## one line option is: df$names<-rownames(df)
-  goexpression <- merge(go, Annotations, by = 'SAMPID')
+  goexpression <- merge(go, gene_annotations, by = 'SAMPID')
   ## somehow the numbers of SREBF1 columns are all changed into character
   goexpression$SMTSD <- as.factor(goexpression$SMTSD)
   #  In particular, as.numeric applied to a factor is meaningless,
@@ -114,12 +112,13 @@ library(gridExtra)
               print(genePlot)
 }
 
-<<<<<<< HEAD
-.plot_goi("MITF")
-=======
-.plot_goi("TCF3")
->>>>>>> a7a32415ca3447c4911451f2e8fbdf9c26282353
-goi <- "TCF3"
+##################################################################
+## important to keep gene and gene_annotations as global variable. They are too big in size.
+## make sure read them once and avoid to construc functions over them.
+gene <- .get_gene()
+gene_annotations <- .get_gene_annotations()
+
+.plot_goi("TCF3", gene, gene_annotations)
 
 EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
 names(EIF.gene) <- EIF.gene
@@ -127,16 +126,10 @@ names(EIF.gene) <- EIF.gene
 DNFA.gene <- c("SCD", "FASN", "ACLY","ACSS2","SREBF1",
                "HMGCR","HMGCS1","SREBF2","MITF")
 names(DNFA.gene ) <- DNFA.gene
-
-sapply(DNFA.gene, .plot_goi )
-
+lapply(DNFA.gene, .plot_goi, gene=gene, gene_annotations=gene_annotations)
 
 
-##################################################################
-## important to keep gene and gene_annotations as global variable. They are too big in size.
-## make sure read them once and avoid to construc functions over them.
-gene <- .get_gene()
-gene_annotations <- .get_gene_annotations()
+
 
 get.EIF.RNAseq.GTEx <- function(){
   ## use %in% instead of == for subsetting rows!!
@@ -300,12 +293,10 @@ plot.EIFandScore.each.tissue <- function (m){
     print(paste("EIF is activated in", m))
   }
 }
-<<<<<<< HEAD
+
 plot.EIFandScore.each.tissue("Muscle - Skeletal")
 EIF.RNAseq.GTEx <- get.EIF.RNAseq.GTEx()
-=======
-plot.EIFandScore.each.tissues("Muscle - Skeletal")
->>>>>>> a7a32415ca3447c4911451f2e8fbdf9c26282353
+
 tissues <- levels(EIF.RNAseq.GTEx$SMTSD)
 sapply(tissues, plot.EIFandScore.each.tissue)
 
