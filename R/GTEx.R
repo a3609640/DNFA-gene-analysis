@@ -295,6 +295,7 @@ plot.EIFandScore.each.tissue <- function (m){
 }
 
 plot.EIFandScore.each.tissue("Muscle - Skeletal")
+EIF.RNAseq.GTEx <- get.EIF.RNAseq.GTEx()
 
 tissues <- levels(EIF.RNAseq.GTEx$SMTSD)
 sapply(tissues, plot.EIFandScore.each.tissue)
