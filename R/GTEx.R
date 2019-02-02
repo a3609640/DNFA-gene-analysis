@@ -24,12 +24,12 @@ library(gridExtra)
     .getDataDir3(),
     # "r-extdata",  # TODO(dlroxe): probably, stop using r-extdata in Makefile
 #    "GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz")
-    "GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct.gz")
+    "GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_tpm.gct.gz")
   
   if (!file.exists(local_file)) {
     download.file(
 #      url = "http://storage.googleapis.com/gtex_analysis_v6p/rna_seq_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz",
-      url = "https://storage.googleapis.com/gtex_analysis_v7/rna_seq_data/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct.gz",
+      url = "https://storage.googleapis.com/gtex_analysis_v7/rna_seq_data/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_tpm.gct.gz",
       destfile = local_file)
   }
   
@@ -118,8 +118,7 @@ library(gridExtra)
 gene <- .get_gene()
 gene_annotations <- .get_gene_annotations()
 
-goi <- "TCF3"
-.plot_goi(goi, gene, gene_annotations)
+.plot_goi("TCF3", gene, gene_annotations)
 
 EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
 names(EIF.gene) <- EIF.gene
@@ -294,7 +293,10 @@ plot.EIFandScore.each.tissue <- function (m){
     print(paste("EIF is activated in", m))
   }
 }
-plot.EIFandScore.each.tissues("Muscle - Skeletal")
+
+plot.EIFandScore.each.tissue("Muscle - Skeletal")
+EIF.RNAseq.GTEx <- get.EIF.RNAseq.GTEx()
+
 tissues <- levels(EIF.RNAseq.GTEx$SMTSD)
 sapply(tissues, plot.EIFandScore.each.tissue)
 
