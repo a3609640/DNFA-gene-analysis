@@ -468,7 +468,8 @@ plot.EIFandScore.all.tumors <- function (){
 #  x1  = factor(x, levels=c("B", "C", "A"))
 #  levels(EIF.RNAseq.tcga.all.tumors$variable)
   EIF.RNAseq.tcga.all.tumors$variable <- ordered(EIF.RNAseq.tcga.all.tumors$variable, 
-                                                 levels = c("EIF4E","EIF4G1","EIF4EBP1","RPS6KB1"))
+                                                 levels = c("EIF4E","EIF4G1",
+                                                            "EIF4EBP1","RPS6KB1"))
   number <- nrow(EIF.RNAseq.tcga.all.tumors)/4
   EIF.score.tcga.all.tumors <- melt(EIF.score.tcga)
   my_comparison1 <- list( c("EIF4E", "EIF4G1"), 

@@ -41,13 +41,13 @@ library(gridExtra)
 .get_gtex_annotations_filename <- function() {
   local_file = file.path(
     .getDataDir3(),
-    # "r-extdata",  # TODO(dlroxe): probably, stop using r-extdata in Makefile
- #   "GTEx_Data_V6_Annotations_SampleAttributesDS.txt")
+  # "r-extdata",  # TODO(dlroxe): probably, stop using r-extdata in Makefile
+  # "GTEx_Data_V6_Annotations_SampleAttributesDS.txt")
     "GTEx_v7_Annotations_SampleAttributesDS.txt")
 
   if (!file.exists(local_file)) {
     download.file(
- #     url = "http://storage.googleapis.com/gtex_analysis_v6p/annotations/GTEx_Data_V6_Annotations_SampleAttributesDS.txt",
+  #   url = "http://storage.googleapis.com/gtex_analysis_v6p/annotations/GTEx_Data_V6_Annotations_SampleAttributesDS.txt",
       url = "https://storage.googleapis.com/gtex_analysis_v7/annotations/GTEx_v7_Annotations_SampleAttributesDS.txt",
       destfile = local_file)
   }
@@ -195,11 +195,11 @@ get.EIF.score.GTEx <- function(){
   EIF.score.GTEx$EIF4G1score <- EIF.RNAseq.GTEx$EIF4G1/EIF.RNAseq.GTEx$EIF4E
   EIF.score.GTEx$EIF4EBP1score <- EIF.RNAseq.GTEx$EIF4EBP1/EIF.RNAseq.GTEx$EIF4E
   EIF.score.GTEx$RPS6KB1score <- EIF.RNAseq.GTEx$RPS6KB1/EIF.RNAseq.GTEx$EIF4E
-  EIF.score.GTEx <- EIF.score.GTEx [, 8:12]
+  EIF.score.GTEx <- EIF.score.GTEx[, 8:12]
   return(EIF.score.GTEx)
   }
 
-plot.EIF.RNAseq.score <- function (m) {
+plot.EIF.RNAseq.score <- function(m) {
   EIF.RNAseq.GTEx <- get.EIF.RNAseq.GTEx()
   EIF.score.GTEx <- get.EIF.score.GTEx()
   EIF.RNAseq.GTEx <- EIF.RNAseq.GTEx[EIF.RNAseq.GTEx$SMTSD == m,]
@@ -208,14 +208,14 @@ plot.EIF.RNAseq.score <- function (m) {
   medianEIF4EBP1score <- median(EIF.score.GTEx$EIF4EBP1score)
   # tissue$SMTSD <- NULL
   if (medianEIF4G1score < medianEIF4EBP1score ) {
-    par(mfrow=c(1,2))
+    par(mfrow = c(1,2))
     boxplot(log2(EIF.RNAseq.GTEx[, 
                                c("EIF4E", "EIF4G1", "EIF4EBP1", "RPS6KB1")]), 
-            main= paste0("EIF RNAseq counts in ",m),
+            main = paste0("EIF RNAseq counts in ",m),
             las = 2)
     boxplot(log2(EIF.score.GTEx[,
                           c("EIF4Escore","EIF4G1score","EIF4EBP1score")]),
-            main= paste0("EIF scores in ", m),
+            main = paste0("EIF scores in ", m),
             las = 2)
     print(paste("EIF is inhibited in", m))
   } else {
@@ -223,7 +223,7 @@ plot.EIF.RNAseq.score <- function (m) {
   }
 }
 
-plot.EIF.RNAseq.score ("Muscle - Skeletal")
+plot.EIF.RNAseq.score("Muscle - Skeletal")
 EIF.RNAseq.GTEx <- get.EIF.RNAseq.GTEx()
 tissues <- levels(EIF.RNAseq.GTEx$SMTSD)
 sapply(tissues, plot.EIF.RNAseq.score)
@@ -232,7 +232,7 @@ sapply(tissues, plot.EIF.RNAseq.score)
 ###  plot RNAseq from all tissue samples ###
 ############################################
 
-plotEIF <-  function (x) {
+plotEIF <-  function(x) {
   name <- deparse(substitute(x))
   black_bold_tahoma_12 <- element_text(color  = "black", 
                                        face   = "bold",
@@ -267,10 +267,11 @@ plotEIF <-  function (x) {
           legend.position = "none")
   }
 
-plot.EIFandScore.all.tissues <- function (){
+plot.EIFandScore.all.tissues <- function(){
   EIF.RNAseq.GTEx <- get.EIF.RNAseq.GTEx()
   EIF.RNAseq.GTEx <- EIF.RNAseq.GTEx[, 
-                                     c("EIF4E", "EIF4G1", "EIF4EBP1", "RPS6KB1", "SMTSD")]
+                                     c("EIF4E", "EIF4G1", 
+                                       "EIF4EBP1", "RPS6KB1", "SMTSD")]
   EIF.score.GTEx <- get.EIF.score.GTEx()
   number <- nrow(EIF.RNAseq.GTEx)
   EIF.RNAseq.GTEx.all.tissues <- melt(EIF.RNAseq.GTEx)
@@ -287,24 +288,25 @@ plot.EIFandScore.all.tissues <- function (){
   p1 <- plotEIF(EIF.RNAseq.GTEx.all.tissues) +
     labs(title = paste0("All healthy tissues n = ", number),
          x     = "eIF4F subunit RNAseq",
-         y     = paste0("log2(value)")) +
+         y     = paste0("log10(value)")) +
     stat_compare_means(comparisons = my_comparison1, method = "t.test")
   p1$layers[[2]]$aes_params$textsize <- 5  
   p2 <- plotEIF(EIF.score.GTEx.all.tissues) + 
     labs(title = paste0("All healthy tissues n = ", number),
          x     = "eIF4E ratio score",
-         y     = paste0("log2(value)")) +
+         y     = paste0("log10(value)")) +
     stat_compare_means(comparisons = my_comparison2, method = "t.test")
   p2$layers[[2]]$aes_params$textsize <- 5
-  grid.arrange(p1, p2, ncol=2)
+  grid.arrange(p1, p2, ncol = 2)
   }
 plot.EIFandScore.all.tissues()
 
 
-plot.EIFandScore.each.tissues <- function (m){
+plot.EIFandScore.each.tissues <- function(m){
   EIF.RNAseq.GTEx <- get.EIF.RNAseq.GTEx()
   EIF.RNAseq.GTEx <- EIF.RNAseq.GTEx[, 
-                                     c("EIF4E", "EIF4G1", "EIF4EBP1", "RPS6KB1", "SMTSD")]
+                                     c("EIF4E", "EIF4G1", "EIF4EBP1", 
+                                       "RPS6KB1", "SMTSD")]
   EIF.score.GTEx <- get.EIF.score.GTEx()
   EIF.RNAseq.GTEx <- EIF.RNAseq.GTEx[EIF.RNAseq.GTEx$SMTSD == m,]
   EIF.score.GTEx <- EIF.score.GTEx[EIF.score.GTEx$SMTSD == m,]
@@ -331,7 +333,7 @@ plot.EIFandScore.each.tissues <- function (m){
          y     = paste0("log2(value)")) +
     stat_compare_means(comparisons = my_comparison2, method = "t.test")
   p2$layers[[2]]$aes_params$textsize <- 5
-  grid.arrange(p1, p2, ncol=2)
+  grid.arrange(p1, p2, ncol = 2)
 }
 
 sapply(tissues, plot.EIFandScore.each.tissues)
