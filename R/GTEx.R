@@ -114,7 +114,11 @@ library(gridExtra)
               print(genePlot)
 }
 
+<<<<<<< HEAD
 .plot_goi("MITF")
+=======
+.plot_goi("TCF3")
+>>>>>>> a7a32415ca3447c4911451f2e8fbdf9c26282353
 goi <- "TCF3"
 
 EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
@@ -296,8 +300,12 @@ plot.EIFandScore.each.tissue <- function (m){
     print(paste("EIF is activated in", m))
   }
 }
+<<<<<<< HEAD
 plot.EIFandScore.each.tissue("Muscle - Skeletal")
 EIF.RNAseq.GTEx <- get.EIF.RNAseq.GTEx()
+=======
+plot.EIFandScore.each.tissues("Muscle - Skeletal")
+>>>>>>> a7a32415ca3447c4911451f2e8fbdf9c26282353
 tissues <- levels(EIF.RNAseq.GTEx$SMTSD)
 sapply(tissues, plot.EIFandScore.each.tissue)
 
