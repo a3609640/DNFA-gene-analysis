@@ -234,10 +234,18 @@ plot.EIFandScore.all.tissues <- function (gene, gene_annotations){
   }
 
 
-plot.EIFandScore.each.tissue <- function (m, gene, gene_annotations){
-  gene_names <- c(
-    "EIF4A1","EIF4E","EIF4G1", "EIF4EBP1","RPS6KB1","SMTSD")
-  gene_score_names <- 
+
+plot.EIFandScore.each.tissue <-
+  function (m, gene, gene_annotations) {
+    gene_names <- c("EIF4A1", "EIF4E", "EIF4G1", "EIF4EBP1", "RPS6KB1", "SMTSD")
+    gene_score_names <- c(
+      "EIF4A1score",
+      "EIF4Escore",
+      "EIF4G1score",
+      "EIF4EBP1score",
+      "RPS6KB1score",
+      "SMTSDscore"
+    )
   EIF.RNAseq.GTEx <- get.EIF.RNAseq.GTEx(gene, gene_annotations)
   EIF.RNAseq.GTEx <- EIF.RNAseq.GTEx[, gene_names]
   EIF.RNAseq.GTEx <- EIF.RNAseq.GTEx[EIF.RNAseq.GTEx$SMTSD == m,]
@@ -266,7 +274,8 @@ plot.EIFandScore.each.tissue <- function (m, gene, gene_annotations){
 
   if (medianEIF4G1score >= medianEIF4EBP1score) {
     print(paste("EIF is activated in", m))
-    return()
+  } else {
+    print(paste("EIF is inhibited in", m))
   }
 
   par(mfrow = c(1, 2))
@@ -289,7 +298,6 @@ plot.EIFandScore.each.tissue <- function (m, gene, gene_annotations){
   p2$layers[[2]]$aes_params$textsize <- 5
   
   grid.arrange(p1, p2, ncol = 2)
-  print(paste("EIF is inhibited in", m))
 }
 
 
@@ -304,7 +312,7 @@ names(EIF.gene) <- EIF.gene
 DNFA.gene <- c("SCD", "FASN", "ACLY","ACSS2","SREBF1",
                "HMGCR","HMGCS1","SREBF2","MITF")
 names(DNFA.gene ) <- DNFA.gene
-lapply(DNFA.gene, .plot_goi, gene=gene, gene_annotations=gene_annotations)
+lapply(EIF.gene, .plot_goi, gene=gene, gene_annotations=gene_annotations)
 
 plot.EIFandScore.all.tissues(gene=gene, gene_annotations=gene_annotations)
 
