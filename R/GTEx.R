@@ -232,13 +232,13 @@ plot.EIFandScore.all.tissues <- function (gene, gene_annotations){
          y     = paste0("log2(value)")) +
     stat_compare_means(comparisons = my_comparison2, method = "t.test")
   p2$layers[[2]]$aes_params$textsize <- 5
-  grid.arrange(p1, p2, ncol=2)
+  grid.arrange(p1, p2, ncol = 2)
   }
 
 
 
 plot.EIFandScore.each.tissue <-
-  function (m, gene, gene_annotations) {
+  function(m, gene, gene_annotations) {
     gene_names <- c("EIF4A1", "EIF4E", "EIF4G1", "EIF4EBP1", "RPS6KB1", "SMTSD")
     gene_score_names <- c(
       "EIF4A1score",
