@@ -933,12 +933,11 @@ plot.km.mut.skcm <- function(ge) {
     survfit(SurvObj ~ df[[x]], data = df, conf.type = "log-log")
   }
   km <- fit(ge)
-  #  plot(km)
   black.bold.12pt <- element_text(face   = "bold",
                                   size   = 12,
                                   colour = "black")
   print(
-    autoplot(km,
+    ggplot2::autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
              main = paste("Kaplan-Meier plot", ge)) +
@@ -1158,7 +1157,7 @@ plot.km.all.pro.tcga <- function(EIF) {
                                   size   = 12,
                                   colour = "black")
   print(
-    autoplot(km,
+    ggplot2::autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
              main = paste("Kaplan-Meier plot", EIF, 
@@ -1171,6 +1170,7 @@ plot.km.all.pro.tcga <- function(EIF) {
             strip.text           = black.bold.12pt,
             legend.text          = black.bold.12pt ,
             legend.title         = black.bold.12pt ,
+            legend.position      = c(1,1),
             legend.justification = c(1,1)) +
       guides(fill = FALSE) +
       scale_color_manual(values = c("red", "blue"),
@@ -1308,6 +1308,7 @@ plot.km.all.pan.tcga <- function(EIF) {
                  type = "full")
   df <- na.omit(df)
   message("clinical and RNAseq data combined")
+  number <- nrow(df)
   df$Group[df$RNAseq < quantile(df$RNAseq, prob = 0.2)] = "Bottom 20%"
   df$Group[df$RNAseq > quantile(df$RNAseq, prob = 0.8)] = "Top 20%"
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
@@ -1319,11 +1320,10 @@ plot.km.all.pan.tcga <- function(EIF) {
   black.bold.12pt <- element_text(face   = "bold",
                                   size   = 12,
                                   colour = "black")
-  p <- autoplot(km,
+  p <- ggplot2::autoplot(km,
                 xlab = "Months",
                 ylab = "Survival Probability",
-                main = paste("Kaplan-Meier plot", EIF, 
-                             "RNA expression in all TCGA pancancer groups"),
+                main = paste0("Kaplan-Meier plot in TCGA pancancer groups (", number," cases)"),
                 xlim = c(0, 300)) +
     #      scale_fill_discrete(name="Experimental\nCondition",
     #                          breaks=c("Top 20%", "Bottom 20%"),
@@ -1334,19 +1334,20 @@ plot.km.all.pan.tcga <- function(EIF) {
           axis.line.y          = element_line(color  = "black"),
           panel.grid           = element_blank(),
           strip.text           = black.bold.12pt,
-          legend.text          = black.bold.12pt ,
-          legend.title         = black.bold.12pt ,
-          legend.justification = c(1,1)) +
+          legend.text          = black.bold.12pt,
+          legend.title         = black.bold.12pt,
+          legend.position      = c(1,1), #place the top-right corner of the legend
+          legend.justification = c(1,1)) + #in the top-right corner fot eh graph
     guides(fill = FALSE) +
     scale_color_manual(values = c("red", "blue"),
                        name   = paste(EIF, "mRNA expression"),
                        breaks = c("Bottom 20%", "Top 20%"),
-                       labels = c("Bottom 20%, n = 1859",
-                                  "Top 20%, n = 1859")) +
+                       labels = c("Bottom 20%, n = 1931",
+                                  "Top 20%, n = 1931")) +
     geom_point(size = 0.25) +
     annotate("text",
              x     = 300,
-             y     = 0.85,
+             y     = 0.90,
              label = paste("log-rank test, p.val = ", p.val),
              size  = 4.5,
              hjust = 1,
