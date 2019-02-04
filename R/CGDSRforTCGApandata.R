@@ -8,6 +8,7 @@ library(ggplot2)
 library(plyr)
 library(reshape2)
 library(survival)
+library(survminer)
 
 # Create CGDS object
 mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
@@ -375,7 +376,7 @@ sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
 ##  plot OS curve with clinic and mutation data from SKCM group ##
 ##################################################################
 plotOS <- function(ge) {
-  mycancerstudy <- getCancerStudies(mycgds)[194, 1]
+  mycancerstudy <- getCancerStudies(mycgds)[19, 1]
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
@@ -440,7 +441,7 @@ sapply(mutation.list, plotOS)
 ## need to the following script uses OS data from TCGA provisional data
 ## and combine OS data with the expression data from pancan study
 plotDNFAOS <- function(DNFA) {
-  mycancerstudy <- getCancerStudies(mycgds)[194, 1]  # "skcm_tcga_pan_can_atlas_2018"
+  mycancerstudy <- getCancerStudies(mycgds)[198, 1]  # "skcm_tcga_pan_can_atlas_2018"
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1] # "All tumor samples (448 samples)"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
@@ -464,7 +465,7 @@ plotDNFAOS <- function(DNFA) {
                                   size   = 12,
                                   colour = "black")
   print(
-    autoplot(km,
+    ggplot2::autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
              main = paste("Kaplan-Meier plot", DNFA, "RNA expression")) +
@@ -520,7 +521,7 @@ plotDNFAOS <- function(DNFA) {
                                   size   = 12,
                                   colour = "black")
   print(
-    autoplot(km,
+    ggplot2::autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
              main = paste("Kaplan-Meier plot", DNFA, "RNA expression")) +
@@ -665,7 +666,7 @@ plot.km.all.tcga <- function(DNFA) {
                                   size   = 12,
                                   colour = "black")
   print(
-    autoplot(km,
+    ggplot2::autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
              main = paste("Kaplan-Meier plot", DNFA, "RNA expression"),
