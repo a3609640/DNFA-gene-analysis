@@ -4,26 +4,112 @@ library(cluster)
 library(factoextra)
 library(ggfortify)
 library(ggplot2)
+library(ggplot2)
+library(ggpubr)
+library(gridExtra)
 library(lfda)
 library(readxl)
+library(reshape2)
 
-doAllXena <- function() {
-EIFTCGAGTEX <- readxl::read_excel(file.path("project-data",
+
+EIF.TCGA.GTEX <- readxl::read_excel(file.path("project-data",
                                                 "EIFTCGAGTEX.xlsx"))
-EIFTCGAGTEX$`_sample_type` <- as.factor(EIFTCGAGTEX$`_sample_type`)
-EIFTCGAGTEX$`_study` <- as.factor(EIFTCGAGTEX$`_study`)
-levels(EIFTCGAGTEX$`_sample_type`)
-# 7DNFASKCMandGTEX.xls contains data downloaded from Xena
-# TODO SW, will write a seperate script (with Xenatool) to download the data
-# eliminate unique row with "Solid Tissue Normal"
-EIFTCGAGTEX <- droplevels(EIFTCGAGTEX[!EIFTCGAGTEX$`_sample_type` == 'Solid Tissue Normal',])
-EIFTCGAGTEX <- droplevels(EIFTCGAGTEX[!EIFTCGAGTEX$`_sample_type` == 'Cell Line',])
-EIFGTEX <- EIFTCGAGTEX[EIFTCGAGTEX$`_study` == 'GTEX',]
-EIFTCGA <- EIFTCGAGTEX[EIFTCGAGTEX$`_study` == 'TCGA',]
+EIF.TCGA.GTEX$`_sample_type` <- as.factor(EIF.TCGA.GTEX$`_sample_type`)
+EIF.TCGA.GTEX$`_study` <- as.factor(EIF.TCGA.GTEX$`_study`)
+levels(EIF.TCGA.GTEX$`_sample_type`)
+EIF.TCGA.GTEX <- droplevels(EIF.TCGA.GTEX[!EIF.TCGA.GTEX$`_study` == 'TARGET',])
+EIF.GTEX <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$`_study` == 'GTEX',]
+EIF.TCGA.GTEX.long.form <- melt(EIF.TCGA.GTEX)
+colnames(EIF.TCGA.GTEX.long.form) <- c("sample","study","sample.type",
+                                     "primary.site","variable","value")
+plotEIF(EIF.TCGA.GTEX.long.form)
 
-par(mfrow=c(1,2))
-boxplot(EIFGTEX[, c(2,3,4,5)], main="EIF RNAseq in healthy tissues, n=8152")
-boxplot(EIFTCGA[, c(2,3,4,5)], main="EIF RNAseq in tumor tissues, n=10531")
+EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$`_study` == 'TCGA',]
+levels(EIF.TCGA$`_sample_type`)
+tumor.type <- c("Metastatic","Primary Tumor",
+                "Recurrent Tumor","Normal Tissue",
+                "Solid Tissue Normal")
+EIF.TCGA <- EIF.TCGA[EIF.TCGA$`_sample_type` %in% tumor.type,]
+EIF.TCGA.long.form <- melt(EIF.TCGA)
+colnames(EIF.TCGA.long.form) <- c("sample","study","sample.type",
+                                  "primary.site","variable","value")
+plotEIF(EIF.TCGA.long.form)
+
+plotEIF <-  function (x) {
+  name <- deparse(substitute(x))
+  black_bold_tahoma_12 <- element_text(color  = "black", 
+                                       face   = "bold",
+                                       family = "Tahoma", 
+                                       size   = 12)
+  
+  black_bold_tahoma_12_45 <- element_text(color  = "black",
+                                          face   = "bold",
+                                          family = "Tahoma", 
+                                          size   = 12, 
+                                          angle  = 45,
+                                          hjust  = 1)
+  ggplot(data = x,
+         aes(x     = sample.type, 
+             y     = value, 
+             color = sample.type)) +
+    facet_wrap( ~ variable) +
+    geom_boxplot(alpha    = .01, 
+                 size     = .75,
+                 width    = .75,
+                 position = position_dodge(width = .9)) +
+    #    labs(title = paste0(name," n = 8555"),
+    #         x     = "eIF4F complex components",
+    #         y     = paste0("log2(value)")) +
+    ylim(5, 25) +
+    theme_bw() +
+    theme(plot.title  = black_bold_tahoma_12,
+          axis.title  = black_bold_tahoma_12,
+          axis.text.x = black_bold_tahoma_12_45,
+          axis.text.y = black_bold_tahoma_12,
+          axis.line.x = element_line(color  = "black"),
+          axis.line.y = element_line(color  = "black"),
+          panel.grid  = element_blank(),
+          strip.text  = black_bold_tahoma_12)
+}
+
+
+EIF.TCGA.long.form.EIF4A1 <- EIF.TCGA.long.form[EIF.TCGA.long.form$variable == "EIF4A1",]
+EIF.TCGA.long.form.EIF4E <- EIF.TCGA.long.form[EIF.TCGA.long.form$variable == "EIF4E",]
+EIF.TCGA.long.form.EIF4G1 <- EIF.TCGA.long.form[EIF.TCGA.long.form$variable == "EIF4G1",]
+EIF.TCGA.long.form.EIF4EBP1 <- EIF.TCGA.long.form[EIF.TCGA.long.form$variable == "EIF4EBP1",]
+my_comparison <- list(c("Metastatic", "Solid Tissue Normal"), 
+                      c("Primary Tumor", "Solid Tissue Normal"), 
+                      c("Recurrent Tumor", "Solid Tissue Normal"),
+                      c("Metastatic", "Primary Tumor"),
+                      c("Recurrent Tumor", "Primary Tumor"))
+
+
+p1 <- plotEIF(EIF.TCGA.long.form.EIF4A1) +
+  stat_compare_means(comparisons = my_comparison, method = "t.test")
+p2 <- plotEIF(EIF.TCGA.long.form.EIF4E) +
+  stat_compare_means(comparisons = my_comparison, method = "t.test")
+p3 <- plotEIF(EIF.TCGA.long.form.EIF4G1) +
+  stat_compare_means(comparisons = my_comparison, method = "t.test")
+p4 <- plotEIF(EIF.TCGA.long.form.EIF4EBP1) +
+  stat_compare_means(comparisons = my_comparison, method = "t.test")
+
+grid.arrange(p1, p2, p3, p4, ncol = 2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 View(DNFASKCMandGTEX)
 str(DNFASKCMandGTEX)
