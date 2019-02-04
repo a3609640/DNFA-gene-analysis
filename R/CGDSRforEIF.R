@@ -364,13 +364,8 @@ plot.EIF.RNAseq.score <- function (x) {
           main= paste0("EIF RNAseq counts in ", x),
           las = 2)
   boxplot(log2(EIF.score.tcga[,
-<<<<<<< HEAD
-                        c("EIF4Escore","EIF4G1score",
-                          "EIF4EBP1score")]),
-=======
                               c("EIF4Escore","EIF4G1score",
                                 "EIF4EBP1score","RPS6KB1score")]),
->>>>>>> 9321f8f65304ea06f9845bdc4108446f64ece6b8
           main= paste0("EIF scores in ", x),
           las = 2)
 }
@@ -975,14 +970,14 @@ sapply(mutation.list, plot.km.mut.skcm)
 ##  Kaplan-Meier curve with clinic and EIF RNASeq data from SKCM  ##
 ####################################################################
 plot.km.EIF.skcm <- function(EIF) {
-  mycancerstudy <- getCancerStudies(mycgds)[198, 1]        # "esca_tcga"
+  mycancerstudy <- getCancerStudies(mycgds)[217, 1]        # "laml_tcga"
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "hnsc_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
   skcm.RNAseq.data <- getProfileData(mycgds,
                                      EIF,
-                                     "skcm_tcga_rna_seq_v2_mrna",
-                                     "skcm_tcga_all")
+                                     "tgct_tcga_rna_seq_v2_mrna",
+                                     "tgct_tcga_all")
   skcm.RNAseq.data <- as.data.frame(skcm.RNAseq.data)
   skcm.RNAseq.data$rn <- rownames(skcm.RNAseq.data)
   df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
@@ -990,6 +985,7 @@ plot.km.EIF.skcm <- function(EIF) {
                  by   = "rn",
                  type = "full")
   df <- na.omit(df)
+  number <- nrow(df)
   df$Group[df[[EIF]] < quantile(df[[EIF]], prob = 0.2)] = "Bottom 20%"
   df$Group[df[[EIF]] > quantile(df[[EIF]], prob = 0.8)] = "Top 20%"
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
@@ -1002,13 +998,11 @@ plot.km.EIF.skcm <- function(EIF) {
                                   size   = 12,
                                   colour = "black")
   print(
-    autoplot(km,
+    ggplot2::autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
-             main = paste("Kaplan-Meier plot",
-                          EIF,
-                          "mRNA expression in",
-                          mycancerstudy)) +
+             main = paste0("Kaplan-Meier plot of TCGA Sarcoma group (", 
+                           number," cases)")) +
       theme(axis.title           = black.bold.12pt,
             axis.text            = black.bold.12pt,
             axis.line.x          = element_line(color  = "black"),
@@ -1023,12 +1017,12 @@ plot.km.EIF.skcm <- function(EIF) {
       scale_color_manual(values = c("red", "blue"),
                          name   = paste(EIF, "mRNA expression"),
                          breaks = c("Bottom 20%", "Top 20%"),
-                         labels = c("Bottom 20%, n = 93",
-                                    "Top 20%, n = 93")) +
+                         labels = c("Bottom 20%, n = 53",
+                                    "Top 20%, n = 53")) +
       geom_point(size = 0.25) +
       annotate("text",
-               x     = 300,
-               y     = 0.85,
+               x     = 200,
+               y     = 0.8,
                label = paste("log-rank test, p.val = ", p.val),
                size  = 4.5,
                hjust = 1,
