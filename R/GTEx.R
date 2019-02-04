@@ -24,20 +24,11 @@ library(gridExtra)
     .getDataDir3(),
     # "r-extdata",  # TODO(dlroxe): probably, stop using r-extdata in Makefile
 #    "GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz")
-<<<<<<< HEAD
-#    "GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct.gz")
-   "GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_tpm.gct.gz")
-=======
     "GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_tpm.gct.gz")
->>>>>>> 9321f8f65304ea06f9845bdc4108446f64ece6b8
   
   if (!file.exists(local_file)) {
     download.file(
 #      url = "http://storage.googleapis.com/gtex_analysis_v6p/rna_seq_data/GTEx_Analysis_v6p_RNA-seq_RNA-SeQCv1.1.8_gene_rpkm.gct.gz",
-<<<<<<< HEAD
-#      url = "https://storage.googleapis.com/gtex_analysis_v7/rna_seq_data/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_reads.gct.gz",
-=======
->>>>>>> 9321f8f65304ea06f9845bdc4108446f64ece6b8
       url = "https://storage.googleapis.com/gtex_analysis_v7/rna_seq_data/GTEx_Analysis_2016-01-15_v7_RNASeQCv1.1.8_gene_tpm.gct.gz",
       destfile = local_file)
   }
@@ -78,12 +69,8 @@ library(gridExtra)
   return(Annotations)
 }
 
-<<<<<<< HEAD
-.plot_goi <- function(gene, goi) {
-=======
 
 .plot_goi <- function(goi, gene, gene_annotations) {
->>>>>>> 9321f8f65304ea06f9845bdc4108446f64ece6b8
   go <- gene[gene$Description == goi,]
   go <- go[, -c(1,2)]
   go <- t(go)
@@ -170,38 +157,6 @@ get.EIF.score.GTEx <- function(gene, gene_annotations){
 #                                        "RPS6KB1score")]
   return(EIF.score.GTEx)
   }
-
-<<<<<<< HEAD
-plot.EIF.RNAseq.score <- function (m) {
-  EIF.RNAseq.GTEx <- get.EIF.RNAseq.GTEx()
-  EIF.score.GTEx <- get.EIF.score.GTEx()
-  EIF.RNAseq.GTEx <- EIF.RNAseq.GTEx[EIF.RNAseq.GTEx$SMTSD == m,]
-  EIF.score.GTEx <- EIF.score.GTEx[EIF.score.GTEx$SMTSD == m,]
-  medianEIF4G1score <- median(EIF.score.GTEx$EIF4G1score)
-  medianEIF4EBP1score <- median(EIF.score.GTEx$EIF4EBP1score)
-  # tissue$SMTSD <- NULL
-  if (medianEIF4G1score < medianEIF4EBP1score ) {
-    par(mfrow=c(1,2))
-    boxplot(log2(EIF.RNAseq.GTEx[, 
-                               c("EIF4E", "EIF4G1", "EIF4EBP1", "RPS6KB1")]), 
-            main= paste0("EIF RNAseq counts in ",m),
-            las = 2)
-    boxplot(log2(EIF.score.GTEx[,
-                          c("EIF4Escore","EIF4G1score","EIF4EBP1score")]),
-            main= paste0("EIF scores in ", m),
-            las = 2)
-    print(paste("EIF is inhibited in", m))
-  } else {
-    print(paste("EIF is activated in", m))
-  }
-}
-
-plot.EIF.RNAseq.score ("Muscle - Skeletal")
-EIF.RNAseq.GTEx <- get.EIF.RNAseq.GTEx()
-tissues <- levels(EIF.RNAseq.GTEx$SMTSD)
-sapply(tissues, plot.EIF.RNAseq.score)
-=======
->>>>>>> 9321f8f65304ea06f9845bdc4108446f64ece6b8
 
 ############################################
 ###  plot RNAseq from all tissue samples ###
