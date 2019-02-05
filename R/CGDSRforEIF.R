@@ -741,7 +741,7 @@ getCNV <- function(x) {
 }
 
 # CNV.data <- getCNV("BRAF")
-CNV.data <- getCNV(c("MYC", "NRAS", "PTEN"))
+CNV.data <- getCNV(c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC"))
 
 ##########################################################################
 ## examine the correlation between mutation status and EIF RNASeq level ##
@@ -967,17 +967,17 @@ names(mutation.list) <- mutation.list
 sapply(mutation.list, plot.km.mut.skcm)
 
 ####################################################################
-##  Kaplan-Meier curve with clinic and EIF RNASeq data from SKCM  ##
+##  Kaplan-Meier curve with clinic and EIF RNASeq data from hnsc  ##
 ####################################################################
 plot.km.EIF.skcm <- function(EIF) {
-  mycancerstudy <- getCancerStudies(mycgds)[34, 1]        # "laml_tcga"
+  mycancerstudy <- getCancerStudies(mycgds)[85, 1]        # "laml_tcga"
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "hnsc_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
   skcm.RNAseq.data <- getProfileData(mycgds,
                                      EIF,
-                                     "brca_tcga_rna_seq_v2_mrna",
-                                     "brca_tcga_all")
+                                     "hnsc_tcga_rna_seq_v2_mrna",
+                                     "hnsc_tcga_all")
   skcm.RNAseq.data <- as.data.frame(skcm.RNAseq.data)
   skcm.RNAseq.data$rn <- rownames(skcm.RNAseq.data)
   df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
@@ -1001,7 +1001,7 @@ plot.km.EIF.skcm <- function(EIF) {
     ggplot2::autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
-             main = paste0("Kaplan-Meier plot of Breast Invasive Carcinoma (", 
+             main = paste0("Kaplan-Meier plot of Head and Neck Squamous Cell Carcinoma (", 
                            number," cases)")) +
       theme(axis.title           = black.bold.12pt,
             axis.text            = black.bold.12pt,
@@ -1017,15 +1017,15 @@ plot.km.EIF.skcm <- function(EIF) {
       scale_color_manual(values = c("red", "blue"),
                          name   = paste(EIF, "mRNA expression"),
                          breaks = c("Bottom 20%", "Top 20%"),
-                         labels = c("Bottom 20%, n = 220",
-                                    "Top 20%, n = 220")) +
+                         labels = c("Bottom 20%, n = 104",
+                                    "Top 20%, n = 104")) +
       geom_point(size = 0.25) +
       annotate("text",
-               x     = 300,
-               y     = 0.8,
-               label = paste("log-rank test, p.val = ", p.val),
-               size  = 4.5,
-               hjust = 1,
+               x        = 220,
+               y        = 0.8,
+               label    = paste("log-rank test, p.val = ", p.val),
+               size     = 4.5,
+               hjust    = 1,
                fontface = "bold"))
   # rho = 1 the Gehan-Wilcoxon test
   print(EIF)

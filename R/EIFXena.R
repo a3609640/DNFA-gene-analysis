@@ -42,7 +42,7 @@ plotEIF <-  function (x) {
                  position = position_dodge(width = .9)) +
     labs(x = "sample type",
          y = paste("log2(RNA counts)")) +
-    scale_x_discrete(labels=c("Metastatic"          = paste("Metastatic \n n= ",
+    scale_x_discrete(labels = c("Metastatic"        = paste("Metastatic \n n= ",
                                                             metastatic.number), 
                               "Primary Tumor"       = paste("Primary Tumor \n n= ", 
                                                             primary.tumor.number),
