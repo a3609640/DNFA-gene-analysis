@@ -1,18 +1,43 @@
 ## the following script perform PCA on RNA-Seq data of seven DNFA genes 
 ## from SKCM amd GTEX dataset with R package "ggfortify".
-library(cluster)
-library(factoextra)
+
 library(ggfortify)
 library(ggplot2)
 library(ggplot2)
 library(ggpubr)
 library(ggsignif)
 library(gridExtra)
-library(lfda)
-library(readxl)
 library(reshape2)
 
+## read.csv will transform characters into factors  
+get.EIF.TCGA.GTEX <- function () {
+  EIF.TCGA.GTEX <- read.csv(file.path("project-data", "EIFTCGAGTEX.csv"), 
+                            header = TRUE, sep = ",")
+  EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:10])
+  colnames(EIF.TCGA.GTEX.RNAseq.long) <- c("sample", "study", "sample.type", 
+                                           "primary.disease", "variable", "value")
+  return(EIF.TCGA.GTEX.RNAseq.long)
+}
 
+##
+get.EIF.TCGA.RNAseq.long <- function () {
+  EIF.TCGA.GTEX <- read.csv(file.path("project-data", 
+                                      "EIFTCGAGTEX.csv"), 
+                            header = TRUE, sep = ",")
+  EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:10])
+  colnames(EIF.TCGA.GTEX.RNAseq.long) <- c("sample", "study", "sample.type", 
+                                           "primary.disease", "variable", "value")
+  EIF.TCGA.RNAseq.long <- EIF.TCGA.GTEX.RNAseq.long[EIF.TCGA.GTEX.RNAseq.long$study == 'TCGA',]
+  EIF.TCGA.RNAseq.long <- EIF.TCGA.RNAseq.long[EIF.TCGA.RNAseq.long$value != 0,]
+  tumor.type <- c("Metastatic","Primary Tumor",
+                  "Recurrent Tumor","Normal Tissue",
+                  "Solid Tissue Normal")
+  EIF.TCGA.RNAseq.long <- EIF.TCGA.RNAseq.long[EIF.TCGA.RNAseq.long$sample.type %in% tumor.type,]
+  EIF.TCGA.RNAseq.long <- droplevels(EIF.TCGA.RNAseq.long)
+  return(EIF.TCGA.RNAseq.long)
+}
+
+##
 plotEIF <-  function (x) {
   name <- deparse(substitute(x))
   metastatic.number <- nrow(x[x$sample.type == "Metastatic",])
@@ -33,8 +58,10 @@ plotEIF <-  function (x) {
          aes(x     = sample.type, 
              y     = value, 
              color = sample.type)) +
-    facet_grid( ~ variable, scales="free", space="free")+   
-    facet_wrap( ~ variable, ncol=3)+
+    facet_grid( ~ variable, 
+                scales = "free", 
+                space  = "free")+   
+    facet_wrap( ~ variable, ncol = 3)+
     geom_violin(trim = FALSE) +
     geom_boxplot(alpha    = .01, 
                  size     = .75,
@@ -42,248 +69,222 @@ plotEIF <-  function (x) {
                  position = position_dodge(width = .9)) +
     labs(x = "sample type",
          y = paste("log2(RNA counts)")) +
-    scale_x_discrete(labels = c("Metastatic"        = paste("Metastatic \n n= ",
-                                                            metastatic.number), 
-                              "Primary Tumor"       = paste("Primary Tumor \n n= ", 
-                                                            primary.tumor.number),
-                              "Recurrent Tumor"     = paste("Recurrent Tumor \n n= ", 
-                                                            recurrent.tumor.number),
-                              "Solid Tissue Normal" = paste("Solid Tissue Normal \n n= ", 
-                                                            solid.tissue.normal.number))) +
+    scale_x_discrete(labels = c("Metastatic"          = paste("Metastatic \n n= ",
+                                                              metastatic.number), 
+                                "Primary Tumor"       = paste("Primary Tumor \n n= ", 
+                                                              primary.tumor.number),
+                                "Recurrent Tumor"     = paste("Recurrent Tumor \n n= ", 
+                                                              recurrent.tumor.number),
+                                "Solid Tissue Normal" = paste("Solid Tissue Normal \n n= ", 
+                                                              solid.tissue.normal.number))) +
     theme_bw() +
     theme(plot.title      = black_bold_tahoma_12,
           axis.title      = black_bold_tahoma_12,
           axis.text.x     = black_bold_tahoma_12_45,
           axis.text.y     = black_bold_tahoma_12,
-          axis.line.x     = element_line(color  = "black"),
-          axis.line.y     = element_line(color  = "black"),
+          axis.line.x     = element_line(color = "black"),
+          axis.line.y     = element_line(color = "black"),
           panel.grid      = element_blank(),
-          legend.position ="none",
+          legend.position = "none",
           strip.text      = black_bold_tahoma_12)
 }
 
+##
+plot.EIF.seq.all.tumors <- function(x){
+  my_comparison <- list(c("Metastatic", "Solid Tissue Normal"), 
+                        c("Primary Tumor", "Solid Tissue Normal"), 
+                        c("Recurrent Tumor", "Solid Tissue Normal"),
+                        c("Metastatic", "Primary Tumor"),
+                        c("Recurrent Tumor", "Primary Tumor"))
+  plotEIF(x)+
+    stat_compare_means(comparisons = my_comparison, method = "t.test")
+} 
 
-EIF.TCGA.GTEX <- readxl::read_excel(file.path("project-data",
-                                              "EIFTCGAGTEX.xlsx"))
-EIF.TCGA.GTEX$`_sample_type` <- as.factor(EIF.TCGA.GTEX$`_sample_type`)
-EIF.TCGA.GTEX$`_study` <- as.factor(EIF.TCGA.GTEX$`_study`)
-levels(EIF.TCGA.GTEX$`_sample_type`)
-EIF.TCGA.GTEX <- droplevels(EIF.TCGA.GTEX[!EIF.TCGA.GTEX$`_study` == 'TARGET',])
-EIF.GTEX <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$`_study` == 'GTEX',]
-EIF.TCGA.GTEX.long.form <- melt(EIF.TCGA.GTEX)
-colnames(EIF.TCGA.GTEX.long.form) <- c("sample","study","sample.type",
-                                       "primary.disease","variable","value")
-
-EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$`_study` == 'TCGA',]
-levels(EIF.TCGA$`_sample_type`)
-tumor.type <- c("Metastatic","Primary Tumor",
-                "Recurrent Tumor","Normal Tissue",
-                "Solid Tissue Normal")
-EIF.TCGA <- EIF.TCGA[EIF.TCGA$`_sample_type` %in% tumor.type,]
-EIF.TCGA.long.form <- melt(EIF.TCGA)
-EIF.TCGA.long.form <- EIF.TCGA.long.form[EIF.TCGA.long.form$value != 0,]
-colnames(EIF.TCGA.long.form) <- c("sample","study","sample.type",
-                                  "primary.disease","variable","value")
-EIF.TCGA.long.form$primary.disease <- as.factor(EIF.TCGA.long.form$primary.disease)
-disease.list <- levels(EIF.TCGA.long.form$primary.disease)
-names(disease.list) <- disease.list
-my_comparison <- list(c("Metastatic", "Solid Tissue Normal"), 
-                      c("Primary Tumor", "Solid Tissue Normal"), 
-                      c("Recurrent Tumor", "Solid Tissue Normal"),
-                      c("Metastatic", "Primary Tumor"),
-                      c("Recurrent Tumor", "Primary Tumor"))
-
-
-plotEIF(EIF.TCGA.long.form)+
-  stat_compare_means(comparisons = my_comparison, method = "t.test") 
-
-plot.each <- function(x, y){
+##
+plot.EIF.seq.each.tumor <- function(x, y){
   m <- x[x$primary.disease == y,]
+  my_comparison <- list(c("Metastatic", "Solid Tissue Normal"), 
+                        c("Primary Tumor", "Solid Tissue Normal"), 
+                        c("Recurrent Tumor", "Solid Tissue Normal"),
+                        c("Metastatic", "Primary Tumor"),
+                        c("Recurrent Tumor", "Primary Tumor"))
   plotEIF(m)+
     labs(title = y) +
     stat_compare_means(method = "anova")
 } 
-plot.each (x = EIF.TCGA.long.form, y = "Sarcoma")
-lapply(disease.list, plot.each, x = EIF.TCGA.long.form)
+##
+get.disease.list <- function () {
+  x <- get.EIF.TCGA.RNAseq.long()
+  disease.list <- levels(x$primary.disease)
+  names(disease.list)<- disease.list
+  return(disease.list)}
+
+##
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-EIF.TCGA.long.form.EIF4A1 <- EIF.TCGA.long.form[EIF.TCGA.long.form$variable == "EIF4A1",]
-EIF.TCGA.long.form.EIF4E <- EIF.TCGA.long.form[EIF.TCGA.long.form$variable == "EIF4E",]
-EIF.TCGA.long.form.EIF4G1 <- EIF.TCGA.long.form[EIF.TCGA.long.form$variable == "EIF4G1",]
-EIF.TCGA.long.form.EIF4EBP1 <- EIF.TCGA.long.form[EIF.TCGA.long.form$variable == "EIF4EBP1",]
-
-metastatic.number <- nrow(EIF.TCGA.long.form[EIF.TCGA.long.form$sample.type == "Metastatic",])
-primary.tumor.number <- nrow(EIF.TCGA.long.form[EIF.TCGA.long.form$sample.type == "Primary Tumor",])
-recurrent.tumor.number <- nrow(EIF.TCGA.long.form[EIF.TCGA.long.form$sample.type == "Recurrent Tumor",])
-solid.tissue.normal.number <- nrow(EIF.TCGA.long.form[EIF.TCGA.long.form$sample.type == "Solid Tissue Normal",])
-
-plotEIF(EIF.TCGA.long.form.EIF4A1) +
-  stat_compare_means(comparisons = my_comparison, method = "t.test")
-
-
-p1 <- plotEIF(EIF.TCGA.long.form.EIF4A1) +
-  stat_compare_means(comparisons = my_comparison, method = "t.test")
-p2 <- plotEIF(EIF.TCGA.long.form.EIF4E) +
-  stat_compare_means(comparisons = my_comparison, method = "t.test")
-p3 <- plotEIF(EIF.TCGA.long.form.EIF4G1) +
-  stat_compare_means(comparisons = my_comparison, method = "t.test")
-p4 <- plotEIF(EIF.TCGA.long.form.EIF4EBP1) +
-  stat_compare_means(comparisons = my_comparison, method = "t.test")
-
-grid.arrange(p1, p2, p3, p4, ncol = 2)
-grid.arrange(p1, p2, ncol = 2)
-grid.arrange(p3, p4, ncol = 2)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> 9321f8f65304ea06f9845bdc4108446f64ece6b8
-
-View(DNFASKCMandGTEX)
-str(DNFASKCMandGTEX)
-EIFTCGAGTEX <- as.data.frame(EIFTCGAGTEX)
-DNFASKCMandGTEX$sample_type <- as.factor(DNFASKCMandGTEX$sample_type)
-
-DNFASKCMandGTEX$sample_type <- factor(DNFASKCMandGTEX$sample_type,
-                                      levels = c("Normal Tissue",
-                                                 "Primary Tumor",
-                                                 "Metastatic"))
-                                                 # "Solid Tissue Normal"))
-levels(DNFASKCMandGTEX$sample_type)
-length(DNFASKCMandGTEX)
-list(DNFASKCMandGTEX)
-# DNFASKCMandGTEX data table contain the RNA-Seq results for 7 DNFA genes,
-# and 8th column shows the cancer category for each sample.
-# data.frame for prcomp() function should only contains numeric values, so
-# we remove the 8th column from DNFASKCMandGTEX data
-df <- DNFASKCMandGTEX[-8]
-plot1 <- ggplot2::autoplot(prcomp(df),
-                           data   = DNFASKCMandGTEX,
-                           colour = 'sample_type')
-print(plot1)
-.getTitleFont <- function() {
-  return(element_text(face = "bold", color = "black", size = 12))
+####################################################################
+##  Kaplan-Meier curve with clinic and EIF RNASeq data from hnsc  ##
+####################################################################
+plot.km.EIF.all.tumors <- function(EIF) {
+  EIF.TCGA.GTEX <- read.csv(file.path("project-data", "EIFTCGAGTEX.csv"), 
+                            header = TRUE, sep = ",")
+  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$X_study == 'TCGA',]
+  EIF.TCGA <- droplevels(EIF.TCGA)
+  df <- na.omit(EIF.TCGA)
+  number <- nrow(df)
+  sub <- round(number/5, digits = 0)
+  bottom.label <- paste("Bottom 20%, n = ", sub)
+  top.label <- paste("Top 20%, n = ", sub)
+  df$Group[df[[EIF]] < quantile(df[[EIF]], prob = 0.2)] = "Bottom 20%"
+  df$Group[df[[EIF]] > quantile(df[[EIF]], prob = 0.8)] = "Top 20%"
+  df$SurvObj <- with(df, Surv(OS.time, OS == 1))
+  df <- na.omit(df)
+  km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0) # rho = 0 log-rank
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
+  p.val <- signif(p.val, 3)
+  black.bold.12pt <- element_text(face   = "bold",
+                                  size   = 12,
+                                  colour = "black")
+  print(
+    ggplot2::autoplot(km,
+                      xlab = "Months",
+                      ylab = "Survival Probability",
+                      main = paste0("Kaplan-Meier plot (", 
+                                    number," cases)")) +
+      theme(axis.title           = black.bold.12pt,
+            axis.text            = black.bold.12pt,
+            axis.line.x          = element_line(color  = "black"),
+            axis.line.y          = element_line(color  = "black"),
+            panel.grid           = element_blank(),
+            strip.text           = black.bold.12pt,
+            legend.text          = black.bold.12pt ,
+            legend.title         = black.bold.12pt ,
+            legend.position      = c(1,1),
+            legend.justification = c(1,1)) +
+      guides(fill = FALSE) +
+      scale_color_manual(values = c("red", "blue"),
+                         name   = paste(EIF, "mRNA expression"),
+                         breaks = c("Bottom 20%", "Top 20%"),
+                         labels = c(bottom.label, top.label)) +
+      geom_point(size = 0.25) +
+      annotate("text",
+               x        = 10000,
+               y        = 0.8,
+               label    = paste("log-rank test, p.val = ", p.val),
+               size     = 4.5,
+               hjust    = 1,
+               fontface = "bold"))
+  # rho = 1 the Gehan-Wilcoxon test
+  print(EIF)
+  print(stats)
+  #  fit = survfit(SurvObj ~ df$Group, data = df)
+  #  tst <- comp(fit)$tests$lrTests
+  #  print(tst)
 }
-# we can color each data point in the plot according to their cancer category: 
-# colour = 'sample_type'
-# Use loadings = TRUE, we draw eigenvector for each DNFA gene on the plot.
-bp <- ggplot2::autoplot(prcomp(df),
- data                   = DNFASKCMandGTEX,
- colour                 = 'sample_type', ## use colour, color gives error
- loadings               = TRUE,
- loadings.colour        = 'black',
- loadings.label.vjust   = -1,
- loadings.label         = TRUE,
- loadings.label.size    = 4) +
- theme(plot.background  = element_blank(),
-       panel.background = element_rect(fill   = 'transparent',
-                                       color  = 'black',
-                                       size   = 1),
-       axis.title       = .getTitleFont(),
-       axis.text        = .getTitleFont(),
-       legend.title     = .getTitleFont(),
-       legend.text      = .getTitleFont(),
-       legend.key       = element_blank())
-print(bp)
 
-# use promp function only to draw the PCA plot for DNFA gene expression, 
-# similar plot as the past section.
-PC <- prcomp(df)
-PCi <- data.frame(PC$x, Species = DNFASKCMandGTEX$sample_type)
-plot3 <- ggplot(PCi,aes(x = PC1, y = PC2, col = Species)) +
-  geom_point(size = 3, alpha = 0.5) +
-  # choose colors here
-  scale_color_manual(values = c("#FF1BB3","#A7FF5B","#99554D","#CC0000")) + 
-  theme_classic()
-print(plot3)
-
-## determine the optimal number of clusters K for k-means clustering:
-fviz_nbclust(df, kmeans, method = "silhouette")
-fviz_nbclust(df, pam, method = "silhouette")
-# From the plot, the suggested optimal number of clusters is 2.
-# clara: Clustering Large Applications is an extension to the PAM 
-# (Partitioning Around Medoids). We chose the number of clusters as "2".
-plot4 <- ggplot2::autoplot(clara(df, 2))
-print(plot4)
-# fanny: Fuzzy Analysis Clustering, 
-# to compute a fuzzy clustering of the data into k clusters.
-plot5 <- ggplot2::autoplot(fanny(df, 2), frame = TRUE)
-print(plot5)
-# pam: Partitioning Around Medoids, a more robust version of K-means.
-plot6 <- ggplot2::autoplot(pam(df, 2), frame = TRUE, frame.type = 'norm')
-print(plot6)
-# Tumor tissues and healthy tissus samples are clearly seperated,
-# Metastatic and primary tumor samples were not seperated by clustering method
-
-# Local Fisher Discriminant Analysis (LFDA)
-# Dimensionality (r) is set to 7 because there are 7 DNFA genes to consider.
-# Note, set knn = 1 and minObsPerLabel = 1 if there is a label in the data 
-# that only occurs once.  However, still expect errors; 
-# lfda has strong assumptions that there are multiple observations per label.
-model <- lfda(DNFASKCMandGTEX[-8],
-              DNFASKCMandGTEX[, 8],
-              r      = 7,
-              metric = "plain",
-              knn    = 5)
-plot7 <- ggplot2::autoplot(model,
-                           data         = DNFASKCMandGTEX,
-                           frame        = TRUE,
-                           frame.colour = 'sample_type')
-print(plot7)
-
-# A beta value of 0 indicates totally supervised learning; 
-# A beta value of 1 indicates totally unsupervised.
-model <- self(DNFASKCMandGTEX[-8],
-              DNFASKCMandGTEX[, 8],
-              beta           = 0.0,
-              r              = 7,
-              metric         = "plain",
-              minObsPerLabel = 5)
-plot8 <- ggplot2::autoplot(model,
-                           data         = DNFASKCMandGTEX,
-                           frame        = TRUE,
-                           frame.colour = 'sample_type')
-print(plot8)
-
-model <- self(DNFASKCMandGTEX[-8],
-              DNFASKCMandGTEX[, 8],
-              beta           = 1.0,     # unsupervised learning
-              r              = 7,
-              metric         = "plain",
-              minObsPerLabel = 5)
-plot9 <- ggplot2::autoplot(model,
-                           data         = DNFASKCMandGTEX,
-                           frame        = TRUE,
-                           frame.colour = 'sample_type')
-print(plot9)
+plot.km.EIF.each.tumor <- function(EIF, tumor) {
+  EIF.TCGA.GTEX <- read.csv(file.path("project-data", "EIFTCGAGTEX.csv"), 
+                            header = TRUE, sep = ",")
+  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$X_study == 'TCGA',]
+  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$primary.disease.or.tissue == tumor,]
+  EIF.TCGA <- droplevels(EIF.TCGA)
+  df <- na.omit(EIF.TCGA)
+  number <- nrow(df)
+  sub <- round(number/5, digits = 0)
+  bottom.label <- paste("Bottom 20%, n = ", sub)
+  top.label <- paste("Top 20%, n = ", sub)
+  df$Group[df[[EIF]] < quantile(df[[EIF]], prob = 0.2)] = "Bottom 20%"
+  df$Group[df[[EIF]] > quantile(df[[EIF]], prob = 0.8)] = "Top 20%"
+  df$SurvObj <- with(df, Surv(OS.time, OS == 1))
+  df <- na.omit(df)
+  km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0) # rho = 0 log-rank
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
+  p.val <- signif(p.val, 3)
+  black.bold.12pt <- element_text(face   = "bold",
+                                  size   = 12,
+                                  colour = "black")
+  print(
+    ggplot2::autoplot(km,
+                      xlab = "Days",
+                      ylab = "Survival Probability",
+                      main = paste0("Kaplan-Meier plot of ", tumor, " (",
+                                    number," cases)")) +
+      theme(axis.title           = black.bold.12pt,
+            axis.text            = black.bold.12pt,
+            axis.line.x          = element_line(color  = "black"),
+            axis.line.y          = element_line(color  = "black"),
+            panel.grid           = element_blank(),
+            strip.text           = black.bold.12pt,
+            legend.text          = black.bold.12pt ,
+            legend.title         = black.bold.12pt ,
+            legend.position      = c(1,1),
+            legend.justification = c(1,1)) +
+      guides(fill = FALSE) +
+      scale_color_manual(values = c("red", "blue"),
+                         name   = paste(EIF, "mRNA expression"),
+                         breaks = c("Bottom 20%", "Top 20%"),
+                         labels = c(bottom.label, top.label)) +
+      geom_point(size = 0.25) +
+      annotate("text",
+               x        = 10000,
+               y        = 0.8,
+               label    = paste("log-rank test, p.val = ", p.val),
+               size     = 4.5,
+               hjust    = 1,
+               fontface = "bold"))
+  # rho = 1 the Gehan-Wilcoxon test
+  print(EIF)
+  print(stats)
+  #  fit = survfit(SurvObj ~ df$Group, data = df)
+  #  tst <- comp(fit)$tests$lrTests
+  #  print(tst)
 }
-doAllXena()
+
+plot.km.EIF.all.tumors("EIF4G1")
+EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
+names(EIF.gene) <- EIF.gene
+lapply(EIF.gene, plot.km.EIF.all.tumors)
+
+
+
+plot.km.EIF.each.tumor ("EIF4G1", "Sarcoma")
+lapply(get.disease.list(), plot.km.EIF.each.tumor, EIF = "EIF4G1")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+####################################################
+
+
+
+plot.EIF.seq.all.tumors (get.EIF.TCGA.RNAseq.long())
+plot.EIF.seq.each.tumor (x = get.EIF.TCGA.RNAseq.long(), y = "Sarcoma")
+lapply(get.disease.list(), plot.each.tumor.type, x = get.EIF.TCGA.RNAseq.long())
+
+
+
+
+
+
+
+
+
+
+
+
+
