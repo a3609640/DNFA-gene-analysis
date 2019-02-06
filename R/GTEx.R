@@ -177,7 +177,7 @@ plotEIF <-  function (x) {
                                           hjust  = 1)
   ggplot(x,
          aes(x = variable,
-             y = log10(value))) +
+             y = log2(value))) +
     geom_boxplot(alpha    = .01, 
                  size     = .75,
                  width    = .75,
@@ -221,7 +221,7 @@ plot.EIFandScore.all.tissues <- function (gene, gene_annotations){
   p1 <- plotEIF(EIF.RNAseq.GTEx.all.tissues) +
     labs(title = paste0("All healthy tissues n = ", number),
          x     = "eIF4F subunit RNAseq",
-         y     = paste0("log10(value)")) +
+         y     = paste0("log2(value)")) +
     stat_compare_means(comparisons = my_comparison1, method = "t.test")
   p1$layers[[2]]$aes_params$textsize <- 5  
   p2 <- plotEIF(EIF.score.GTEx.all.tissues) + 
