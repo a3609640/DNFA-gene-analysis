@@ -505,12 +505,12 @@ plot.EIFandScore.all.tumors()
 plot.EIFandScore.each.tissue <- function (m){
   EIF.RNAseq.tcga <- lapply(tcga.study.list, get.EIF.RNAseq.tcga)
   EIF.score.tcga <- lapply(tcga.study.list, get.EIF.score.tcga)
-  EIF.RNAseq.GTEx <- EIF.RNAseq.GTEx[, 
+  EIF.RNAseq.tcga <- EIF.RNAseq.tcga[, 
                                      c("EIF4A1","EIF4E",
                                        "EIF4G1","EIF4EBP1",
                                        "RPS6KB1","SMTSD")]
-  EIF.score.GTEx <- get.EIF.score.GTEx()
-  EIF.score.GTEx <- EIF.score.GTEx[, c("EIF4A1score","EIF4Escore",
+#  EIF.score.GTEx <- get.EIF.score.GTEx()
+  EIF.score.tcga <- EIF.score.tcga[, c("EIF4A1score","EIF4Escore",
                                        "EIF4G1score","EIF4EBP1score",
                                        "RPS6KB1score","SMTSD")]
   EIF.RNAseq.GTEx <- EIF.RNAseq.GTEx[EIF.RNAseq.GTEx$SMTSD == m,]
@@ -549,7 +549,7 @@ plot.EIFandScore.each.tissue <- function (m){
     print(paste("EIF is activated in", m))
   }
 }
-
+lapply(tcga.study.list, plot.EIFandScore.each.tissue)
 
 
 
@@ -970,14 +970,14 @@ sapply(mutation.list, plot.km.mut.skcm)
 ##  Kaplan-Meier curve with clinic and EIF RNASeq data from hnsc  ##
 ####################################################################
 plot.km.EIF.skcm <- function(EIF) {
-  mycancerstudy <- getCancerStudies(mycgds)[85, 1]        # "laml_tcga"
+  mycancerstudy <- getCancerStudies(mycgds)[185, 1]        # "laml_tcga"
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "hnsc_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
   skcm.RNAseq.data <- getProfileData(mycgds,
                                      EIF,
-                                     "hnsc_tcga_rna_seq_v2_mrna",
-                                     "hnsc_tcga_all")
+                                     "prad_tcga_rna_seq_v2_mrna",
+                                     "prad_tcga_all")
   skcm.RNAseq.data <- as.data.frame(skcm.RNAseq.data)
   skcm.RNAseq.data$rn <- rownames(skcm.RNAseq.data)
   df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
