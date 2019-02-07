@@ -93,10 +93,10 @@ library(gridExtra)
   black.bold.12pt <- ggplot2::element_text(face   = "bold",
                                            size   = 12,
                                            colour = "black")
-  genePlot <- ggplot(mean, aes(x = SMTSD, y = log10(goi))) +
+  genePlot <- ggplot(mean, aes(x = SMTSD, y = log2(goi))) +
    geom_boxplot() + theme_bw() +
    labs(x = "Tissue types (GTEx)",
-        y = paste("log10(", goi, "RNA counts)")) +
+        y = paste("log2(", goi, "RNA counts)")) +
         theme(axis.title           = black.bold.12pt,
               axis.text            = ggplot2::element_text(size  = 12,
                                                            angle = 90,
