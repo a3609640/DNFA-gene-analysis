@@ -501,12 +501,13 @@ plot.EIF.seq.all.normal <- function(x){
 
 
 ####################################################################
-##  Kaplan-Meier curve with clinic and EIF RNASeq data from hnsc  ##
+##  Kaplan-Meier curve with clinic and EIF RNASeq data all tumor  ##
 ####################################################################
 plot.km.EIF.all.tumors <- function(EIF) {
   EIF.TCGA.GTEX <- read.csv(file.path("project-data", "EIFTCGAGTEX.csv"), 
                             header = TRUE, sep = ",")
   EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$X_study == 'TCGA',]
+  EIF.TCGA <- EIF.TCGA[EIF.TCGA$X_sample_type != "Solid Tissue Normal", ]
   EIF.TCGA <- droplevels(EIF.TCGA)
   df <- na.omit(EIF.TCGA)
   number <- nrow(df)
@@ -568,6 +569,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
                             header = TRUE, sep = ",")
   EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$X_study == 'TCGA',]
   EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$primary.disease.or.tissue == tumor,]
+  EIF.TCGA <- EIF.TCGA[EIF.TCGA$X_sample_type != "Solid Tissue Normal", ]
   EIF.TCGA <- droplevels(EIF.TCGA)
   df <- na.omit(EIF.TCGA)
   number <- nrow(df)
@@ -642,14 +644,14 @@ lapply(get.disease.list(), plot.EIF.seq.each.tumor, x = get.EIF.TCGA.RNAseq.long
 
 ####################################################
 ####################################################
-plot.km.EIF.all.tumors("EIF41")
+plot.km.EIF.all.tumors("EIF4G1")
 EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
 names(EIF.gene) <- EIF.gene
 lapply(EIF.gene, plot.km.EIF.all.tumors)
 
 
 plot.km.EIF.each.tumor ("EIF4G1", "Sarcoma")
-lapply(get.disease.list(), plot.km.EIF.each.tumor, EIF = "EIF4A1")
+lapply(get.disease.list(), plot.km.EIF.each.tumor, EIF = "EIF4G1")
 lapply(EIF.gene, plot.km.EIF.each.tumor, tumor = "Kidney Papillary Cell Carcinoma")
 
 
