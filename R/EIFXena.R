@@ -10,6 +10,7 @@ library(reshape2)
 library(survival)
 library(survMisc)
 
+
 ## read.csv will transform characters into factors  
 get.EIF.TCGA.GTEX.RNAseq.long <- function () {
   EIF.TCGA.GTEX <- read.csv(file.path("project-data", "EIFTCGAGTEX.csv"), 
@@ -19,11 +20,13 @@ get.EIF.TCGA.GTEX.RNAseq.long <- function () {
                                            "primary.disease", "variable", "value")
   EIF.TCGA.GTEX.RNAseq.long <- EIF.TCGA.GTEX.RNAseq.long[EIF.TCGA.GTEX.RNAseq.long$value != 0,]
   EIF.TCGA.GTEX.RNAseq.long <- na.omit(EIF.TCGA.GTEX.RNAseq.long)
-  tumor.type <- c("Metastatic", "Primary Tumor", "Recurrent Tumor",
-                  "Solid Tissue Normal", "Normal Tissue", "Cell Line")
+  tumor.type <- c("Metastatic", "Primary Tumor", 
+                  "Recurrent Tumor", "Solid Tissue Normal", 
+                  "Normal Tissue", "Cell Line")
   EIF.TCGA.GTEX.RNAseq.long <- EIF.TCGA.GTEX.RNAseq.long[EIF.TCGA.GTEX.RNAseq.long$sample.type %in% tumor.type,]
   EIF.TCGA.GTEX.RNAseq.long <- droplevels(EIF.TCGA.GTEX.RNAseq.long)
-  EIF.TCGA.GTEX.RNAseq.long$sample.type <- factor(EIF.TCGA.GTEX.RNAseq.long$sample.type, levels = tumor.type)
+  EIF.TCGA.GTEX.RNAseq.long$sample.type <- factor(EIF.TCGA.GTEX.RNAseq.long$sample.type, 
+                                                  levels = tumor.type)
   return(EIF.TCGA.GTEX.RNAseq.long)
 }
 
@@ -471,9 +474,6 @@ plot.EIF.seq.all.samples <- function(x){
 } 
 
 ##
-
-
-##
 plot.EIF.seq.each.tumor <- function(x, y){
   m <- x[x$primary.disease == y,]
   my_comparison <- list(c("Metastatic", "Solid Tissue Normal"), 
@@ -564,6 +564,10 @@ plot.km.EIF.all.tumors <- function(EIF) {
   #  tst <- comp(fit)$tests$lrTests
   #  print(tst)
 }
+
+###################################################################################
+##  Kaplan-Meier curve with clinic and EIF RNASeq data in individual tumor group ##
+###################################################################################
 plot.km.EIF.each.tumor <- function(EIF, tumor) {
   EIF.TCGA.GTEX <- read.csv(file.path("project-data", "EIFTCGAGTEX.csv"), 
                             header = TRUE, sep = ",")
@@ -639,8 +643,11 @@ plotEIF.score.TCGA (get.EIF.TCGA.score.long())
 plot.EIF.seq.all.normal (get.EIF.GTEX.RNAseq.long())
 plot.EIF.seq.all.normal (get.EIF.GTEX.score.long())
 
-plot.EIF.seq.each.tumor (x = get.EIF.TCGA.RNAseq.long(), y = "Sarcoma")
-lapply(get.disease.list(), plot.EIF.seq.each.tumor, x = get.EIF.TCGA.RNAseq.long())
+plot.EIF.seq.each.tumor (x = get.EIF.TCGA.RNAseq.long(), 
+                         y = "Sarcoma")
+lapply(get.disease.list(), 
+       plot.EIF.seq.each.tumor, 
+       x = get.EIF.TCGA.RNAseq.long())
 
 ####################################################
 ####################################################
@@ -652,7 +659,9 @@ lapply(EIF.gene, plot.km.EIF.all.tumors)
 
 plot.km.EIF.each.tumor ("EIF4G1", "Sarcoma")
 lapply(get.disease.list(), plot.km.EIF.each.tumor, EIF = "EIF4G1")
-lapply(EIF.gene, plot.km.EIF.each.tumor, tumor = "Kidney Papillary Cell Carcinoma")
+lapply(EIF.gene, 
+       plot.km.EIF.each.tumor, 
+       tumor = "Kidney Papillary Cell Carcinoma")
 
 
 
