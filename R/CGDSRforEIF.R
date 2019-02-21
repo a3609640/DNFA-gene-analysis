@@ -17,15 +17,20 @@ library(survival)
 library(survMisc)
 
 # Create CGDS object
-mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
-# mycgds = CGDS("http://www.cbioportal.org/")
+# mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
+ mycgds = CGDS("http://www.cbioportal.org/")
 test(mycgds)
 # Get list of cancer studies at server
 getCancerStudies(mycgds)
 # Get cases from TCGA provisional studies only
-EIF.gene <- c("SCD","EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
+EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC",
+              "HIST2H2BE", "HIST1H1B", "HIST1H2AB","HIST1H1C",
+              "PPA2","ECHS1", "LLGL2","SF3B5", "RPS5")
 names(EIF.gene) <- EIF.gene
 
+DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1", 
+               "HMGCS1", "HMGCR", "MVK", "PMVK")
+names(DNFA.gene ) <- DNFA.gene
 ####################################################################
 ## plot EIF RNASeq data from TCGA provisional cancer study groups ##
 ####################################################################
@@ -112,7 +117,7 @@ plot.EIF.tcga <- function(EIF){
                                        size   = 9,
                                        color  = "black"),
             axis.text.x = element_text(size   = 9,
-                                       angle  = 45,
+                                     #  angle  = 45,
                                        hjust  = 1, # 1 means right-justified
                                        face   = "bold",
                                        color  = "black"),
@@ -127,12 +132,13 @@ plot.EIF.tcga <- function(EIF){
             strip.text  = element_text(face   = "bold",
                                        size   = 9,
                                        color  = "black"),
-            legend.position = "none"))
+            legend.position = "none")+
+    coord_flip())
 }
 
 plot.EIF.tcga("EIF4E")
 sapply(EIF.gene, plot.EIF.tcga)
-
+sapply(DNFA.gene, plot.EIF.tcga)
 #############################################################
 ## plot EIF RNASeq data from pan TCGA cancer study groups ##
 #############################################################
@@ -205,21 +211,23 @@ plot.EIF.pan.tcga <- function(EIF){
   m <- paste0(EIF, ".", EIF)
   mean <- within(df2[df2$EIFgene == m,], # TCGAstudy is one column in df2
                  TCGAstudy <- reorder(TCGAstudy, log2(RNAseq), median))
+  a <- levels(mean$TCGAstudy)
+  colors <- ifelse(a == "prad_tcga_pan_can_atlas_2018", "red", "black")
   print(
     ggplot(mean,
-           aes(x     = TCGAstudy,
-               y     = log2(RNAseq),
-               color = TCGAstudy)) +
+           aes(x        = TCGAstudy,
+               y        = log2(RNAseq),
+               color    = TCGAstudy)) +
       geom_boxplot(alpha    = .01,
                    width    = .5,
                    position = position_dodge(width = .9)) +
+      coord_flip() +
       labs(x = "Tumor types (TCGA)",
            y = paste0("log2(", EIF, " RNA counts)")) +
       theme(axis.title  = element_text(face   = "bold",
                                        size   = 9,
                                        color  = "black"),
             axis.text.x = element_text(size   = 9,
-                                       angle  = 45,
                                        hjust  = 1, # 1 means right-justified
                                        face   = "bold",
                                        color  = "black"),
@@ -227,7 +235,7 @@ plot.EIF.pan.tcga <- function(EIF){
                                        angle  = 0,
                                        hjust  = 1, # 1 means right-justified
                                        face   = "bold",
-                                       color  = "black"),
+                                       color  = colors),
             axis.line.x = element_line(color  = "black"),
             axis.line.y = element_line(color  = "black"),
             panel.grid  = element_blank(),
@@ -237,9 +245,9 @@ plot.EIF.pan.tcga <- function(EIF){
             legend.position = "none"))
 }
 
-plot.EIF.pan.tcga("EIF4E")
+plot.EIF.pan.tcga("RPS5")
 sapply(EIF.gene, plot.EIF.pan.tcga)
-
+sapply(DNFA.gene, plot.EIF.pan.tcga)
 ##########################################################
 ## plot RNAseq data of EIF complex in TCGA study groups ##
 ##########################################################

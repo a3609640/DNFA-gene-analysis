@@ -13,9 +13,9 @@ library(survMisc)
 
 ## read.csv will transform characters into factors  
 get.EIF.TCGA.GTEX.RNAseq.long <- function () {
-  EIF.TCGA.GTEX <- read.csv(file.path("project-data", "EIFTCGAGTEX.csv"), 
+  EIF.TCGA.GTEX <- read.csv(file.path("project-data", "EIFTCGAGTEX2.csv"), 
                             header = TRUE, sep = ",")
-  EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:10])
+  EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:17])
   colnames(EIF.TCGA.GTEX.RNAseq.long) <- c("sample", "study", "sample.type", 
                                            "primary.disease", "variable", "value")
   EIF.TCGA.GTEX.RNAseq.long <- EIF.TCGA.GTEX.RNAseq.long[EIF.TCGA.GTEX.RNAseq.long$value != 0,]
@@ -504,9 +504,70 @@ plot.EIF.seq.all.normal <- function(x){
 ##  Kaplan-Meier curve with clinic and EIF RNASeq data all tumor  ##
 ####################################################################
 plot.km.EIF.all.tumors <- function(EIF) {
-  EIF.TCGA.GTEX <- read.csv(file.path("project-data", "EIFTCGAGTEX.csv"), 
+  EIF.TCGA.GTEX <- read.csv(file.path("project-data", "EIFTCGAGTEX2.csv"), 
                             header = TRUE, sep = ",")
-  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$X_study == 'TCGA',]
+  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA',]
+  EIF.TCGA <- EIF.TCGA[EIF.TCGA$X_sample_type != "Solid Tissue Normal", ]
+  EIF.TCGA <- droplevels(EIF.TCGA)
+  df <- na.omit(EIF.TCGA)
+  number <- nrow(df)
+  sub <- round(number/5, digits = 0)
+  bottom.label <- paste("Bottom 20%, n = ", sub)
+  top.label <- paste("Top 20%, n = ", sub)
+  df$Group[df[[EIF]] < quantile(df[[EIF]], prob = 0.2)] = "Bottom 20%"
+  df$Group[df[[EIF]] > quantile(df[[EIF]], prob = 0.8)] = "Top 20%"
+  df$SurvObj <- with(df, Surv(OS.time, OS == 1))
+  df <- na.omit(df)
+  km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0) # rho = 0 log-rank
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
+  p.val <- signif(p.val, 3)
+  black.bold.12pt <- element_text(face   = "bold",
+                                  size   = 12,
+                                  family = "Tahoma", 
+                                  colour = "black")
+  print(
+    ggplot2::autoplot(km,
+                      xlab = "Days",
+                      ylab = "Survival Probability",
+                      main = paste0("Kaplan-Meier plot of all TCGA cancer studies(", 
+                                    number," cases)")) +
+      theme_bw() +
+      theme(plot.title           = black.bold.12pt,
+            axis.title           = black.bold.12pt,
+            axis.text            = black.bold.12pt,
+            axis.line.x          = element_line(color  = "black"),
+            axis.line.y          = element_line(color  = "black"),
+            panel.grid           = element_blank(),
+            strip.text           = black.bold.12pt,
+            legend.text          = black.bold.12pt ,
+            legend.title         = black.bold.12pt ,
+            legend.position      = c(1,1),
+            legend.justification = c(1,1)) +
+      guides(fill = FALSE) +
+      scale_color_manual(values = c("red", "blue"),
+                         name   = paste(EIF, "mRNA expression"),
+                         breaks = c("Bottom 20%", "Top 20%"),
+                         labels = c(bottom.label, top.label)) +
+      geom_point(size = 0.25) +
+      annotate("text",
+               x        = 10000,
+               y        = 0.8,
+               label    = paste("log-rank test, p.val = ", p.val),
+               size     = 4.5,
+               hjust    = 1,
+               fontface = "bold"))
+  # rho = 1 the Gehan-Wilcoxon test
+  print(EIF)
+  print(stats)
+  #  fit = survfit(SurvObj ~ df$Group, data = df)
+  #  tst <- comp(fit)$tests$lrTests
+  #  print(tst)
+}
+plot.km.DNFA.all.tumors <- function(EIF) {
+  EIF.TCGA.GTEX <- read.csv(file.path("project-data", "DNFASKCMandGTEX.csv"), 
+                            header = TRUE, sep = ",")
+  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA',]
   EIF.TCGA <- EIF.TCGA[EIF.TCGA$X_sample_type != "Solid Tissue Normal", ]
   EIF.TCGA <- droplevels(EIF.TCGA)
   df <- na.omit(EIF.TCGA)
@@ -569,9 +630,71 @@ plot.km.EIF.all.tumors <- function(EIF) {
 ##  Kaplan-Meier curve with clinic and EIF RNASeq data in individual tumor group ##
 ###################################################################################
 plot.km.EIF.each.tumor <- function(EIF, tumor) {
-  EIF.TCGA.GTEX <- read.csv(file.path("project-data", "EIFTCGAGTEX.csv"), 
+  EIF.TCGA.GTEX <- read.csv(file.path("project-data", "EIFTCGAGTEX2.csv"), 
                             header = TRUE, sep = ",")
-  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$X_study == 'TCGA',]
+  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA',]
+  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$primary.disease.or.tissue == tumor,]
+  EIF.TCGA <- EIF.TCGA[EIF.TCGA$X_sample_type != "Solid Tissue Normal", ]
+  EIF.TCGA <- droplevels(EIF.TCGA)
+  df <- na.omit(EIF.TCGA)
+  number <- nrow(df)
+  sub <- round(number/5, digits = 0)
+  bottom.label <- paste("Bottom 20%, n = ", sub)
+  top.label <- paste("Top 20%, n = ", sub)
+  df$Group[df[[EIF]] < quantile(df[[EIF]], prob = 0.2)] = "Bottom 20%"
+  df$Group[df[[EIF]] > quantile(df[[EIF]], prob = 0.8)] = "Top 20%"
+  df$SurvObj <- with(df, Surv(OS.time, OS == 1))
+  df <- na.omit(df)
+  km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0) # rho = 0 log-rank
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
+  p.val <- signif(p.val, 3)
+  black.bold.12pt <- element_text(face   = "bold",
+                                  size   = 12,
+                                  family = "Tahoma", 
+                                  colour = "black")
+  print(
+    ggplot2::autoplot(km,
+                      xlab = "Days",
+                      ylab = "Survival Probability",
+                      main = paste0("Kaplan-Meier plot of ", tumor, " (",
+                                    number," cases)")) +
+      theme_bw() +
+      theme(plot.title           = black.bold.12pt,
+            axis.title           = black.bold.12pt,
+            axis.text            = black.bold.12pt,
+            axis.line.x          = element_line(color  = "black"),
+            axis.line.y          = element_line(color  = "black"),
+            panel.grid           = element_blank(),
+            strip.text           = black.bold.12pt,
+            legend.text          = black.bold.12pt ,
+            legend.title         = black.bold.12pt ,
+            legend.position      = c(1,1),
+            legend.justification = c(1,1)) +
+      guides(fill = FALSE) +
+      scale_color_manual(values = c("red", "blue"),
+                         name   = paste(EIF, "mRNA expression"),
+                         breaks = c("Bottom 20%", "Top 20%"),
+                         labels = c(bottom.label, top.label)) +
+      geom_point(size = 0.25) +
+      annotate("text",
+               x        = 7000,
+               y        = 0.8,
+               label    = paste("log-rank test, p.val = ", p.val),
+               size     = 4.5,
+               hjust    = 1,
+               fontface = "bold"))
+  # rho = 1 the Gehan-Wilcoxon test
+  print(EIF)
+  print(stats)
+  #  fit = survfit(SurvObj ~ df$Group, data = df)
+  #  tst <- comp(fit)$tests$lrTests
+  #  print(tst)
+}
+plot.km.DNFA.each.tumor <- function(EIF, tumor) {
+  EIF.TCGA.GTEX <- read.csv(file.path("project-data", "DNFASKCMandGTEX.csv"), 
+                            header = TRUE, sep = ",")
+  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA',]
   EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$primary.disease.or.tissue == tumor,]
   EIF.TCGA <- EIF.TCGA[EIF.TCGA$X_sample_type != "Solid Tissue Normal", ]
   EIF.TCGA <- droplevels(EIF.TCGA)
@@ -631,7 +754,6 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
   #  print(tst)
 }
 
-
 ####################################################
 ####################################################
 plotEIF.TCGA.GTEX (get.EIF.TCGA.GTEX.RNAseq.long())
@@ -644,29 +766,35 @@ plot.EIF.seq.all.normal (get.EIF.GTEX.RNAseq.long())
 plot.EIF.seq.all.normal (get.EIF.GTEX.score.long())
 
 plot.EIF.seq.each.tumor (x = get.EIF.TCGA.RNAseq.long(), 
-                         y = "Sarcoma")
+                         y = "Prostate Adenocarcinoma")
 lapply(get.disease.list(), 
        plot.EIF.seq.each.tumor, 
        x = get.EIF.TCGA.RNAseq.long())
 
 ####################################################
 ####################################################
-plot.km.EIF.all.tumors("EIF4G1")
-EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
+plot.km.DNFA.all.tumors("SCD")
+
+EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC",
+              "HIST2H2BE", "HIST1H1B", "HIST1H2AB","HIST1H1C",
+              "PPA2","ECHS1", "LLGL2","SF3B5", "RPS5")
 names(EIF.gene) <- EIF.gene
+
+lapply(DNFA.gene, plot.km.EIF.all.tumors)
 lapply(EIF.gene, plot.km.EIF.all.tumors)
 
-
-plot.km.EIF.each.tumor ("EIF4G1", "Sarcoma")
-lapply(get.disease.list(), plot.km.EIF.each.tumor, EIF = "EIF4G1")
+plot.km.EIF.each.tumor ("EIF4A1", "Prostate Adenocarcinoma")
+lapply(get.disease.list(), plot.km.EIF.each.tumor, EIF = "HIST1H1C")
 lapply(EIF.gene, 
        plot.km.EIF.each.tumor, 
-       tumor = "Kidney Papillary Cell Carcinoma")
+       tumor = "Prostate Adenocarcinoma")
 
 
+lapply(get.disease.list(), plot.km.DNFA.each.tumor, EIF = "HMGCR")
 
-
-
+lapply(DNFA.gene, 
+       plot.km.DNFA.each.tumor, 
+       tumor = "Skin Cutaneous Melanoma")
 
 
 
