@@ -433,7 +433,6 @@ plot.EIF.score.all.tcga("GEBP")
 
 
 ##########################################################
-##########################################################
 plotEIF <-  function (x) {
   #  name <- deparse(substitute(x))
   black_bold_tahoma_12 <- element_text(color  = "black", 
