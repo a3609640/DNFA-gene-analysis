@@ -212,7 +212,7 @@ plot.EIF.pan.tcga <- function(EIF){
   mean <- within(df2[df2$EIFgene == m,], # TCGAstudy is one column in df2
                  TCGAstudy <- reorder(TCGAstudy, log2(RNAseq), median))
   a <- levels(mean$TCGAstudy)
-  colors <- ifelse(a == "prad_tcga_pan_can_atlas_2018", "red", "black")
+  colors <- ifelse(a == "dlbc_tcga_pan_can_atlas_2018", "red", "black")
   print(
     ggplot(mean,
            aes(x        = TCGAstudy,
@@ -245,7 +245,7 @@ plot.EIF.pan.tcga <- function(EIF){
             legend.position = "none"))
 }
 
-plot.EIF.pan.tcga("RPS5")
+plot.EIF.pan.tcga("EIF4A1")
 sapply(EIF.gene, plot.EIF.pan.tcga)
 sapply(DNFA.gene, plot.EIF.pan.tcga)
 ##########################################################

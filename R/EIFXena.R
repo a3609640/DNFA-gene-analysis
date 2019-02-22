@@ -784,13 +784,13 @@ lapply(DNFA.gene, plot.km.EIF.all.tumors)
 lapply(EIF.gene, plot.km.EIF.all.tumors)
 
 plot.km.EIF.each.tumor ("EIF4A1", "Prostate Adenocarcinoma")
-lapply(get.disease.list(), plot.km.EIF.each.tumor, EIF = "HIST1H1C")
+lapply(get.disease.list(), plot.km.EIF.each.tumor, EIF = "LLGL2")
 lapply(EIF.gene, 
        plot.km.EIF.each.tumor, 
        tumor = "Prostate Adenocarcinoma")
 
 
-lapply(get.disease.list(), plot.km.DNFA.each.tumor, EIF = "HMGCR")
+lapply(get.disease.list(), plot.km.DNFA.each.tumor, EIF = "SCD")
 
 lapply(DNFA.gene, 
        plot.km.DNFA.each.tumor, 
