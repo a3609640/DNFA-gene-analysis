@@ -8,7 +8,10 @@ library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(org.Hs.eg.db)
 library(ReactomePA)
 
-doAll3 <- function() {
+# TODO(dlroxe): This is a placeholder 'wrapper' function to enclose
+# the code in this file.  Future work should refactor everything it
+# contains into more carefully designed functions.
+chip_seeker_do_all <- function() {
 # tx19 <- TxDb.Hsapiens.UCSC.hg19.knownGene
 tx38 <- TxDb.Hsapiens.UCSC.hg38.knownGene
 promoter <- getPromoters(TxDb = tx38, upstream = 3000, downstream = 3000)

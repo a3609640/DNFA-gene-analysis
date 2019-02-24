@@ -1,4 +1,4 @@
-# The following script aim to find the differentially expressed
+# The following script aims to find the differentially expressed
 # genes between siSREBF1 and control siRNA treatment in melanoma
 # HT-144 cells with DESeq package. And then perform pathway
 # analysis on the differentially expressed genes.
@@ -48,7 +48,7 @@ data(kegg.gs)
 #################################
 # TODO(dlroxe): This function is copied from the FactoMineR file.
 # Find a single place to define it in common for all callers.
-.readGeneCounts <- function() {
+.des_gage_read_gene_counts <- function() {
   # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
   # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
   # read processed RNA-seq read data from file testseq.csv.
@@ -298,8 +298,8 @@ data(kegg.gs)
   lapply(fc.go.cc.p, head,10)
 }
 
-doAll2 <- function() {
-  testseq <- .readGeneCounts()
+des_gage_do_all <- function() {
+  testseq <- .des_gage_read_gene_counts()
   guideDatasiRNA <- .getGuideData(
   data.frame(testseq[,c(5,6,7,8,9,10,11,12)]))
   condition <- c(rep("siNeg",4),rep("siBF1",4))
@@ -318,38 +318,3 @@ doAll2 <- function() {
   .pathwayAnalysis(foldchanges)
 }
 
-###################################################################
-## 7. Pathway analysis on ChIP-seq and RNA-seq overlapping genes ##
-###################################################################
-# TODO(dlroxe): doAll2a() is a temporary wrapper for code that doesn't
-# (yet) run from scratch using only files checked into GitHub
-doAll2a <- function() {
-# setwd("~/Documents/Su Wu/Documents/Research/Naar Lab/ChIP-seq")
-# TODO(suwu): check this file into project-data/ ...
-# TODO(dlroxe): ...or generate equivalent data programatically
-  ChIP_Seq_and_RNA_Seq_overlap <- read_excel("ChIP-Seq and RNA-Seq overlap.xlsx",
-                                             col_names = FALSE)
-  colnames(ChIP_Seq_and_RNA_Seq_overlap) <- "symbol"
-  View(ChIP_Seq_and_RNA_Seq_overlap)
-  ChIP_Seq_and_RNA_Seq_overlap <- merge(ressiRNA,
-                                        ChIP_Seq_and_RNA_Seq_overlap,
-                                        by = "symbol")
-  CR.foldchanges <- ChIP_Seq_and_RNA_Seq_overlap$log2FoldChange
-  names(CR.foldchanges) <- ChIP_Seq_and_RNA_Seq_overlap$entrez
-  head(CR.foldchanges)
-  keggres.sigmet.idx <- gage(CR.foldchanges,
-                             gsets    = kegg.sigmet.idx,
-                             same.dir = TRUE)
-  lapply(keggres.sigmet.idx, head,10)
-  fc.go.bp.p <- gage(CR.foldchanges,
-                     gsets    = go.bp.gs,
-                     same.dir = TRUE)
-  lapply(fc.go.bp.p, head,20)
-  write.table(fc.go.bp.p$greater,
-              file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.greater.txt",
-              sep = "\t")
-  write.table(fc.go.bp.p$less,
-              file = "ChIP_Seq_and_RNA_Seq_overlap.go.bp.p.less.txt",
-              sep = "\t")
-}
-doAll2a()

@@ -39,11 +39,11 @@ library(stats4)
 library(stringr)
 library(survival)
 
-.getTitleFont <- function() {
+.des_facto_get_title_font <- function() {
   return(element_text(face = "bold", color = "black", size = 18))
 }
 
-.readGeneCounts <- function() {
+.des_facto_read_gene_counts <- function() {
   # obtain the count table of the experiment directly 
   # from a pre-saved file: gene-counts.csv.
   # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
@@ -159,8 +159,8 @@ library(survival)
     theme_bw() +
     xlim(-10, 6) +
     ylim(-6, 6) +
-    theme(text                 = .getTitleFont(),
-          axis.text            = .getTitleFont(),
+    theme(text                 = .des_facto_get_title_font(),
+          axis.text            = .des_facto_get_title_font(),
           axis.line.x          = element_line(color = "black", size = 1),
           axis.line.y          = element_line(color = "black", size = 1),
           axis.ticks           = element_line(size  = 1),
@@ -320,8 +320,8 @@ library(survival)
           theme_bw() +
           xlim(-8, 4) +
           ylim(-5, 5) +
-          theme(text              = .getTitleFont(),
-                axis.text         = .getTitleFont(),
+          theme(text              = .des_facto_get_title_font(),
+                axis.text         = .des_facto_get_title_font(),
                 axis.line.x       = element_line(color = "black",
                                                  size  = 1),
                 axis.line.y       = element_line(color = "black",
@@ -466,8 +466,8 @@ library(survival)
 .makeGeneCountPlot <- function(countsAndConditions, title, ylim1, ylim2) {
   normalizedGeneCountTheme <-
     theme_bw() +
-    theme(text              = .getTitleFont(),
-          axis.text         = .getTitleFont(),
+    theme(text              = .des_facto_get_title_font(),
+          axis.text         = .des_facto_get_title_font(),
           axis.text.x       = element_text(angle = 45,      hjust = 1),
           axis.line.x       = element_line(color = "black", size  = 1),
           axis.line.y       = element_line(color = "black", size  = 1),
@@ -490,7 +490,7 @@ library(survival)
 }
 
 analyze_aso_specificity <- function() {
-  testseq <- .readGeneCounts()
+  testseq <- .des_facto_read_gene_counts()
   guideData <- .getGuideData(testseq)
   condition <- c(rep("Mock",4),rep("siNegative",4),rep("siSREBF1",4),
                  rep("ASO-Neg",4),rep("ASO-1",4),rep("ASO-4",4))
@@ -564,8 +564,3 @@ analyze_aso_specificity <- function() {
   .makeGeneCountPlot(NRAS, "NRAS", 7, 9)
 }
 
-# if (interactive()) {
-#  analyze_aso_specificity()
-# }
-
-analyze_aso_specificity()
