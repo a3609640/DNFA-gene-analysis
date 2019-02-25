@@ -774,16 +774,23 @@ lapply(get.disease.list(),
 ####################################################
 ####################################################
 plot.km.DNFA.all.tumors("SCD")
+plot.km.EIF.all.tumors("ACLY")
+
+DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1", 
+               "HMGCS1", "HMGCR", "MVK")
+names(DNFA.gene ) <- DNFA.gene
 
 EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC",
               "HIST2H2BE", "HIST1H1B", "HIST1H2AB","HIST1H1C",
               "PPA2","ECHS1", "LLGL2","SF3B5", "RPS5")
 names(EIF.gene) <- EIF.gene
 
-lapply(DNFA.gene, plot.km.EIF.all.tumors)
-lapply(EIF.gene, plot.km.EIF.all.tumors)
 
-plot.km.EIF.each.tumor ("EIF4A1", "Prostate Adenocarcinoma")
+
+sapply(DNFA.gene, plot.km.DNFA.all.tumors)
+sapply(EIF.gene, plot.km.EIF.all.tumors)
+
+plot.km.EIF.each.tumor("EIF4A1", "Prostate Adenocarcinoma")
 lapply(get.disease.list(), plot.km.EIF.each.tumor, EIF = "LLGL2")
 lapply(EIF.gene, 
        plot.km.EIF.each.tumor, 
@@ -796,7 +803,13 @@ lapply(DNFA.gene,
        plot.km.DNFA.each.tumor, 
        tumor = "Skin Cutaneous Melanoma")
 
+lapply(DNFA.gene, 
+       plot.km.DNFA.each.tumor, 
+       tumor = "Sarcoma")
 
+lapply(DNFA.gene, 
+       plot.km.DNFA.each.tumor, 
+       tumor = "Cervical & Endocervical Cancer")
 
 
 

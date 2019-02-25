@@ -236,7 +236,7 @@ plot.DNFA.pan.tcga <- function(EIF){
             legend.position = "none"))
 }
 
-plot.DNFA.pan.tcga("PMVK")
+plot.DNFA.pan.tcga("HMGCR")
 sapply(DNFA.gene, plot.DNFA.pan.tcga)
 
 ##############################################
