@@ -17,8 +17,8 @@ library(survival)
 library(survMisc)
 
 # Create CGDS object
-mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
-# mycgds = CGDS("http://www.cbioportal.org/")
+# mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
+ mycgds = CGDS("http://www.cbioportal.org/")
 test(mycgds)
 # Get list of cancer studies at server
 getCancerStudies(mycgds)
