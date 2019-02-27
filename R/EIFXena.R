@@ -2,7 +2,6 @@
 ## from SKCM amd GTEX dataset with R package "ggfortify".
 library(ggfortify)
 library(ggplot2)
-library(ggplot2)
 library(ggpubr)
 library(ggsignif)
 library(gridExtra)
@@ -774,10 +773,10 @@ lapply(get.disease.list(),
 ####################################################
 ####################################################
 plot.km.DNFA.all.tumors("SCD")
-plot.km.EIF.all.tumors("ACLY")
+plot.km.EIF.all.tumors("HIST1H1C")
 
 DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1", 
-               "HMGCS1", "HMGCR", "MVK")
+               "HMGCS1", "HMGCR", "MVK", "PMVK")
 names(DNFA.gene ) <- DNFA.gene
 
 EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC",
