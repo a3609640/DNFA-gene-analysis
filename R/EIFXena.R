@@ -696,6 +696,8 @@ plot.km.DNFA.each.tumor <- function(EIF, tumor) {
   EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA',]
   EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$primary.disease.or.tissue == tumor,]
   EIF.TCGA <- EIF.TCGA[EIF.TCGA$X_sample_type != "Solid Tissue Normal", ]
+#  EIF.TCGA <- EIF.TCGA.GTEX[which(EIF.TCGA.GTEX$OS.time < 4000), ]
+  EIF.TCGA<-subset(EIF.TCGA.GTEX, OS.time < 4000)
   EIF.TCGA <- droplevels(EIF.TCGA)
   df <- na.omit(EIF.TCGA)
   number <- nrow(df)
@@ -790,14 +792,21 @@ sapply(DNFA.gene, plot.km.DNFA.all.tumors)
 sapply(EIF.gene, plot.km.EIF.all.tumors)
 
 plot.km.EIF.each.tumor("EIF4A1", "Prostate Adenocarcinoma")
-lapply(get.disease.list(), plot.km.EIF.each.tumor, EIF = "LLGL2")
+lapply(get.disease.list(), 
+       plot.km.EIF.each.tumor, 
+       EIF = "LLGL2")
+
 lapply(EIF.gene, 
        plot.km.EIF.each.tumor, 
        tumor = "Prostate Adenocarcinoma")
 
 
-lapply(get.disease.list(), plot.km.DNFA.each.tumor, EIF = "SCD")
+lapply(get.disease.list(), 
+       plot.km.DNFA.each.tumor, 
+       EIF = "SCD")
 
+
+plot.km.DNFA.each.tumor("SCD", "Skin Cutaneous Melanoma")
 lapply(DNFA.gene, 
        plot.km.DNFA.each.tumor, 
        tumor = "Skin Cutaneous Melanoma")
