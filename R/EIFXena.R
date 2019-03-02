@@ -8,7 +8,7 @@ library(gridExtra)
 library(reshape2)
 library(survival)
 library(survMisc)
-
+library(survminer)
 
 ## read.csv will transform characters into factors  
 get.EIF.TCGA.GTEX.RNAseq.long <- function () {
@@ -360,14 +360,15 @@ plotEIF.score.TCGA <-  function (x) {
     labs(x = "sample type",
          y = paste("log2(value)")) +
     geom_hline(yintercept = 0, linetype = "dashed") + 
-    scale_x_discrete(labels = c("Metastatic"          = paste("Metastatic \n n= ",
-                                                              metastatic.number), 
-                                "Primary Tumor"       = paste("Primary Tumor \n n= ", 
-                                                              primary.tumor.number),
-                                "Recurrent Tumor"     = paste("Recurrent Tumor \n n= ", 
-                                                              recurrent.tumor.number),
-                                "Solid Tissue Normal" = paste("Solid Tissue Normal \n n= ", 
-                                                              solid.tissue.normal.number))) +
+    scale_x_discrete(labels = c(
+      "Metastatic"          = paste("Metastatic \n n= ", 
+                                    metastatic.number), 
+      "Primary Tumor"       = paste("Primary Tumor \n n= ", 
+                                    primary.tumor.number),
+      "Recurrent Tumor"     = paste("Recurrent Tumor \n n= ", 
+                                    recurrent.tumor.number),
+      "Solid Tissue Normal" = paste("Solid Tissue Normal \n n= ", 
+                                    solid.tissue.normal.number))) +
     theme_bw() +
     theme(plot.title      = black_bold_tahoma_12,
           axis.title      = black_bold_tahoma_12,
@@ -378,11 +379,12 @@ plotEIF.score.TCGA <-  function (x) {
           panel.grid      = element_blank(),
           legend.position = "none",
           strip.text      = black_bold_tahoma_12) +
-    stat_compare_means(comparisons = list(c("Metastatic", "Solid Tissue Normal"), 
-                                          c("Primary Tumor", "Solid Tissue Normal"), 
-                                          c("Recurrent Tumor", "Solid Tissue Normal"),
-                                          c("Metastatic", "Primary Tumor"),
-                                          c("Recurrent Tumor", "Primary Tumor")), method = "t.test")  
+    stat_compare_means(comparisons = list(
+      c("Metastatic", "Solid Tissue Normal"), 
+      c("Primary Tumor", "Solid Tissue Normal"), 
+      c("Recurrent Tumor", "Solid Tissue Normal"),
+      c("Metastatic", "Primary Tumor"),
+      c("Recurrent Tumor", "Primary Tumor")), method = "t.test")  
   
   p2 <- ggplot(data = x,
          aes(x     = variable, 
@@ -414,7 +416,8 @@ plotEIF.score.TCGA <-  function (x) {
                                           c("EIF4G1:EIF4E ratio", "EIF4E:EIF4E ratio"), 
                                           c("EIF4EBP1:EIF4E ratio", "EIF4E:EIF4E ratio"),
                                           c("RPS6KB1:EIF4E ratio", "EIF4E:EIF4E ratio"),
-                                          c("MYC:EIF4E ratio", "EIF4E:EIF4E ratio")), method = "t.test")  
+                                          c("MYC:EIF4E ratio", "EIF4E:EIF4E ratio")), 
+                       method = "t.test")  
 print(p1)
 print(p2)
   }
@@ -563,6 +566,8 @@ plot.km.EIF.all.tumors <- function(EIF) {
   #  tst <- comp(fit)$tests$lrTests
   #  print(tst)
 }
+
+##
 plot.km.DNFA.all.tumors <- function(EIF) {
   EIF.TCGA.GTEX <- read.csv(file.path("project-data", "DNFASKCMandGTEX.csv"), 
                             header = TRUE, sep = ",")
@@ -589,6 +594,7 @@ plot.km.DNFA.all.tumors <- function(EIF) {
   print(
     ggplot2::autoplot(km,
                       xlab = "Days",
+                      xlim = c(0, 4000),
                       ylab = "Survival Probability",
                       main = paste0("Kaplan-Meier plot of all TCGA cancer studies(", 
                                     number," cases)")) +
@@ -611,7 +617,7 @@ plot.km.DNFA.all.tumors <- function(EIF) {
                          labels = c(bottom.label, top.label)) +
       geom_point(size = 0.25) +
       annotate("text",
-               x        = 10000,
+               x        = 4000,
                y        = 0.8,
                label    = paste("log-rank test, p.val = ", p.val),
                size     = 4.5,
@@ -690,14 +696,17 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
   #  tst <- comp(fit)$tests$lrTests
   #  print(tst)
 }
+
+##
 plot.km.DNFA.each.tumor <- function(EIF, tumor) {
   EIF.TCGA.GTEX <- read.csv(file.path("project-data", "DNFASKCMandGTEX.csv"), 
                             header = TRUE, sep = ",")
   EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA',]
-  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$primary.disease.or.tissue == tumor,]
+  EIF.TCGA <- EIF.TCGA[EIF.TCGA$primary.disease.or.tissue == tumor,]
   EIF.TCGA <- EIF.TCGA[EIF.TCGA$X_sample_type != "Solid Tissue Normal", ]
-#  EIF.TCGA <- EIF.TCGA.GTEX[which(EIF.TCGA.GTEX$OS.time < 4000), ]
-  EIF.TCGA<-subset(EIF.TCGA.GTEX, OS.time < 4000)
+#  EIF.TCGA <- EIF.TCGA[which(EIF.TCGA$OS.time < 4001), ]
+#  EIF.TCGA <- subset(EIF.TCGA,  OS.time < 4000)
+#  EIF.TCGA <- subset(EIF.TCGA,  OS.time > 0)
   EIF.TCGA <- droplevels(EIF.TCGA)
   df <- na.omit(EIF.TCGA)
   number <- nrow(df)
@@ -712,6 +721,7 @@ plot.km.DNFA.each.tumor <- function(EIF, tumor) {
   stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0) # rho = 0 log-rank
   p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
   p.val <- signif(p.val, 3)
+#  p.val.2 <- surv_pvalue(km)
   black.bold.12pt <- element_text(face   = "bold",
                                   size   = 12,
                                   family = "Tahoma", 
@@ -719,6 +729,7 @@ plot.km.DNFA.each.tumor <- function(EIF, tumor) {
   print(
     ggplot2::autoplot(km,
                       xlab = "Days",
+                      xlim = c(0, 4000),
                       ylab = "Survival Probability",
                       main = paste0("Kaplan-Meier plot of ", tumor, " (",
                                     number," cases)")) +
@@ -741,7 +752,7 @@ plot.km.DNFA.each.tumor <- function(EIF, tumor) {
                          labels = c(bottom.label, top.label)) +
       geom_point(size = 0.25) +
       annotate("text",
-               x        = 7000,
+               x        = 4000,
                y        = 0.8,
                label    = paste("log-rank test, p.val = ", p.val),
                size     = 4.5,
