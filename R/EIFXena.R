@@ -30,6 +30,25 @@ get.EIF.TCGA.GTEX.RNAseq.long <- function () {
 }
 
 ##
+get.DNFA.TCGA.GTEX.RNAseq.long <- function () {
+  DNFA.TCGA.GTEX <- read.csv(file.path("project-data", "DNFASKCMandGTEX.csv"), 
+                            header = TRUE, sep = ",")
+  DNFA.TCGA.GTEX.RNAseq.long <- melt(DNFA.TCGA.GTEX[, 1:14])
+  colnames(DNFA.TCGA.GTEX.RNAseq.long) <- c("sample", "study", "sample.type", 
+                                           "primary.disease", "variable", "value")
+  DNFA.TCGA.GTEX.RNAseq.long <- DNFA.TCGA.GTEX.RNAseq.long[DNFA.TCGA.GTEX.RNAseq.long$value != 0,]
+  DNFA.TCGA.GTEX.RNAseq.long <- na.omit(DNFA.TCGA.GTEX.RNAseq.long)
+  tumor.type <- c("Metastatic", "Primary Tumor", 
+                  "Recurrent Tumor", "Solid Tissue Normal", 
+                  "Normal Tissue", "Cell Line")
+  DNFA.TCGA.GTEX.RNAseq.long <- DNFA.TCGA.GTEX.RNAseq.long[DNFA.TCGA.GTEX.RNAseq.long$sample.type %in% tumor.type,]
+  DNFA.TCGA.GTEX.RNAseq.long <- droplevels(DNFA.TCGA.GTEX.RNAseq.long)
+  DNFA.TCGA.GTEX.RNAseq.long$sample.type <- factor(DNFA.TCGA.GTEX.RNAseq.long$sample.type, 
+                                                  levels = tumor.type)
+  return(DNFA.TCGA.GTEX.RNAseq.long)
+}
+
+##
 get.EIF.TCGA.RNAseq.long <- function () {
   EIF.TCGA.GTEX <- read.csv(file.path("project-data", 
                                       "EIFTCGAGTEX.csv"), 
@@ -483,7 +502,7 @@ plot.EIF.seq.each.tumor <- function(x, y){
                         c("Recurrent Tumor", "Solid Tissue Normal"),
                         c("Metastatic", "Primary Tumor"),
                         c("Recurrent Tumor", "Primary Tumor"))
-  plotEIF.TCGA(m)+
+  plotEIF.RNAseq.TCGA(m)+
     labs(title = y) +
     stat_compare_means(method = "anova")
 } 
@@ -771,6 +790,8 @@ plot.km.DNFA.each.tumor <- function(EIF, tumor) {
 plotEIF.TCGA.GTEX (get.EIF.TCGA.GTEX.RNAseq.long())
 plotEIF.TCGA.GTEX (get.EIF.TCGA.GTEX.score.long())
 
+plotEIF.TCGA.GTEX (get.DNFA.TCGA.GTEX.RNAseq.long())
+
 plotEIF.RNAseq.TCGA (get.EIF.TCGA.RNAseq.long())
 plotEIF.score.TCGA (get.EIF.TCGA.score.long())
 
@@ -783,9 +804,12 @@ lapply(get.disease.list(),
        plot.EIF.seq.each.tumor, 
        x = get.EIF.TCGA.RNAseq.long())
 
+plot.EIF.seq.each.tumor (x = get.DNFA.TCGA.GTEX.RNAseq.long(), 
+                         y = "Skin Cutaneous Melanoma")
+
 ####################################################
 ####################################################
-plot.km.DNFA.all.tumors("SCD")
+plot.km.DNFA.all.tumors("HMGCR")
 plot.km.EIF.all.tumors("HIST1H1C")
 
 DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1", 

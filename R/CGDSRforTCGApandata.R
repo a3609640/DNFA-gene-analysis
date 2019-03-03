@@ -98,9 +98,10 @@ plot.DNFA.provisional.tcga <- function(EIF){
   mean <- within(df2[df2$EIFgene == m,], # TCGAstudy is one column in df2
                  TCGAstudy <- reorder(TCGAstudy, log2(RNAseq), median))
   a <- levels(mean$TCGAstudy)
-  data_wide <- spread(mean, TCGAstudy, RNAseq)
-  data_wide <- dcast(mean, TCGAstudy + EIFgene ~ RNAseq)
-  write.csv(data_wide, file = paste(EIF, ".csv", sep = ""))
+  data.long <- mean
+  data.long$names <- rownames(data.long)
+  data.wide <- dcast(data.long,  EIFgene + names ~ TCGAstudy, value.var = "RNAseq")
+  write.csv(data.wide, file = paste(EIF, ".csv", sep = ""))
   # with highlight on skin cancer
   colors <- ifelse(a == "skcm_tcga", "red", "black")
   print(
@@ -136,7 +137,7 @@ plot.DNFA.provisional.tcga <- function(EIF){
 }
 
 
-plot.DNFA.provisional.tcga("SCD")
+plot.DNFA.provisional.tcga("ACACA")
 lapply(DNFA.gene, plot.DNFA.provisional.tcga)
 
 #############################################################
