@@ -520,7 +520,55 @@ plot.EIF.seq.all.normal <- function(x){
     stat_compare_means(method = "t.test")
 } 
 
-
+##
+plot.DNFA.PCA <- function (){
+  DNFA.TCGA.GTEX <- read.csv(file.path("project-data", 
+                                       "DNFATCGAandGTEX.csv"), 
+                             header = TRUE, 
+                             sep = ",")
+  DNFA.TCGA.GTEX <- as.data.frame(DNFA.TCGA.GTEX)
+  DNFA.TCGA.GTEX$sample_type <- as.factor(DNFA.TCGA.GTEX$sample_type)
+  DNFA.TCGA.GTEX$sample_type <- factor(DNFA.TCGA.GTEX$sample_type, 
+                                         levels = c("Normal Tissue", 
+                                                    "Primary Tumor", 
+                                                    "Metastatic", 
+                                                    "Solid Tissue Normal"))
+  sample.type <- c("Skin")
+  DNFA.TCGA.GTEX.skin <- DNFA.TCGA.GTEX[DNFA.TCGA.GTEX$primary.disease.or.tissue %in% sample.type, ]
+  DNFA.TCGA.GTEX.skin <- na.omit(DNFA.TCGA.GTEX.skin)
+  df <- DNFA.TCGA.GTEX.skin[c(3,4,5,6,7,9)]
+  df <- na.omit(df)
+  ggplot2::autoplot(prcomp(df))
+  # autoplot(prcomp(df), data = DNFASKCMandTGEX, colour = 'sample_type')
+  
+  ggplot2::autoplot(prcomp(df), 
+                    data                 = DNFA.TCGA.GTEX.skin, 
+                    colour               = 'sample_type',
+                    loadings             = TRUE, 
+                    loadings.colour      = 'black',
+                    loadings.label.vjust = 0,
+                    loadings.label       = TRUE, 
+                    loadings.label.size  = 6) +
+    theme(plot.background  = element_blank(),
+          panel.background = 
+            element_rect(fill  = 'transparent',
+                         color = 'black',
+                         size  = 1),
+          axis.title = element_text(colour = "black", 
+                                    size   = 24, 
+                                    face   = "bold"),
+          axis.text = element_text(colour  = "black", 
+                                   size    = 24, 
+                                   face    = "bold"),
+          legend.title = element_text(colour = "black", 
+                                      size   = 24, 
+                                      face   = "bold"),
+          legend.text = element_text(colour  = "black", 
+                                     size    = 24, 
+                                     face    = "bold",
+                                     hjust   = 1),
+          legend.key = element_blank())
+}
 ####################################################################
 ##  Kaplan-Meier curve with clinic and EIF RNASeq data all tumor  ##
 ####################################################################
