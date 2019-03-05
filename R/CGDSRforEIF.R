@@ -29,12 +29,12 @@ names(EIF.gene) <- EIF.gene
 ####################################################################
 ## plot EIF RNASeq data from TCGA provisional cancer study groups ##
 ####################################################################
-plot.EIF.tcga <- function(EIF){
+plot.EIF.provisional.tcga <- function(EIF){
   # Get EIF RNAseq data from all TCGA study groups
-  tcga.pro.studies <- getCancerStudies(mycgds)[
+  tcga.pan.studies <- getCancerStudies(mycgds)[
     grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
   # "tcag_study_list" contains all the tcga cancer studies
-  tcga.study.list <- tcga.pro.studies$cancer_study_id
+  tcga.study.list <- tcga.pan.studies$cancer_study_id
   names(tcga.study.list) <- tcga.study.list
   caselist <- function(x) getCaseLists(mycgds, x)
   geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
@@ -42,8 +42,8 @@ plot.EIF.tcga <- function(EIF){
   # because we named each elements in tcga.study.list,
   # lappy will return a large list, each element (with a cancer study name)
   # in that list is a data-table
-  tcga.pro.caselist <- lapply(tcga.study.list, caselist)
-  tcga.pro.geneticprofile <- lapply(tcga.study.list, geneticprofile)
+  tcga.pan.caselist <- lapply(tcga.study.list, caselist)
+  tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
   # for example, tcga.pro.caselist[[1]] shows the dataframe of caselist
   # in laml study group.
   # to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna,
@@ -56,17 +56,17 @@ plot.EIF.tcga <- function(EIF){
   # tcga.pro.geneticprofile[[1]]$genetic_profile_name), ][1,1]
   # how do we do this for all study groups from [[1]] to  [[32]]?
   caselist.RNAseq <- function(x) {
-    tcga.pro.caselist[[x]][
+    tcga.pan.caselist[[x]][
       grep("tcga_rna_seq_v2_mrna",
-           tcga.pro.caselist[[x]]$case_list_id), ][1, 1]
-    }
+           tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
+  }
   geneticprofile.RNAseq <- function(x) {
-    tcga.pro.geneticprofile[[x]][
-  # double backslash \\ suppress the special meaning of ( )
-  # in regular expression
-      grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
-           tcga.pro.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
-    }
+    tcga.pan.geneticprofile[[x]][
+      # double backslash \\ suppress the special meaning of ( )
+      # in regular expression
+      grep("tcga_rna_seq_v2_mrna",
+           tcga.pan.geneticprofile[[x]]$genetic_profile_id), ][1, 1]
+  }
   # test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
   # caselist.RNAseq = caselist.RNAseq ('acc_tcga')
   # geneticprofile.RNAseq = geneticprofile.RNAseq ('acc_tcga')
@@ -77,19 +77,19 @@ plot.EIF.tcga <- function(EIF){
                    genename,
                    geneticprofile,
                    caselist)
-    }
+  }
   EIF.tcga.RNAseq <- function(x, y) {
     tcga.profiledata.RNAseq(x,
                             geneticprofile.RNAseq(y),
                             caselist.RNAseq(y))
-    }
+  }
   EIF.RNAseq.tcga.all <- function(x) {
     test <- lapply(tcga.study.list,
                    function(y) mapply(EIF.tcga.RNAseq, x, y))
     df2 <- melt(test)
     colnames(df2) <- c("RNAseq", "EIFgene", "TCGAstudy")
     df2 <- data.frame(df2)
-    }
+  }
   df2 <- EIF.RNAseq.tcga.all(EIF)
   df2$EIFgene <- as.factor(df2$EIFgene)
   df2$TCGAstudy <- as.factor(df2$TCGAstudy)
@@ -98,21 +98,28 @@ plot.EIF.tcga <- function(EIF){
   m <- paste0(EIF, ".", EIF)
   mean <- within(df2[df2$EIFgene == m,], # TCGAstudy is one column in df2
                  TCGAstudy <- reorder(TCGAstudy, log2(RNAseq), median))
-    print(
+  a <- levels(mean$TCGAstudy)
+  data.long <- mean
+  data.long$names <- rownames(data.long)
+  data.wide <- dcast(data.long,  EIFgene + names ~ TCGAstudy, value.var = "RNAseq")
+  write.csv(data.wide, file = paste(EIF, ".csv", sep = ""))
+  # with highlight on skin cancer
+  colors <- ifelse(a == "skcm_tcga", "red", "black")
+  print(
     ggplot(mean,
-           aes(x     = TCGAstudy,
-               y     = log2(RNAseq),
-               color = TCGAstudy)) +
+           aes(x        = TCGAstudy,
+               y        = log2(RNAseq),
+               color    = TCGAstudy)) +
       geom_boxplot(alpha    = .01,
                    width    = .5,
                    position = position_dodge(width = .9)) +
+      coord_flip() +
       labs(x = "Tumor types (TCGA)",
            y = paste0("log2(", EIF, " RNA counts)")) +
       theme(axis.title  = element_text(face   = "bold",
                                        size   = 9,
                                        color  = "black"),
             axis.text.x = element_text(size   = 9,
-                                       angle  = 45,
                                        hjust  = 1, # 1 means right-justified
                                        face   = "bold",
                                        color  = "black"),
@@ -120,7 +127,7 @@ plot.EIF.tcga <- function(EIF){
                                        angle  = 0,
                                        hjust  = 1, # 1 means right-justified
                                        face   = "bold",
-                                       color  = "black"),
+                                       color  = colors),
             axis.line.x = element_line(color  = "black"),
             axis.line.y = element_line(color  = "black"),
             panel.grid  = element_blank(),
@@ -128,10 +135,9 @@ plot.EIF.tcga <- function(EIF){
                                        size   = 9,
                                        color  = "black"),
             legend.position = "none"))
-  }
-
-plot.EIF.tcga("EIF4E")
-sapply(EIF.gene, plot.EIF.tcga)
+}
+plot.EIF.provisional.tcga("EIF4E")
+sapply(EIF.gene, plot.EIF.provisional.tcga)
 
 #############################################################
 ## plot EIF RNASeq data from pan TCGA cancer study groups ##

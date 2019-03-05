@@ -216,7 +216,7 @@ plotEIF.TCGA.GTEX <-  function (x) {
                  width    = .5,
                  position = position_dodge(width = .9)) +
     labs(x = "sample type",
-         y = paste("log2(value)")) +
+         y = paste("log2(TPM)")) +
     scale_x_discrete(labels = c("Metastatic"          = paste("Metastatic \n n= ",
                                                               metastatic.number), 
                                 "Primary Tumor"       = paste("Primary Tumor \n n= ", 
@@ -498,7 +498,7 @@ plotEIF.GTEX <-  function (x) {
                  width    = .5,
                  position = position_dodge(width = .9)) +
     labs(x = "sample type",
-         y = paste("log2(RNA counts)")) +
+         y = paste("log2(TPM)")) +
     scale_x_discrete(labels = c("Cell Line"     = paste("Cell Line \n n= ",
                                                         cell.line.number), 
                                 "Normal Tissue" = paste("Normal Tissue \n n= ", 
@@ -549,6 +549,48 @@ plot.EIF.seq.all.normal <- function(x){
 } 
 
 ##
+plot.EIF.PCA <- function (){
+  EIF.proteomics <- read.csv(file.path("project-data", 
+                                       "proteomics.csv"), 
+                             header = TRUE, 
+                             sep = ",")
+  EIF.proteomics <- as.data.frame(EIF.proteomics)
+#  EIF.proteomics$gene_id <- as.factor(EIF.proteomics$gene_id)
+  EIF.proteomics <- na.omit(EIF.proteomics)
+  df1 <- EIF.proteomics[,-1]
+  df <- as.numeric(df)
+  ggplot2::autoplot(prcomp(df1))
+
+  ggplot2::autoplot(prcomp(df), 
+                    data                 = DNFA.TCGA.GTEX.skin, 
+                    colour               = 'sample_type',
+                    loadings             = TRUE, 
+                    loadings.colour      = 'black',
+                    loadings.label.vjust = 0,
+                    loadings.label       = TRUE, 
+                    loadings.label.size  = 6) +
+    theme(plot.background  = element_blank(),
+          panel.background = 
+            element_rect(fill  = 'transparent',
+                         color = 'black',
+                         size  = 1),
+          axis.title   = element_text(colour  = "black", 
+                                      size    = 24, 
+                                      face    = "bold"),
+          axis.text    = element_text(colour  = "black", 
+                                      size    = 24, 
+                                      face    = "bold"),
+          legend.title = element_text(colour  = "black", 
+                                      size    = 24, 
+                                      face    = "bold"),
+          legend.text  = element_text(colour  = "black", 
+                                      size    = 24, 
+                                      face    = "bold",
+                                      hjust   = 1),
+          legend.key   = element_blank())
+}
+
+##
 plot.DNFA.PCA <- function (){
   DNFA.TCGA.GTEX <- read.csv(file.path("project-data", 
                                        "DNFATCGAandGTEX.csv"), 
@@ -583,15 +625,15 @@ plot.DNFA.PCA <- function (){
             element_rect(fill  = 'transparent',
                          color = 'black',
                          size  = 1),
-          axis.title   = element_text(colour = "black", 
-                                      size   = 24, 
-                                      face   = "bold"),
+          axis.title   = element_text(colour  = "black", 
+                                      size    = 24, 
+                                      face    = "bold"),
           axis.text    = element_text(colour  = "black", 
                                       size    = 24, 
                                       face    = "bold"),
-          legend.title = element_text(colour = "black", 
-                                      size   = 24, 
-                                      face   = "bold"),
+          legend.title = element_text(colour  = "black", 
+                                      size    = 24, 
+                                      face    = "bold"),
           legend.text  = element_text(colour  = "black", 
                                       size    = 24, 
                                       face    = "bold",
