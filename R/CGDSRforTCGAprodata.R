@@ -374,7 +374,7 @@ sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
 ##  Kaplan-Meier curve with clinic and mutation data from SKCM  ##
 ##################################################################
 plot.km.mut.skcm <- function(ge) {
-  mycancerstudy <- getCancerStudies(mycgds)[194, 1]
+  mycancerstudy <- getCancerStudies(mycgds)[202, 1]
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
@@ -395,6 +395,7 @@ plot.km.mut.skcm <- function(ge) {
                  type = "full")
   df <- na.omit(df)
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
+#  km <- survfit(SurvObj ~ df$BRAF.mutations, data = df, conf.type = "log-log")
   fit <- function(x) {
     survfit(SurvObj ~ df[[x]], data = df, conf.type = "log-log")
     }
@@ -403,7 +404,7 @@ plot.km.mut.skcm <- function(ge) {
                                   size   = 12,
                                   colour = "black")
   print(
-    autoplot(km,
+    ggplot2::autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
              main = "Kaplan-Meier plot") +

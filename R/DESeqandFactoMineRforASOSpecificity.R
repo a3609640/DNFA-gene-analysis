@@ -48,7 +48,8 @@ library(survival)
   # from a pre-saved file: gene-counts.csv.
   # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
   # read processed RNA-seq read data from file testseq.csv.
-  testseq <- read.csv(file.path("project-data", "gene-counts-from-Makefile.csv"))
+  testseq <- read.csv(file.path("project-data", 
+                                "gene-counts-from-Makefile.csv"))
   # Use the column one (Ensemble names) as columnn names.
   testseq <- data.frame(testseq[,-1], row.names = testseq[,1])
   # Remove the first four rows 
@@ -147,7 +148,7 @@ library(survival)
 .makePcaPlot <- function(rld) {
   ## number of top genes to use for principal components,
   ## selected by highest row variance, 500 by default
-  pcaData <- plotPCA(rld, intgroup = c( "condition"), returnData = TRUE)
+  pcaData <- plotPCA(rld, intgroup = c("condition"), returnData = TRUE)
   percentVar <- round(100 * attr(pcaData, "percentVar"))
   ## Print 2D PCA plot
   pcaPlot <- ggplot(
@@ -282,7 +283,7 @@ library(survival)
 # before PCA analysis
 ## # Compute PCA with ncp = 3, to keep only the first three principal components
 .makeAnnotatedPcaPlot <- function(assayrld) {
-  return(PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2,graph = TRUE))
+  return(PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2, graph = TRUE))
 }
 
 ######################################################
@@ -305,7 +306,6 @@ library(survival)
           col       = "steelblue")
   lines(x = 1:nrow(eigen), eigen[, 2],
         type = "b", pch = 19, col = "red")
-
   # plot biplot graph with the top six contributing genes to PCA from RNA-Seq
   percentVar <- round(100 * attr(pcaData, "percentVar"))
   pcaBiplot <-

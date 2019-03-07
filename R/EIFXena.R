@@ -668,6 +668,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
                                   colour = "black")
   print(
     ggplot2::autoplot(km,
+                      xlim = c(0, 4000),
                       xlab = "Days",
                       ylab = "Survival Probability",
                       main = paste0("Kaplan-Meier plot of all TCGA cancer studies(", 
@@ -691,7 +692,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
                          labels = c(bottom.label, top.label)) +
       geom_point(size = 0.25) +
       annotate("text",
-               x        = 10000,
+               x        = 4000,
                y        = 0.8,
                label    = paste("log-rank test, p.val = ", p.val),
                size     = 4.5,
@@ -798,6 +799,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
                                   colour = "black")
   print(
     ggplot2::autoplot(km,
+                      xlim = c(0, 4000),
                       xlab = "Days",
                       ylab = "Survival Probability",
                       main = paste0("Kaplan-Meier plot of ", tumor, " (",
@@ -821,7 +823,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
                          labels  = c(bottom.label, top.label)) +
       geom_point(size = 0.25) +
       annotate("text",
-               x        = 7000,
+               x        = 4000,
                y        = 0.8,
                label    = paste("log-rank test, p.val = ", p.val),
                size     = 4.5,
@@ -841,7 +843,7 @@ plot.km.DNFA.each.tumor <- function(EIF, tumor) {
                             header = TRUE, sep = ",")
   EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA',]
   EIF.TCGA <- EIF.TCGA[EIF.TCGA$primary.disease.or.tissue == tumor,]
-  EIF.TCGA <- EIF.TCGA[EIF.TCGA$X_sample_type != "Solid Tissue Normal", ]
+  EIF.TCGA <- EIF.TCGA[EIF.TCGA$sample_type != "Solid Tissue Normal", ]
 #  EIF.TCGA <- EIF.TCGA[which(EIF.TCGA$OS.time < 4001), ]
 #  EIF.TCGA <- subset(EIF.TCGA,  OS.time < 4000)
 #  EIF.TCGA <- subset(EIF.TCGA,  OS.time > 0)
@@ -925,11 +927,13 @@ lapply(get.disease.list(),
 
 plot.EIF.seq.each.tumor (x = get.DNFA.TCGA.GTEX.RNAseq.long(), 
                          y = "Skin Cutaneous Melanoma")
-
+lapply(get.disease.list(), 
+       plot.EIF.seq.each.tumor, 
+       x = get.DNFA.TCGA.GTEX.RNAseq.long())
 ####################################################
 ####################################################
-plot.km.DNFA.all.tumors("HMGCR")
-plot.km.EIF.all.tumors("HIST1H1C")
+plot.km.DNFA.all.tumors("SCD")
+plot.km.EIF.all.tumors("SF3B5")
 
 DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1", 
                "HMGCS1", "HMGCR", "MVK", "PMVK")
@@ -945,14 +949,14 @@ names(EIF.gene) <- EIF.gene
 sapply(DNFA.gene, plot.km.DNFA.all.tumors)
 sapply(EIF.gene, plot.km.EIF.all.tumors)
 
-plot.km.EIF.each.tumor("EIF4A1", "Prostate Adenocarcinoma")
+plot.km.EIF.each.tumor("EIF4EBP1", "Head & Neck Squamous Cell Carcinoma")
 lapply(get.disease.list(), 
        plot.km.EIF.each.tumor, 
-       EIF = "LLGL2")
+       EIF = "EIF4A1")
 
 lapply(EIF.gene, 
        plot.km.EIF.each.tumor, 
-       tumor = "Prostate Adenocarcinoma")
+       tumor = "Acute Myeloid Leukemia")
 
 
 lapply(get.disease.list(), 
@@ -963,7 +967,7 @@ lapply(get.disease.list(),
 plot.km.DNFA.each.tumor("SCD", "Skin Cutaneous Melanoma")
 lapply(DNFA.gene, 
        plot.km.DNFA.each.tumor, 
-       tumor = "Skin Cutaneous Melanoma")
+       tumor = "Bladder Urothelial Carcinoma")
 
 lapply(DNFA.gene, 
        plot.km.DNFA.each.tumor, 

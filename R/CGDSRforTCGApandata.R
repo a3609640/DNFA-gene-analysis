@@ -137,7 +137,7 @@ plot.DNFA.provisional.tcga <- function(EIF){
 }
 
 
-plot.DNFA.provisional.tcga("ACACA")
+plot.DNFA.provisional.tcga("SCD")
 lapply(DNFA.gene, plot.DNFA.provisional.tcga)
 
 #############################################################
@@ -500,7 +500,7 @@ sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
 ##  plot OS curve with clinic and mutation data from SKCM group ##
 ##################################################################
 plotOS <- function(ge) {
-  mycancerstudy <- getCancerStudies(mycgds)[19, 1]
+  mycancerstudy <- getCancerStudies(mycgds)[202, 1]
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
