@@ -949,14 +949,14 @@ names(EIF.gene) <- EIF.gene
 sapply(DNFA.gene, plot.km.DNFA.all.tumors)
 sapply(EIF.gene, plot.km.EIF.all.tumors)
 
-plot.km.EIF.each.tumor("EIF4EBP1", "Head & Neck Squamous Cell Carcinoma")
+plot.km.EIF.each.tumor("EIF4EBP1", "Cervical & Endocervical Cancer")
 lapply(get.disease.list(), 
        plot.km.EIF.each.tumor, 
        EIF = "EIF4A1")
 
 lapply(EIF.gene, 
        plot.km.EIF.each.tumor, 
-       tumor = "Acute Myeloid Leukemia")
+       tumor = "Cervical & Endocervical Cancer")
 
 
 lapply(get.disease.list(), 

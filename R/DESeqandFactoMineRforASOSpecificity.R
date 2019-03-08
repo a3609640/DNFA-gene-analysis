@@ -40,7 +40,9 @@ library(stringr)
 library(survival)
 
 .des_facto_get_title_font <- function() {
-  return(element_text(face = "bold", color = "black", size = 18))
+  return(element_text(face  = "bold", 
+                      color = "black", 
+                      size  = 18))
 }
 
 .des_facto_read_gene_counts <- function() {
@@ -51,10 +53,10 @@ library(survival)
   testseq <- read.csv(file.path("project-data", 
                                 "gene-counts-from-Makefile.csv"))
   # Use the column one (Ensemble names) as columnn names.
-  testseq <- data.frame(testseq[,-1], row.names = testseq[,1])
+  testseq <- data.frame(testseq[ ,-1], row.names = testseq[ ,1])
   # Remove the first four rows 
   # (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
-  testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
+  testseq <- data.frame(testseq[c(-1,-2,-3,-4), ])
   # remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
   testseq <- testseq[-25]
   return(testseq)
@@ -68,7 +70,7 @@ library(survival)
   par(mar = c(3,12,2,1))
   boxplot(testseq, outline = FALSE, horizontal = TRUE, las = 1)
   ## Remove rows in which there are no reads or nearly no reads
-  guideData <- testseq[rowSums(testseq) > 1,]
+  guideData <- testseq[rowSums(testseq) > 1, ]
   head(guideData)
   dim(guideData)
   ## check how the data distribution with boxplot 
@@ -81,8 +83,17 @@ library(survival)
 .getGuideDesign <- function(guideData, condition) {
   ## create a design for our "modelling"
   ## each sample contains four technical replicates
-  return(data.frame(row.names = colnames(guideData),
-                            condition = condition))
+  condition = c(rep("Mock",     4), rep("siNegative", 4),
+                rep("siSREBF1", 4), rep("ASO-Neg",    4),
+                rep("ASO-1",    4), rep("ASO-4",      4))
+  guideDesign <- data.frame(row.names = colnames(guideData),
+                            condition = c(rep("Mock",       4),
+                                          rep("siNegative", 4),
+                                          rep("siSREBF1",   4),
+                                          rep("ASO-Neg",    4),
+                                          rep("ASO-1",      4),
+                                          rep("ASO-4",      4)))
+  return(guideDesign)
 }
 
 #####################################################
@@ -107,10 +118,11 @@ library(survival)
 # (2) estimation of dispersion: estimateDispersions
 # (3) Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
 .getDDSRES <- function(ddsDE) {
-  ddsres <- results(ddsDE)
-  # summary(ddsres)
+  ddsDE <- DESeq(dds)  
+  ddsres <- results(ddsDE)  
+  summary(ddsres)
   res <- data.frame(ddsres)
-  return(ddsres)
+  return(res)
 }
 
 ##################################################
@@ -126,7 +138,7 @@ library(survival)
 ## because then it is not necessary to re-estimate the dispersion values.
 ## The assay function is used to extract the matrix of normalized value
 .makeHeatMap <- function(guideDesign, ddsDE) {
-  vsd <- vst(ddsDE, blind = FALSE)
+  vsd <- vst(ddsDE, blind  = FALSE)
   rld <- rlog(ddsDE, blind = FALSE)
   # Hierarchical clustering using rlog transformation
   dists <- dist(t(assay(rld)))
@@ -134,7 +146,7 @@ library(survival)
   sampleDistMatrix <- as.matrix(dists)
   rownames(sampleDistMatrix) <- paste(vsd$condition, vsd$type, sep = "-")
   colnames(sampleDistMatrix) <- NULL
-  colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+  colors <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255)
   pheatmap(sampleDistMatrix,
            clustering_distance_rows = dists,
            clustering_distance_cols = dists,
@@ -283,7 +295,11 @@ library(survival)
 # before PCA analysis
 ## # Compute PCA with ncp = 3, to keep only the first three principal components
 .makeAnnotatedPcaPlot <- function(assayrld) {
-  return(PCA(assayrld[,-501], scale.unit = FALSE, ncp = 2, graph = TRUE))
+  res.pca <- PCA(assayrld[,-501], 
+                 scale.unit = FALSE, 
+                 ncp        = 2,
+                 graph      = TRUE)
+  return(res.pca)
 }
 
 ######################################################
@@ -308,40 +324,39 @@ library(survival)
         type = "b", pch = 19, col = "red")
   # plot biplot graph with the top six contributing genes to PCA from RNA-Seq
   percentVar <- round(100 * attr(pcaData, "percentVar"))
-  pcaBiplot <-
-    fviz_pca_biplot(res.pca,
-                    select.var = list(contrib = 6),
-                    # select.var = list(contrib = 0.6),
-                    col.var    = "red",
-                    label      = "var",
-                    habillage  = assayrld$condition) +
-      geom_point(size = 3,
-         aes(color = factor(assayrld$condition))) +
-          theme_bw() +
-          xlim(-8, 4) +
-          ylim(-5, 5) +
-          theme(text              = .des_facto_get_title_font(),
-                axis.text         = .des_facto_get_title_font(),
-                axis.line.x       = element_line(color = "black",
-                                                 size  = 1),
-                axis.line.y       = element_line(color = "black",
-                                                 size  = 1),
-                axis.ticks        = element_line(size  = 1),
-                axis.ticks.length = unit(.25, "cm"),
-                panel.grid.major  = element_blank(),
-                panel.grid.minor  = element_blank(),
-                panel.border      = element_rect(color = "black",
-                                                 size  = 1),
-                panel.background  = element_blank(),
-                legend.text       = element_text(color = "black",
-                                                 size  = 18,
-                                                 face  = "bold"),
-            legend.position = c(0,1),
-            legend.justification = c(-0.05, 1.05)) +
-      xlab(paste0("PC1: ", percentVar[1], "% variance")) +
-      ylab(paste0("PC2: ", percentVar[2], "% variance"))
+  pcaBiplot <- fviz_pca_biplot(res.pca,
+                               select.var = list(contrib = 6),
+                               col.var    = "black",
+                               label      = "var",
+                               habillage  = assayrld$condition) +
+    geom_point(size = 3,
+               aes(color = factor(assayrld$condition))) +
+    theme_bw()  +
+    xlim(-8, 4) +
+    ylim(-5, 5) +
+    theme(text              = .des_facto_get_title_font(),
+          axis.text         = .des_facto_get_title_font(),
+          axis.line.x       = element_line(color = "black",
+                                           size  = 1),
+          axis.line.y       = element_line(color = "black",
+                                           size  = 1),
+          axis.ticks        = element_line(size  = 1),
+          axis.ticks.length = unit(.25, "cm"),
+          panel.grid.major  = element_blank(),
+          panel.grid.minor  = element_blank(),
+          panel.border      = element_rect(color = "black",
+                                           size  = 1),
+          panel.background  = element_blank(),
+          legend.text       = element_text(color = "black",
+                                           size  = 18,
+                                           face  = "bold"),
+          legend.position      = c(0,1),
+          legend.justification = c(-0.05, 1.05)) +
+    xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+    ylab(paste0("PC2: ", percentVar[2], "% variance")) +
+    scale_color_brewer(palette = "Dark2")
   print(pcaBiplot)
-}
+  }
 
 #########################################################
 ## 10. Hierarchical Clustering on Principal Components ##
