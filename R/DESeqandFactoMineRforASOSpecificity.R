@@ -118,7 +118,6 @@ library(survival)
 # (2) estimation of dispersion: estimateDispersions
 # (3) Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
 .getDDSRES <- function(ddsDE) {
-  ddsDE <- DESeq(dds)  
   ddsres <- results(ddsDE)  
   summary(ddsres)
   res <- data.frame(ddsres)
