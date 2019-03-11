@@ -774,7 +774,7 @@ sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
 ##  Kaplan-Meier curve with clinic and mutation data from SKCM  ##
 ##################################################################
 plot.km.mut.skcm <- function(ge) {
-  mycancerstudy <- getCancerStudies(mycgds)[88, 1]
+  mycancerstudy <- getCancerStudies(mycgds)[87, 1]
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
