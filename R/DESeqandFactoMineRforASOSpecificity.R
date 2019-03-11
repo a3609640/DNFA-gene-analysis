@@ -312,6 +312,7 @@ library(survival)
   eigenvalues <- res.pca$eig
   head(eigenvalues[, 1:2])
   eigen <- eigenvalues[1:10,]
+  assayrld$condition <- factor(assayrld$condition, levels = c("Mock", "siNegative", "ASO-Neg", "siSREBF1", "ASO-4", "ASO-1"))
   # Make a scree plot using base graphics:
   # Scree plot is a graph of eigenvalues/variances associated with components.
   barplot(eigen[, 2],
@@ -329,7 +330,7 @@ library(survival)
                                col.var    = "black",
                                label      = "var",
                                habillage  = assayrld$condition) +
-    geom_point(size = 3,
+    geom_point(size = 4,
                aes(color = factor(assayrld$condition))) +
     theme_bw()  +
     xlim(-8, 4) +
