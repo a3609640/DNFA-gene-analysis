@@ -18,12 +18,13 @@ library(survMisc)
 
 # Create CGDS object
 # mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
- mycgds = CGDS("http://www.cbioportal.org/")
+mycgds = CGDS("http://www.cbioportal.org/")
 test(mycgds)
 # Get list of cancer studies at server
 getCancerStudies(mycgds)
 # Get cases from TCGA provisional studies only
-EIF.gene <- c("SCD","EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","MYC")
+EIF.gene <- c("SCD","EIF4A1","EIF4E","EIF4G1","EIF4EBP1","EIF4EBP2",
+              "EIF4EBP3", "MYC","RPS6KB1","MTOR","RPTOR")
 names(EIF.gene) <- EIF.gene
 
 ####################################################################
@@ -137,7 +138,7 @@ plot.EIF.provisional.tcga <- function(EIF){
                                        color  = "black"),
             legend.position = "none"))
 }
-plot.EIF.provisional.tcga("EIF4A1")
+plot.EIF.provisional.tcga("RPTOR")
 sapply(EIF.gene, plot.EIF.provisional.tcga)
 
 #############################################################
@@ -254,7 +255,8 @@ sapply(EIF.gene, plot.EIF.pan.tcga)
 ##########################################################
 EIF.RNAseq.data <- getProfileData(mycgds,
                                   c("EIF4A1","EIF4B","EIF4E",
-                                  "EIF4G1","EIF4EBP1","RPS6KB1","MYC"),
+                                  "EIF4G1","EIF4EBP1","EIF4EBP2","EIF4EBP3",
+                                  "MTOR","RPTOR","RPS6KB1","MYC"),
                                   "laml_tcga_rna_seq_v2_mrna",
                                   "laml_tcga_all")
 EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
@@ -263,7 +265,8 @@ boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq in laml")
 
 EIF.RNAseq.data <- getProfileData(mycgds,
                                   c("EIF4A1","EIF4B","EIF4E",
-                                  "EIF4G1","EIF4EBP1","RPS6KB1","MYC"),
+                                    "EIF4G1","EIF4EBP1","EIF4EBP2","EIF4EBP3",
+                                    "MTOR","RPTOR","RPS6KB1","MYC"),
                                   "acc_tcga_rna_seq_v2_mrna",
                                   "acc_tcga_all")
 EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
@@ -272,7 +275,8 @@ boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in hnsc")
 
 EIF.RNAseq.data <- getProfileData(mycgds,
                                   c("EIF4A1","EIF4B","EIF4E",
-                                    "EIF4G1","EIF4EBP1","RPS6KB1","MYC"),
+                                    "EIF4G1","EIF4EBP1","EIF4EBP2","EIF4EBP3",
+                                    "MTOR","RPTOR","RPS6KB1","MYC"),
                                   "skcm_tcga_rna_seq_v2_mrna",
                                   "skcm_tcga_all")
 EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
@@ -281,7 +285,8 @@ boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in skcm")
 
 EIF.RNAseq.data <- getProfileData(mycgds,
                                   c("EIF4A1","EIF4B","EIF4E",
-                                    "EIF4G1","EIF4EBP1","RPS6KB1","MYC"),
+                                    "EIF4G1","EIF4EBP1","EIF4EBP2","EIF4EBP3",
+                                    "MTOR","RPTOR","RPS6KB1","MYC"),
                                   "dlbc_tcga_rna_seq_v2_mrna",
                                   "dlbc_tcga_all")
 EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
@@ -343,7 +348,7 @@ tcga.profiledata.RNAseq <- function(genename,
 }
 
 get.EIF.RNAseq.tcga <- function(x) {
-  EIF.gene <- c("EIF4E","EIF4G1","EIF4EBP1","RPS6KB1")
+  EIF.gene <- c("EIF4E","EIF4G1","EIF4EBP2","RPS6KB1")
   EIF.RNAseq.tcga <- tcga.profiledata.RNAseq(EIF.gene,
                                              geneticprofile.RNAseq(x),
                                              caselist.RNAseq(x))
@@ -356,7 +361,7 @@ get.EIF.score.tcga <- function(x){
   EIF.score.tcga <- EIF.RNAseq.tcga
   EIF.score.tcga$EIF4Escore <- EIF.RNAseq.tcga$EIF4E/EIF.RNAseq.tcga$EIF4E
   EIF.score.tcga$EIF4G1score <- EIF.RNAseq.tcga$EIF4G1/EIF.RNAseq.tcga$EIF4E
-  EIF.score.tcga$EIF4EBP1score <- EIF.RNAseq.tcga$EIF4EBP1/EIF.RNAseq.tcga$EIF4E
+  EIF.score.tcga$EIF4EBP2score <- EIF.RNAseq.tcga$EIF4EBP2/EIF.RNAseq.tcga$EIF4E
 #  EIF.score.tcga$RPS6KB1score <- EIF.RNAseq.tcga$RPS6KB1/EIF.RNAseq.tcga$EIF4E
   EIF.score.tcga <- EIF.score.tcga [, 5:8]
   return(EIF.score.tcga)
@@ -369,12 +374,12 @@ plot.EIF.RNAseq.score <- function (x) {
   par(mfrow=c(1,2))
   boxplot(log2(EIF.RNAseq.tcga[, 
                              c("EIF4E", "EIF4G1", 
-                               "EIF4EBP1", "RPS6KB1")]),
+                               "EIF4EBP2", "RPS6KB1")]),
           main= paste0("EIF RNAseq counts in ", x),
           las = 2)
   boxplot(log2(EIF.score.tcga[,
                         c("EIF4Escore","EIF4G1score",
-                          "EIF4EBP1score")]),
+                          "EIF4EBP2score")]),
           main= paste0("EIF scores in ", x),
           las = 2)
   }
@@ -478,19 +483,19 @@ plot.EIFandScore.all.tumors <- function (){
 #  levels(EIF.RNAseq.tcga.all.tumors$variable)
   EIF.RNAseq.tcga.all.tumors$variable <- ordered(EIF.RNAseq.tcga.all.tumors$variable, 
                                                  levels = c("EIF4E","EIF4G1",
-                                                            "EIF4EBP1","RPS6KB1"))
+                                                            "EIF4EBP2","RPS6KB1"))
   number <- nrow(EIF.RNAseq.tcga.all.tumors)/4
   EIF.score.tcga.all.tumors <- melt(EIF.score.tcga)
   my_comparison1 <- list( c("EIF4E", "EIF4G1"), 
-                          c("EIF4G1", "EIF4EBP1"), 
-                          c("EIF4E", "EIF4EBP1"),
-                          c("EIF4E", "RPS6KB1"),
+                          c("EIF4G1", "EIF4EBP2"), 
+                          c("EIF4E", "EIF4EBP2"),
+                          c("EIF4E", "RPS6KB2"),
                           c("EIF4EBP1", "RPS6KB1"))
   my_comparison2 <- list( c("EIF4Escore", "EIF4G1score"), 
-                          c("EIF4G1score", "EIF4EBP1score"), 
-                          c("EIF4Escore", "EIF4EBP1score"),
+                          c("EIF4G1score", "EIF4EBP2score"), 
+                          c("EIF4Escore", "EIF4EBP2score"),
                           c("EIF4Escore", "RPS6KB1score"),
-                          c("EIF4EBP1score", "RPS6KB1score"))
+                          c("EIF4EBP2score", "RPS6KB1score"))
   p1 <- plotEIF(EIF.RNAseq.tcga.all.tumors) +
     labs(title = paste0("All tumors n = ", number),
          x     = "eIF4F subunit RNAseq",
