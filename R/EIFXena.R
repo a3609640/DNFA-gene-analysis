@@ -707,19 +707,19 @@ plot.km.EIF.all.tumors <- function(EIF) {
 }
 
 ##
-plot.km.DNFA.all.tumors <- function(EIF) {
-  EIF.TCGA.GTEX <- read.csv(file.path("project-data", "DNFASKCMandGTEX.csv"), 
+plot.km.DNFA.all.tumors <- function(DNFA) {
+  DNFA.TCGA.GTEX <- read.csv(file.path("project-data", "DNFASKCMandGTEX.csv"), 
                             header = TRUE, sep = ",")
-  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA',]
-  EIF.TCGA <- EIF.TCGA[EIF.TCGA$X_sample_type != "Solid Tissue Normal", ]
-  EIF.TCGA <- droplevels(EIF.TCGA)
-  df <- na.omit(EIF.TCGA)
+  DNFA.TCGA <- DNFA.TCGA.GTEX[DNFA.TCGA.GTEX$study == 'TCGA',]
+  DNFA.TCGA <- DNFA.TCGA[DNFA.TCGA$sample_type != "Solid Tissue Normal", ]
+  DNFA.TCGA <- droplevels(DNFA.TCGA)
+  df <- na.omit(DNFA.TCGA)
   number <- nrow(df)
   sub <- round(number/5, digits = 0)
-  bottom.label <- paste("Bottom 20%, n = ", sub)
-  top.label <- paste("Top 20%, n = ", sub)
-  df$Group[df[[EIF]] < quantile(df[[EIF]], prob = 0.2)] = "Bottom 20%"
-  df$Group[df[[EIF]] > quantile(df[[EIF]], prob = 0.8)] = "Top 20%"
+  bottom.label <- paste("Bottom 10%, n = ", sub)
+  top.label <- paste("Top 10%, n = ", sub)
+  df$Group[df[[DNFA]] < quantile(df[[DNFA]], prob = 0.1)] = "Bottom"
+  df$Group[df[[DNFA]] > quantile(df[[DNFA]], prob = 0.9)] = "Top"
   df$SurvObj <- with(df, Surv(OS.time, OS == 1))
   df <- na.omit(df)
   km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
@@ -751,8 +751,8 @@ plot.km.DNFA.all.tumors <- function(EIF) {
             legend.justification = c(1,1)) +
       guides(fill = FALSE) +
       scale_color_manual(values = c("red", "blue"),
-                         name   = paste(EIF, "mRNA expression"),
-                         breaks = c("Bottom 20%", "Top 20%"),
+                         name   = paste(DNFA, "mRNA expression"),
+                         breaks = c("Bottom", "Top"),
                          labels = c(bottom.label, top.label)) +
       geom_point(size = 0.25) +
       annotate("text",
@@ -763,7 +763,7 @@ plot.km.DNFA.all.tumors <- function(EIF) {
                hjust    = 1,
                fontface = "bold"))
   # rho = 1 the Gehan-Wilcoxon test
-  print(EIF)
+  print(DNFA)
   print(stats)
   #  fit = survfit(SurvObj ~ df$Group, data = df)
   #  tst <- comp(fit)$tests$lrTests
@@ -851,10 +851,10 @@ plot.km.DNFA.each.tumor <- function(EIF, tumor) {
   df <- na.omit(EIF.TCGA)
   number <- nrow(df)
   sub <- round(number/5, digits = 0)
-  bottom.label <- paste("Bottom 20%, n = ", sub)
-  top.label <- paste("Top 20%, n = ", sub)
-  df$Group[df[[EIF]] < quantile(df[[EIF]], prob = 0.2)] = "Bottom 20%"
-  df$Group[df[[EIF]] > quantile(df[[EIF]], prob = 0.8)] = "Top 20%"
+  bottom.label <- paste("Bottom 30%, n = ", sub)
+  top.label <- paste("Top 30%, n = ", sub)
+  df$Group[df[[EIF]] < quantile(df[[EIF]], prob = 0.3)] = "Bottom 20%"
+  df$Group[df[[EIF]] > quantile(df[[EIF]], prob = 0.7)] = "Top 20%"
   df$SurvObj <- with(df, Surv(OS.time, OS == 1))
   df <- na.omit(df)
   km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
@@ -932,7 +932,7 @@ lapply(get.disease.list(),
        x = get.DNFA.TCGA.GTEX.RNAseq.long())
 ####################################################
 ####################################################
-plot.km.DNFA.all.tumors("SCD")
+plot.km.DNFA.all.tumors("HMGCR")
 plot.km.EIF.all.tumors("SF3B5")
 
 DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1", 
@@ -964,7 +964,7 @@ lapply(get.disease.list(),
        EIF = "SCD")
 
 
-plot.km.DNFA.each.tumor("SCD", "Skin Cutaneous Melanoma")
+plot.km.DNFA.each.tumor("HMGCR", "Skin Cutaneous Melanoma")
 lapply(DNFA.gene, 
        plot.km.DNFA.each.tumor, 
        tumor = "Bladder Urothelial Carcinoma")
