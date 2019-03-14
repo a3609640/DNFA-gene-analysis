@@ -52,11 +52,12 @@ data(kegg.gs)
   # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
   # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
   # read processed RNA-seq read data from file testseq.csv.
-  testseq <- read.csv(file.path("project-data", "gene-counts-from-Makefile.csv"))
+  testseq <- read.csv(file.path("project-data", 
+                                "gene-counts-from-Makefile.csv"))
   # Use the column one (Ensemble names) as columnn names.
   testseq <- data.frame(testseq[,-1], row.names = testseq[,1])
   # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
-  testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
+  testseq <- data.frame(testseq[c(-1,-2,-3,-4), ])
   ## remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
   testseq <- testseq[-25]
   return(testseq)
@@ -105,7 +106,7 @@ data(kegg.gs)
   ## p-values and adjusted p-values
   ## We can order our results table by the smallest p value:
   # ressiRNA<-ressiRNA[order(ressiRNA$log2FoldChange),]
-  ressiRNA <- ressiRNA[order(ressiRNA$pvalue),]
+  ressiRNA <- ressiRNA[order(ressiRNA$pvalue), ]
   ## Information about which variables and tests were used can be found 
   ## by calling the function mcols on the results object.
   mcols(ressiRNA)$description
@@ -252,9 +253,9 @@ data(kegg.gs)
                              same.dir = TRUE)
   lapply(keggres.sigmet.idx, head,20)
   write.table(keggres.sigmet.idx$greater,
-              file = "keggres.sigmet.idx.greater.txt",sep = "\t")
+              file = "keggres.sigmet.idx.greater.txt", sep = "\t")
   write.table(keggres.sigmet.idx$less,
-              file = "keggres.sigmet.idx.less.txt",sep = "\t")
+              file = "keggres.sigmet.idx.less.txt", sep = "\t")
 
   # Get KEGG pathway with only metabolism pathways
   kegg.met.idx <- kg.hsa$kg.sets[kg.hsa$met.idx]
@@ -287,8 +288,8 @@ data(kegg.gs)
                      gsets    = go.bp.gs,
                      same.dir = TRUE)
   lapply(fc.go.bp.p, head,20)
-  write.table(fc.go.bp.p$greater, file = "fc.go.bp.p.greater.txt",sep = "\t")
-  write.table(fc.go.bp.p$less, file = "fc.go.bp.p.less.txt",sep = "\t")
+  write.table(fc.go.bp.p$greater, file = "fc.go.bp.p.greater.txt", sep = "\t")
+  write.table(fc.go.bp.p$less, file = "fc.go.bp.p.less.txt", sep = "\t")
 
   # GO pathway analysis with Molecular Process
   fc.go.mf.p <- gage(foldchanges, gsets = go.mf.gs)
@@ -312,7 +313,7 @@ des_gage_do_all <- function() {
   ddsDEsiRNA <- DESeq(ddssiRNA)
   ressiRNA <- .getDDSRes(ddsDEsiRNA)
   ressiRNA <- .addGeneIdentifiers(ressiRNA)
-  .exportCSV(ressiRNA)
+#  .exportCSV(ressiRNA)
   .makeHeatMap2(ddsDEsiRNA)
   foldchanges <- .keggAnalysis(ressiRNA)
   .pathwayAnalysis(foldchanges)
