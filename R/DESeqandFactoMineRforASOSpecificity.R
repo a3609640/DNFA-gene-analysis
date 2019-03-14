@@ -294,7 +294,7 @@ library(survival)
 # before PCA analysis
 ## # Compute PCA with ncp = 3, to keep only the first three principal components
 .makeAnnotatedPcaPlot <- function(assayrld) {
-  res.pca <- PCA(assayrld[,-501], 
+  res.pca <- PCA(assayrld[ ,-501], 
                  scale.unit = FALSE, 
                  ncp        = 2,
                  graph      = TRUE)
@@ -309,18 +309,24 @@ library(survival)
 ## Eigenvalues are large for the first PC and small for the subsequent PCs.
 .makeBiplot <- function(assayrld, res.pca, pcaData) {
   eigenvalues <- res.pca$eig
-  head(eigenvalues[, 1:2])
-  eigen <- eigenvalues[1:10,]
-  assayrld$condition <- factor(assayrld$condition, levels = c("Mock", "siNegative", "ASO-Neg", "siSREBF1", "ASO-4", "ASO-1"))
+  head(eigenvalues[ ,1:2])
+  eigen <- eigenvalues[1:10, ]
+  assayrld$condition <- factor(assayrld$condition, 
+                               levels = c("Mock", 
+                                          "siNegative", 
+                                          "ASO-Neg", 
+                                          "siSREBF1", 
+                                          "ASO-4", 
+                                          "ASO-1"))
   # Make a scree plot using base graphics:
   # Scree plot is a graph of eigenvalues/variances associated with components.
-  barplot(eigen[, 2],
+  barplot(eigen[ ,2],
           names.arg = 1:nrow(eigen),
           main      = "Variances",
           xlab      = "Principal Components",
           ylab      = "Percentage of variances",
           col       = "steelblue")
-  lines(x = 1:nrow(eigen), eigen[, 2],
+  lines(x = 1:nrow(eigen), eigen[ ,2],
         type = "b", pch = 19, col = "red")
   # plot biplot graph with the top six contributing genes to PCA from RNA-Seq
   percentVar <- round(100 * attr(pcaData, "percentVar"))
@@ -404,7 +410,7 @@ library(survival)
 ########################################################
 .findTopPrincipalComponentContributors <- function(res.pca) {
   ## Contributions of variables to PCs
-  head(res.pca$var$contrib,10)
+  head(res.pca$var$contrib, 10)
   head(res.pca$var$cos2, 10)
   var <- get_pca_var(res.pca)
   var
