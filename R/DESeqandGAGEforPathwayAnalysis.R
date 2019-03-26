@@ -319,3 +319,4 @@ des_gage_do_all <- function() {
   .pathwayAnalysis(foldchanges)
 }
 
+des_gage_do_all() 
