@@ -585,3 +585,4 @@ analyze_aso_specificity <- function() {
   .makeGeneCountPlot(NRAS, "NRAS", 7, 9)
 }
 
+analyze_aso_specificity()
