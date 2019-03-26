@@ -23,8 +23,10 @@ test(mycgds)
 # Get list of cancer studies at server
 getCancerStudies(mycgds)
 # Get cases from TCGA provisional studies only
-EIF.gene <- c("SCD","EIF4A1","EIF4E","EIF4G1","EIF4EBP1","EIF4EBP2",
-              "EIF4EBP3", "MYC","RPS6KB1","MTOR","RPTOR")
+EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","EIF4EBP2",
+              "EIF4EBP3", "MYC","RPS6KB1","MTOR","RPTOR",
+              "HIST2H2BE", "HIST1H1B", "HIST1H2AB","HIST1H1C",
+              "LLGL2","GUCA1B", "RPS5")
 names(EIF.gene) <- EIF.gene
 
 ####################################################################
@@ -138,7 +140,7 @@ plot.EIF.provisional.tcga <- function(EIF){
                                        color  = "black"),
             legend.position = "none"))
 }
-plot.EIF.provisional.tcga("RPTOR")
+plot.EIF.provisional.tcga("GUCA1B")
 sapply(EIF.gene, plot.EIF.provisional.tcga)
 
 #############################################################
@@ -246,7 +248,6 @@ plot.EIF.pan.tcga <- function(EIF){
                                        color  = "black"),
             legend.position = "none"))
 }
-
 plot.EIF.pan.tcga("EIF4E")
 sapply(EIF.gene, plot.EIF.pan.tcga)
 
@@ -260,7 +261,7 @@ EIF.RNAseq.data <- getProfileData(mycgds,
                                   "laml_tcga_rna_seq_v2_mrna",
                                   "laml_tcga_all")
 EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
-boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq in laml")
+boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq in Acute Myeloid Leukemia")
 
 
 EIF.RNAseq.data <- getProfileData(mycgds,
@@ -270,7 +271,7 @@ EIF.RNAseq.data <- getProfileData(mycgds,
                                   "acc_tcga_rna_seq_v2_mrna",
                                   "acc_tcga_all")
 EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
-boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in hnsc")
+boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in Head-Neck Squamous Cell Carcinoma")
 
 
 EIF.RNAseq.data <- getProfileData(mycgds,
@@ -280,7 +281,7 @@ EIF.RNAseq.data <- getProfileData(mycgds,
                                   "skcm_tcga_rna_seq_v2_mrna",
                                   "skcm_tcga_all")
 EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
-boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in skcm")
+boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in skin cutaneous melanoma")
 
 
 EIF.RNAseq.data <- getProfileData(mycgds,
@@ -290,11 +291,12 @@ EIF.RNAseq.data <- getProfileData(mycgds,
                                   "dlbc_tcga_rna_seq_v2_mrna",
                                   "dlbc_tcga_all")
 EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
-boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in dlbc")
+boxplot(log2(EIF.RNAseq.data), main="EIF RNAseq data in diffuse large B-cell lymphoma")
 
 EIF.RNAseq.data <- getProfileData(mycgds,
                                   c("EIF4A1","EIF4B","EIF4E",
-                                    "EIF4G1","EIF4EBP1","RPS6KB1","MYC"),
+                                    "EIF4G1","EIF4EBP1","EIF4EBP2","EIF4EBP3",
+                                    "MTOR","RPTOR","RPS6KB1","MYC"),
                                   "esca_tcga_rna_seq_v2_mrna",
                                   "esca_tcga_all")
 EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
