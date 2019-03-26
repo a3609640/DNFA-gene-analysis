@@ -217,18 +217,19 @@ plotEIF.TCGA.GTEX <-  function (x) {
                  position = position_dodge(width = .9)) +
     labs(x = "sample type",
          y = paste("log2(TPM)")) +
-    scale_x_discrete(labels = c("Metastatic"          = paste("Metastatic \n n= ",
-                                                              metastatic.number), 
-                                "Primary Tumor"       = paste("Primary Tumor \n n= ", 
-                                                              primary.tumor.number),
-                                "Recurrent Tumor"     = paste("Recurrent Tumor \n n= ", 
-                                                              recurrent.tumor.number),
-                                "Solid Tissue Normal" = paste("Solid Tissue Normal \n n= ", 
-                                                              solid.tissue.normal.number),
-                                "Normal Tissue"       = paste("Normal Tissue \n n= ", 
-                                                              normal.tissue.number),
-                                "Cell Line"           = paste("Cell Line \n n= ", 
-                                                              cell.line.number))) +
+    scale_x_discrete(labels = 
+                       c("Metastatic"          = paste("Metastatic \n n= ",
+                                                       metastatic.number), 
+                         "Primary Tumor"       = paste("Primary Tumor \n n= ", 
+                                                       primary.tumor.number),
+                         "Recurrent Tumor"     = paste("Recurrent Tumor \n n= ", 
+                                                       recurrent.tumor.number),
+                         "Solid Tissue Normal" = paste("Solid Tissue Normal \n n= ", 
+                                                       solid.tissue.normal.number),
+                         "Normal Tissue"       = paste("Normal Tissue \n n= ", 
+                                                       normal.tissue.number),
+                         "Cell Line"           = paste("Cell Line \n n= ", 
+                                                       cell.line.number))) +
     theme_bw() +
     theme(plot.title      = black_bold_tahoma_12,
           axis.title      = black_bold_tahoma_12,
@@ -302,14 +303,15 @@ plotEIF.RNAseq.TCGA <-  function (x) {
                  position = position_dodge(width = .9)) +
     labs(x = "sample type",
          y = paste("log2(RNA counts)")) +
-    scale_x_discrete(labels = c("Metastatic"          = paste("Metastatic \n n= ",
-                                                              metastatic.number), 
-                                "Primary Tumor"       = paste("Primary Tumor \n n= ", 
-                                                              primary.tumor.number),
-                                "Recurrent Tumor"     = paste("Recurrent Tumor \n n= ", 
-                                                              recurrent.tumor.number),
-                                "Solid Tissue Normal" = paste("Solid Tissue Normal \n n= ", 
-                                                              solid.tissue.normal.number))) +
+    scale_x_discrete(labels = 
+                       c("Metastatic"          = paste("Metastatic \n n= ",
+                                                       metastatic.number), 
+                         "Primary Tumor"       = paste("Primary Tumor \n n= ", 
+                                                       primary.tumor.number),
+                         "Recurrent Tumor"     = paste("Recurrent Tumor \n n= ", 
+                                                       recurrent.tumor.number),
+                         "Solid Tissue Normal" = paste("Solid Tissue Normal \n n= ", 
+                                                       solid.tissue.normal.number))) +
     theme_bw() +
     theme(plot.title      = black_bold_tahoma_12,
           axis.title      = black_bold_tahoma_12,
