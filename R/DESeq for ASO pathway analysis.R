@@ -75,7 +75,11 @@ boxplot(testseq, outline=FALSE, horizontal=TRUE, las=1)
 ###################################
 ###################################
 ## generate dataset for ASO4 treatment
+<<<<<<< HEAD
 testASO <- data.frame(testseq[,c(5,6,7,8,21,22,23,24)])
+=======
+testASO <- data.frame(testseq[,c(13,14,15,16,21,22,23,24)])
+>>>>>>> df2833f82e6dd4c02d8f5230e1d1d7b59bfb706c
 
 par(mar=c(3,12,2,1))
 boxplot(testASO, outline=FALSE, horizontal=TRUE, las=1)
@@ -90,9 +94,13 @@ boxplot(guideDataASO, outline=FALSE, horizontal=TRUE, las=1)
 
 # Time to create a design for our "modelling" 
 guideDesignASO <- data.frame(row.names = colnames(guideDataASO),
+<<<<<<< HEAD
                              condition = c(rep("siNeg", 4),
                                          #  rep("siSREBF1", 4),
                                            rep("ASO-4", 4)))
+=======
+                             condition = c(rep("ASO-Neg",4),rep("ASO-4",4)))
+>>>>>>> df2833f82e6dd4c02d8f5230e1d1d7b59bfb706c
 
 ## object construction
 ## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
@@ -107,7 +115,11 @@ ddsASO
 ###############################################################################
 ## 4.1 standard analysis to make MA-plot from base means and log fold changes##
 ###############################################################################
+<<<<<<< HEAD
 ddsDEASO <- DESeq(ddsASO, test = "LRT", reduced = ~1)
+=======
+ddsDEASO <- DESeq(ddsASO)
+>>>>>>> df2833f82e6dd4c02d8f5230e1d1d7b59bfb706c
 resASO<-results(ddsDEASO) # default alpha = 0.1
 ## p-values and adjusted p-values
 ## We can order our results table by the smallest p value:
@@ -176,10 +188,17 @@ head(resASO, 10)
 ## followed by the write.csv function.
 resSig <- subset(resASO, padj < 0.1)
 resSig
+<<<<<<< HEAD
 #write.csv(as.data.frame(resSig), 
 #          file="ASO4_Neg_sigresults.csv")
 # write.csv(as.data.frame(ressiRNA), 
 #          file="ASO4_Neg_results.csv")
+=======
+write.csv(as.data.frame(resSig), 
+          file="ASO4_Neg_sigresults.csv")
+write.csv(as.data.frame(ressiRNA), 
+          file="ASO4_Neg_results.csv")
+>>>>>>> df2833f82e6dd4c02d8f5230e1d1d7b59bfb706c
 
 #################################
 ## 4.4 KEGG pathways analysis ###
@@ -219,7 +238,11 @@ lapply(cartares, head,10)
 kg.hsa=kegg.gsets("hsa")
 kegg.sigmet.idx=kg.hsa$kg.sets[kg.hsa$sigmet.idx]
 keggres.sigmet.idx = gage(foldchanges, gsets=kegg.sigmet.idx, same.dir=TRUE)
+<<<<<<< HEAD
 lapply(keggres.sigmet.idx, head,10)
+=======
+lapply(keggres.sigmet.idx, head,20)
+>>>>>>> df2833f82e6dd4c02d8f5230e1d1d7b59bfb706c
 # write.table(keggres.sigmet.idx$greater, file = "keggres.sigmet.idx.greater.txt",sep = "\t")
 # write.table(keggres.sigmet.idx$less, file = "keggres.sigmet.idx.less.txt",sep = "\t")
 
