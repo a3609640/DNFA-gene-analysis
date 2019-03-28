@@ -60,12 +60,14 @@ library(SummarizedExperiment)
 ################################
 # obtain the count table of the experiment directly from a pre-saved file. The RNA-seq was aligned to Hg38 by STAR
 # read RNA-seq read data. 
-setwd("~/Documents/Su Wu/Documents/Research/Naar Lab/RNA-seq/Test run/Analysis/STAR/results")
-testseq <- read.csv("testseq.csv")
-# Use the column one (Ensemble names) as columnn names. 
-testseq <- data.frame(testseq[,-1], row.names=testseq[,1])
+testseq <- read.csv(file.path("project-data", 
+                              "gene-counts-from-Makefile.csv"))
+# Use the column one (Ensemble names) as columnn names.
+testseq <- data.frame(testseq[,-1], row.names = testseq[,1])
 # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
-testseq <- data.frame(testseq[c(-1,-2,-3,-4),])
+testseq <- data.frame(testseq[c(-1,-2,-3,-4), ])
+## remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
+testseq <- testseq[-25]
 par(mar=c(3,12,2,1))
 boxplot(testseq, outline=FALSE, horizontal=TRUE, las=1)
 
@@ -75,11 +77,11 @@ boxplot(testseq, outline=FALSE, horizontal=TRUE, las=1)
 ###################################
 ###################################
 ## generate dataset for ASO4 treatment
-<<<<<<< HEAD
+
 testASO <- data.frame(testseq[,c(5,6,7,8,21,22,23,24)])
-=======
+
 testASO <- data.frame(testseq[,c(13,14,15,16,21,22,23,24)])
->>>>>>> df2833f82e6dd4c02d8f5230e1d1d7b59bfb706c
+
 
 par(mar=c(3,12,2,1))
 boxplot(testASO, outline=FALSE, horizontal=TRUE, las=1)
@@ -94,13 +96,9 @@ boxplot(guideDataASO, outline=FALSE, horizontal=TRUE, las=1)
 
 # Time to create a design for our "modelling" 
 guideDesignASO <- data.frame(row.names = colnames(guideDataASO),
-<<<<<<< HEAD
-                             condition = c(rep("siNeg", 4),
-                                         #  rep("siSREBF1", 4),
+                             condition = c(rep("ASO-Neg", 4),
                                            rep("ASO-4", 4)))
-=======
-                             condition = c(rep("ASO-Neg",4),rep("ASO-4",4)))
->>>>>>> df2833f82e6dd4c02d8f5230e1d1d7b59bfb706c
+
 
 ## object construction
 ## Construct DESeqDataSet with the count matrix, countData, and the sample information, colData
@@ -115,12 +113,8 @@ ddsASO
 ###############################################################################
 ## 4.1 standard analysis to make MA-plot from base means and log fold changes##
 ###############################################################################
-<<<<<<< HEAD
-ddsDEASO <- DESeq(ddsASO, test = "LRT", reduced = ~1)
-=======
 ddsDEASO <- DESeq(ddsASO)
->>>>>>> df2833f82e6dd4c02d8f5230e1d1d7b59bfb706c
-resASO<-results(ddsDEASO) # default alpha = 0.1
+resASO <- results(ddsDEASO) # default alpha = 0.1
 ## p-values and adjusted p-values
 ## We can order our results table by the smallest p value:
 # ressiRNA<-ressiRNA[order(ressiRNA$log2FoldChange),]
@@ -144,17 +138,17 @@ plotMA(resASO, main="DESeq2 ASO", ylim=c(-2,2))
 ## which remove the noise associated with log2 fold changes from low count genes without requiring arbitrary filtering thresholds.
 resultsNames(ddsDEASO)
 # normal is the the original DESeq2 shrinkage estimator, an adaptive normal prior
-resLFC <- lfcShrink(resASO, coef=2)
+resLFC <- lfcShrink(ddsDEASO, coef=2, type="normal")
 # par(mfrow=c(1,3), mar=c(4,4,2,1))
 xlim <- c(1,1e5); ylim <- c(-3,3)
-plotMA(resLFC, xlim=xlim, ylim=ylim, main="normal")
+geneplotter::plotMA(resLFC, ylim=ylim, main="normal")
 # Alternative shrinkage estimators
 # apeglm is the adaptive t prior shrinkage estimator from the apeglm package
-resApe <- lfcShrink(resASO, coef=2, type="apeglm")
+resApe <- lfcShrink(ddsDEASO, coef=2, type="apeglm")
 plotMA(resApe, xlim=xlim, ylim=ylim, main="apeglm")
 # ashr is the adaptive shrinkage estimator from the ashr package (Stephens 2016). 
 # Here DESeq2 uses the ashr option to fit a mixture of normal distributions to form the prior, with method="shrinkage"
-resAsh <- lfcShrink(resASO, coef=2, type="ashr")
+resAsh <- lfcShrink(ddsDEASO, coef=2, type="ashr")
 plotMA(resAsh, xlim=xlim, ylim=ylim, main="ashr")
 
 
@@ -186,7 +180,7 @@ head(resASO, 10)
 ########################################
 ## Exporting only the results which pass an adjusted p value threshold can be accomplished with the subset function, 
 ## followed by the write.csv function.
-resSig <- subset(resASO, padj < 0.1)
+resSig <- subset(resASO, padj < 0.05)
 resSig
 <<<<<<< HEAD
 #write.csv(as.data.frame(resSig), 
@@ -218,7 +212,7 @@ kegg.sets.hs.sigmet <-  kegg.sets.hs[sigmet.idx.hs]
 head(kegg.sets.hs.sigmet, 3)
 
 ## Generate a named vector of fold changes, where the names of the values are the Entrez gene IDs, for the gage() function
-foldchanges = -resASO$log2FoldChange
+foldchanges = resASO$log2FoldChange
 names(foldchanges) = resASO$entrez
 head(foldchanges)
 

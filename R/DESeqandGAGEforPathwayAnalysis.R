@@ -134,11 +134,11 @@ data(kegg.gs)
   resultsNames(ddsDEsiRNA)
   # normal is the the original DESeq2 shrinkage estimator, 
   # an adaptive normal prior
-  resLFC <- lfcShrink(ddsDEsiRNA, coef = 2)
+  resLFC <- lfcShrink(ddsDEsiRNA, coef = 2, type="normal")
   # par(mfrow=c(1,3), mar=c(4,4,2,1))
-  xlim <- c(1,1e5); ylim <- c(-2.2,2.2)
+  xlim <- c(1,1e5); ylim <- c(-2.5,2.5)
   plotMA(resLFC,
-         xlab = "mean of normalized counts",
+         xlab = "mean of normalized counts", ylab = expression(log[2]~fold~change),
          ylim = ylim,
          main = "normal",
          cex  = .8)
@@ -251,7 +251,7 @@ data(kegg.gs)
   keggres.sigmet.idx <- gage(foldchanges,
                              gsets    = kegg.sigmet.idx,
                              same.dir = TRUE)
-  lapply(keggres.sigmet.idx, head,20)
+  lapply(keggres.sigmet.idx, head,30)
   write.table(keggres.sigmet.idx$greater,
               file = "keggres.sigmet.idx.greater.txt", sep = "\t")
   write.table(keggres.sigmet.idx$less,
@@ -301,8 +301,7 @@ data(kegg.gs)
 
 des_gage_do_all <- function() {
   testseq <- .des_gage_read_gene_counts()
-  guideDatasiRNA <- .getGuideData(
-  data.frame(testseq[,c(5,6,7,8,9,10,11,12)]))
+  guideDatasiRNA <- .getGuideData(data.frame(testseq[ ,c(13,14,15,16,17,18,19,20)]))
   condition <- c(rep("siNeg",4),rep("siBF1",4))
   guideDesignsiRNA <- data.frame(row.names = colnames(guideDatasiRNA),
                                  condition = condition)
