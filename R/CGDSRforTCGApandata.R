@@ -499,8 +499,8 @@ sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
 ##################################################################
 ##  plot OS curve with clinic and mutation data from SKCM group ##
 ##################################################################
-plotOS <- function(ge) {
-  mycancerstudy <- getCancerStudies(mycgds)[202, 1]
+plot.mutation.SKCM.OS <- function(ge) {
+  mycancerstudy <- getCancerStudies(mycgds)[205, 1]
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
@@ -529,10 +529,10 @@ plotOS <- function(ge) {
                                   size   = 12,
                                   colour = "black")
   print(
-    autoplot(km,
-             xlab = "Months",
-             ylab = "Survival Probability",
-             main = "Kaplan-Meier plot") +
+    ggplot2::autoplot(km,
+                      xlab = "Months",
+                      ylab = "Survival Probability",
+                      main = "Kaplan-Meier plot") +
       theme(axis.title      = black.bold.12pt,
             axis.text       = black.bold.12pt,
             axis.line.x     = element_line(color  = "black"),
@@ -550,13 +550,13 @@ plotOS <- function(ge) {
   print(stats(ge))
 }
 
-plotOS("BRAF.mutations")
+plot.mutation.SKCM.OS("BRAF.mutations")
 mutation.list <- c("BRAF.mutations",
                    "NRAS.mutations",
                    "AKT1.mutations",
                    "TP53.mutations")
 names(mutation.list) <- mutation.list
-sapply(mutation.list, plotOS)
+sapply(mutation.list, plot.mutation.SKCM.OS)
 
 #########################################################################
 ##  plot OS curve with clinic and DNFA expression data from SKCM group ##
