@@ -211,17 +211,18 @@ fviz_pca_ind(res.pca, col.ind = "cos2") +
                       size  = 18))
   }
 
-
+# Select the top 3 contributing variables
+fviz_pca_var(res.pca, select.var = list(contrib = 3))
 # Graph of variables: default plot
 # Make a biplot of individuals and variables :
 pcaBiplot <- fviz_pca_biplot(res.pca,
                              geom = c("point", "text", "arrows"), 
-                             select.var = list(contrib = 10),
-                             alpha.var ="cos2") +
+                             select.var = list(contrib = 6),
+                             alpha.var ="contrib") +
   geom_point(size = 3) +
   theme_bw()  +
-  xlim(-40, 20) +
-  ylim(-10, 15) +
+  xlim(-40, 40) +
+  ylim(-40, 40) +
   theme(text              = .des_facto_get_title_font(),
         axis.text         = .des_facto_get_title_font(),
         axis.line.x       = element_line(color = "black",
@@ -382,5 +383,5 @@ dim2.entrez <- .addGeneIdentifiers(dim2)
   lapply(fc.go.cc.p, head,10)
 }
 
-.keggAnalysis(dim1.entrez)
+.keggAnalysis(dim2.entrez)
 
