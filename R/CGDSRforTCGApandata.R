@@ -3,13 +3,21 @@
 # install.packages("cgdsr")
 library(car)
 library(cgdsr)
+library(cowplot)
 library(ggfortify)
 library(ggplot2)
+library(ggpubr)
+library(gridExtra)
+library(grid)
+library(httr)
 library(plyr)
 library(reshape2)
+library(stringr)
 library(survival)
+library(survMisc)
 library(survminer)
 library(tidyr)
+
 
 # Create CGDS object
 # mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
@@ -730,11 +738,15 @@ plot.km.all.tcga <- function(DNFA) {
                  type = "full")
   df <- na.omit(df)
   message("clinical and RNAseq data combined")
+  number <- round(nrow(df)/5)
   df$Group[df$RNAseq < quantile(df$RNAseq, prob = 0.2)] = "Bottom 20%"
   df$Group[df$RNAseq > quantile(df$RNAseq, prob = 0.8)] = "Top 20%"
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
   #  df <- na.omit(df)
   km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0)
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
+  p.val <- signif(p.val, 3)
   black.bold.12pt <- element_text(face   = "bold",
                                   size   = 12,
                                   colour = "black")
@@ -752,7 +764,23 @@ plot.km.all.tcga <- function(DNFA) {
             strip.text           = black.bold.12pt,
             legend.text          = black.bold.12pt ,
             legend.title         = black.bold.12pt ,
-            legend.justification = c(1,1)))
+            legend.justification = c(1,1),
+            legend.position      = c(1,1))+
+    guides(fill = FALSE) +
+    scale_color_manual(values = c("red", "blue"),
+                       name   = paste(DNFA, "mRNA expression"),
+                       breaks = c("Bottom 20%", "Top 20%"),
+                       labels = c(paste("Bottom 20%, n =", number),
+                                  paste("Top 20%, n =", number))) +
+    geom_point(size = 0.25) +
+    annotate("text",
+             x     = 250,
+             y     = 0.80,
+             label = paste("log-rank test, p.val = ", p.val),
+             size  = 4.5,
+             hjust = 1,
+             fontface = "bold"))
+  
   # rho = 1 the Gehan-Wilcoxon test
   stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
   print(DNFA)
