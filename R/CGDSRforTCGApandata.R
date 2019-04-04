@@ -29,19 +29,19 @@ getCancerStudies(mycgds)
 #####################################################################
 ## Get DNFA gene expression data from all TCGA cancer study groups ##
 #####################################################################
-DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1", 
+DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1",
                "HMGCS1", "HMGCR", "MVK", "PMVK")
 names(DNFA.gene ) <- DNFA.gene
 
-######################################################
-## plot DNFA gene expression across all TCGA groups ##
-######################################################
+##################################################################
+## plot DNFA gene expression across all TCGA provisional groups ##
+##################################################################
 plot.DNFA.provisional.tcga <- function(DNFA){
   # Get DNFA RNAseq data from all TCGA study groups
-  tcga.pan.studies <- getCancerStudies(mycgds)[
+  tcga.pro.studies <- getCancerStudies(mycgds)[
     grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
   # "tcag_study_list" contains all the tcga cancer studies
-  tcga.study.list <- tcga.pan.studies$cancer_study_id
+  tcga.study.list <- tcga.pro.studies$cancer_study_id
   names(tcga.study.list) <- tcga.study.list
   caselist <- function(x) getCaseLists(mycgds, x)
   geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
@@ -49,8 +49,8 @@ plot.DNFA.provisional.tcga <- function(DNFA){
   # because we named each elements in tcga.study.list,
   # lappy will return a large list, each element (with a cancer study name)
   # in that list is a data-table
-  tcga.pan.caselist <- lapply(tcga.study.list, caselist)
-  tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
+  tcga.pro.caselist <- lapply(tcga.study.list, caselist)
+  tcga.pro.geneticprofile <- lapply(tcga.study.list, geneticprofile)
   # for example, tcga.pro.caselist[[1]] shows the dataframe of caselist
   # in laml study group.
   # to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna,
@@ -63,16 +63,16 @@ plot.DNFA.provisional.tcga <- function(DNFA){
   # tcga.pro.geneticprofile[[1]]$genetic_profile_name), ][1,1]
   # how do we do this for all study groups from [[1]] to  [[32]]?
   caselist.RNAseq <- function(x) {
-    tcga.pan.caselist[[x]][
+    tcga.pro.caselist[[x]][
       grep("tcga_rna_seq_v2_mrna",
-           tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
+           tcga.pro.caselist[[x]]$case_list_id), ][1, 1]
   }
   geneticprofile.RNAseq <- function(x) {
-    tcga.pan.geneticprofile[[x]][
+    tcga.pro.geneticprofile[[x]][
       # double backslash \\ suppress the special meaning of ( )
       # in regular expression
       grep("tcga_rna_seq_v2_mrna",
-           tcga.pan.geneticprofile[[x]]$genetic_profile_id), ][1, 1]
+           tcga.pro.geneticprofile[[x]]$genetic_profile_id), ][1, 1]
   }
   # test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
   # caselist.RNAseq = caselist.RNAseq ('acc_tcga')
@@ -143,7 +143,6 @@ plot.DNFA.provisional.tcga <- function(DNFA){
                                        color  = "black"),
             legend.position = "none"))
 }
-
 
 plot.DNFA.provisional.tcga("SCD")
 lapply(DNFA.gene, plot.DNFA.provisional.tcga)
@@ -619,10 +618,8 @@ plot.DNFA.OS <- function(DNFA) {
   print(stats)
 }
 
-plot.DNFA.OS("ACACA")
-DNFA.list <- c("ACACA", "SCD", "ACLY", "FASN", "SREBF1", "MITF")
-names(DNFA.list) <- DNFA.list
-sapply(DNFA.list, plot.DNFA.OS)
+plot.DNFA.OS("SCD")
+sapply(DNFA.gene, plot.DNFA.OS)
 
 
 ##############################################################################
@@ -643,7 +640,7 @@ plot.km.all.tcga <- function(DNFA) {
   pan.tcga.geneticprofile <- lapply(pan.tcga.study.list,
                                     geneticprofile)
   pan.caselist.RNAseq <- function(x) {
-    pan.tcga.caselist[[x]][grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna", 
+    pan.tcga.caselist[[x]][grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
                                 pan.tcga.caselist[[x]]$case_list_id), ][1, 1]
   } # pancancer group does not contain OS data
   pan.geneticprofile.RNAseq <- function(x) {
@@ -710,8 +707,8 @@ plot.km.all.tcga <- function(DNFA) {
   pro.tcga.study.list <- pro.tcga.studies$cancer_study_id
   names(pro.tcga.study.list) <- pro.tcga.study.list
   # three datasets donot have OS data and cause bugs remove them
-  bug.data.set <- names(pro.tcga.study.list) %in% c("meso_tcga", 
-                                                    "pcpg_tcga", 
+  bug.data.set <- names(pro.tcga.study.list) %in% c("meso_tcga",
+                                                    "pcpg_tcga",
                                                     "ucs_tcga")
   pro.tcga.study.list <- pro.tcga.study.list[!bug.data.set]
   all.tcga.clinic.data <- lapply(pro.tcga.study.list, tcga.clinic.data)
@@ -780,7 +777,7 @@ plot.km.all.tcga <- function(DNFA) {
              size  = 4.5,
              hjust = 1,
              fontface = "bold"))
-  
+
   # rho = 1 the Gehan-Wilcoxon test
   stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
   print(DNFA)
@@ -789,4 +786,3 @@ plot.km.all.tcga <- function(DNFA) {
 
 plot.km.all.tcga("SCD")
 sapply(DNFA.gene, plot.km.all.tcga)
-
