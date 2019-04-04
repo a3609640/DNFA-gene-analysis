@@ -232,11 +232,8 @@ lapply(cartares, head,10)
 kg.hsa=kegg.gsets("hsa")
 kegg.sigmet.idx=kg.hsa$kg.sets[kg.hsa$sigmet.idx]
 keggres.sigmet.idx = gage(foldchanges, gsets=kegg.sigmet.idx, same.dir=TRUE)
-<<<<<<< HEAD
 lapply(keggres.sigmet.idx, head,10)
-=======
-lapply(keggres.sigmet.idx, head,20)
->>>>>>> df2833f82e6dd4c02d8f5230e1d1d7b59bfb706c
+
 # write.table(keggres.sigmet.idx$greater, file = "keggres.sigmet.idx.greater.txt",sep = "\t")
 # write.table(keggres.sigmet.idx$less, file = "keggres.sigmet.idx.less.txt",sep = "\t")
 
