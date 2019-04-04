@@ -1,7 +1,8 @@
-## This R script will use the final processed RNA-Seq file from STAR alignment  
-## (gene-counts-from-Makefile.csv) to perform differential gene expression analysis. 
-## The following script uses DESeq and PCA analysis to compare 
+## This R script will use the final processed RNA-Seq file from STAR alignment
+## (gene-counts-from-Makefile.csv) to perform differential gene expression analysis.
+## The following script uses DESeq and PCA analysis to compare
 ## the specificity of SREBF1-ASOs to pooled siRNA of SREBF1 (positive control).
+
 
 library(AnnotationDbi)
 library(BiocStyle)
@@ -39,25 +40,29 @@ library(stats4)
 library(stringr)
 library(survival)
 
+##################################################
+## 1. Obtain the count table of RNA-Seq results ##
+##################################################
+
 .des_facto_get_title_font <- function() {
-  return(element_text(face  = "bold", 
-                      color = "black", 
+  return(element_text(face  = "bold",
+                      color = "black",
                       size  = 18))
 }
 
 .des_facto_read_gene_counts <- function() {
-  # obtain the count table of the experiment directly 
-  # from a pre-saved file: gene-counts.csv.
-  # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
-  # read processed RNA-seq read data from file testseq.csv.
-  testseq <- read.csv(file.path("project-data", 
+  ### obtain the count table of the experiment directly
+  ### from a pre-saved file: gene-counts.csv.
+  ### The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
+  ### read processed RNA-seq read data from file testseq.csv.
+  testseq <- read.csv(file.path("project-data",
                                 "gene-counts-from-Makefile.csv"))
-  # Use the column one (Ensemble names) as columnn names.
+  ### Use the column one (Ensemble names) as columnn names.
   testseq <- data.frame(testseq[ ,-1], row.names = testseq[ ,1])
-  # Remove the first four rows 
-  # (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
+  ### Remove the first four rows
+  ### (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
   testseq <- data.frame(testseq[c(-1,-2,-3,-4), ])
-  # remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
+  ### remove non-numeric 'symbol col' 25, leaving 4 col X 6 tests
   testseq <- testseq[-25]
   return(testseq)
 }
@@ -66,23 +71,23 @@ library(survival)
 ## 2. Preparing count matrices from the RNA-seq results ##
 ##########################################################
 .getGuideData <- function(testseq) {
-  ## check the distribution of RNA-Seq reads
+  ### check the distribution of RNA-Seq reads
   par(mar = c(3,12,2,1))
   boxplot(testseq, outline = FALSE, horizontal = TRUE, las = 1)
-  ## Remove rows in which there are no reads or nearly no reads
+  ### Remove rows in which there are no reads or nearly no reads
   guideData <- testseq[rowSums(testseq) > 1, ]
   head(guideData)
   dim(guideData)
-  ## check how the data distribution with boxplot 
-  ## after removing rows with no read
+  ### check how the data distribution with boxplot
+  ### after removing rows with no read
   par(mar = c(3,12,2,1))
   boxplot(guideData, outline = FALSE, horizontal = TRUE, las = 1)
   return(guideData)
 }
 
 .getGuideDesign <- function(guideData, condition) {
-  ## create a design for our "modelling"
-  ## each sample contains four technical replicates
+  ### create a design for our "modelling"
+  ### each sample contains four technical replicates
   condition = c(rep("Mock",     4), rep("siNegative", 4),
                 rep("siSREBF1", 4), rep("ASO-Neg",    4),
                 rep("ASO-1",    4), rep("ASO-4",      4))
@@ -100,8 +105,8 @@ library(survival)
 ## 3. Construct DESeqDataSet from the count matrix ##
 #####################################################
 .getDDS <- function(guideData, guideDesign, condition) {
-  ## Construct DESeqDataSet with the count matrix,
-  ## countData, and the sample information, colData
+  ### Construct DESeqDataSet with the count matrix,
+  ### countData, and the sample information, colData
   dds <- DESeqDataSetFromMatrix(countData = guideData,
                                 colData   = guideDesign,
                                 design    = ~ condition)
@@ -113,12 +118,12 @@ library(survival)
 ##################################################
 ## 4. Standard differential expression analysis ##
 ##################################################
-# DESeq function performs a default analysis through the steps:
-# (1) estimation of size factor: estimateSizeFactors
-# (2) estimation of dispersion: estimateDispersions
-# (3) Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
+### DESeq function performs a default analysis through the steps:
+### (1) estimation of size factor: estimateSizeFactors
+### (2) estimation of dispersion: estimateDispersions
+### (3) Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
 .getDDSRES <- function(ddsDE) {
-  ddsres <- results(ddsDE)  
+  ddsres <- results(ddsDE)
   summary(ddsres)
   res <- data.frame(ddsres)
   return(res)
@@ -127,19 +132,19 @@ library(survival)
 ##################################################
 ## 5. Count data transformations for clustering ##
 ##################################################
-## The regularized log transform can be obtained using the rlog() function.
-## Regularized log transform is to stabilize the variance of the data
-## and to make its distribution roughly symmetric
-## The default “blinds” the normalization to the design.
-## This is very important so as to not bias the analyses (e.g. class discovery)
-## The running times are shorter when using blind=FALSE
-## and if the function DESeq has already been run,
-## because then it is not necessary to re-estimate the dispersion values.
-## The assay function is used to extract the matrix of normalized value
+### The regularized log transform can be obtained using the rlog() function.
+### Regularized log transform is to stabilize the variance of the data
+### and to make its distribution roughly symmetric
+### The default “blinds” the normalization to the design.
+### This is very important so as to not bias the analyses (e.g. class discovery)
+### The running times are shorter when using blind=FALSE
+### and if the function DESeq has already been run,
+### because then it is not necessary to re-estimate the dispersion values.
+### The assay function is used to extract the matrix of normalized value
 .makeHeatMap <- function(guideDesign, ddsDE) {
   vsd <- vst(ddsDE, blind  = FALSE)
   rld <- rlog(ddsDE, blind = FALSE)
-  # Hierarchical clustering using rlog transformation
+  ### Hierarchical clustering using rlog transformation
   dists <- dist(t(assay(rld)))
   plot(hclust(dists), labels = guideDesign$condition)
   sampleDistMatrix <- as.matrix(dists)
@@ -157,11 +162,11 @@ library(survival)
 ## 6. Principal component analysis ##
 #####################################
 .makePcaPlot <- function(rld) {
-  ## number of top genes to use for principal components,
-  ## selected by highest row variance, 500 by default
+  ### number of top genes to use for principal components,
+  ### selected by highest row variance, 500 by default
   pcaData <- plotPCA(rld, intgroup = c("condition"), returnData = TRUE)
   percentVar <- round(100 * attr(pcaData, "percentVar"))
-  ## Print 2D PCA plot
+  ### Print 2D PCA plot
   pcaPlot <- ggplot(
     data <- pcaData,
     aes_string(x     = "PC1",
@@ -185,13 +190,13 @@ library(survival)
           legend.justification = c(-0.05,-0.05)) +
     xlab(paste0("PC1: ", percentVar[1], "% variance")) +
     ylab(paste0("PC2: ", percentVar[2], "% variance"))
-  # Why 'print'?  See here:
-  # https://stackoverflow.com/questions/26643852/ggplot-plots-in-scripts-do-not-display-in-rstudio
+  ### Why 'print'?  See here:
+  ### https://stackoverflow.com/questions/26643852/ggplot-plots-in-scripts-do-not-display-in-rstudio
   print(pcaPlot)
   return(pcaData)
 }
 
-## Print 3D PCA plot
+### Print 3D PCA plot
 .plotPCA3D <- function(object,
                        intgroup   = "condition",
                        ntop       = 5000,
@@ -260,13 +265,13 @@ library(survival)
 ######################################################
 ## 8. Annotate genes enriched in each PCA component ##
 ######################################################
-## scale.unit : a logical value. If TRUE, the data are scaled to unit variance 
-## before the analysis.
-## This standardization to the same scale avoids some variables to 
-## become dominant just because of their large measurement units.
-## We used FAlSE for scale.unit because rld has been run with DESEQ function before.
-## ncp : number of dimensions kept in the final results.
-## graph : a logical value. If TRUE a graph is displayed.
+### scale.unit : a logical value. If TRUE, the data are scaled to unit variance
+### before the analysis.
+### This standardization to the same scale avoids some variables to
+### become dominant just because of their large measurement units.
+### We used FAlSE for scale.unit because rld has been run with DESEQ function before.
+### ncp : number of dimensions kept in the final results.
+### graph : a logical value. If TRUE a graph is displayed.
 .annotateRld <- function(rld, guideDesign) {
   head(assay(rld))
   assayrld <- assay(rld)
@@ -290,12 +295,12 @@ library(survival)
   rownames(assayrld) = con
   return(assayrld)
 }
-# The variable Species (index = 501) is removed
-# before PCA analysis
-## # Compute PCA with ncp = 3, to keep only the first three principal components
+### The variable Species (index = 501) is removed
+### before PCA analysis
+### Compute PCA with ncp = 3, to keep only the first three principal components
 .makeAnnotatedPcaPlot <- function(assayrld) {
-  res.pca <- PCA(assayrld[ ,-501], 
-                 scale.unit = FALSE, 
+  res.pca <- PCA(assayrld[ ,-501],
+                 scale.unit = FALSE,
                  ncp        = 2,
                  graph      = TRUE)
   return(res.pca)
@@ -304,22 +309,22 @@ library(survival)
 ######################################################
 ## 9. Extract variances in each principal component ##
 ######################################################
-## Eigenvalues correspond to the amount of the variation explained 
-## by each principal component (PC).
-## Eigenvalues are large for the first PC and small for the subsequent PCs.
+### Eigenvalues correspond to the amount of the variation explained
+### by each principal component (PC).
+### Eigenvalues are large for the first PC and small for the subsequent PCs.
 .makeBiplot <- function(assayrld, res.pca, pcaData) {
   eigenvalues <- res.pca$eig
   head(eigenvalues[ ,1:2])
   eigen <- eigenvalues[1:10, ]
-  assayrld$condition <- factor(assayrld$condition, 
-                               levels = c("Mock", 
-                                          "siNegative", 
-                                          "ASO-Neg", 
-                                          "siSREBF1", 
-                                          "ASO-4", 
+  assayrld$condition <- factor(assayrld$condition,
+                               levels = c("Mock",
+                                          "siNegative",
+                                          "ASO-Neg",
+                                          "siSREBF1",
+                                          "ASO-4",
                                           "ASO-1"))
-  # Make a scree plot using base graphics:
-  # Scree plot is a graph of eigenvalues/variances associated with components.
+  ### Make a scree plot using base graphics:
+  ### Scree plot is a graph of eigenvalues/variances associated with components.
   barplot(eigen[ ,2],
           names.arg = 1:nrow(eigen),
           main      = "Variances",
@@ -328,7 +333,7 @@ library(survival)
           col       = "steelblue")
   lines(x = 1:nrow(eigen), eigen[ ,2],
         type = "b", pch = 19, col = "red")
-  # plot biplot graph with the top six contributing genes to PCA from RNA-Seq
+  ### plot biplot graph with the top six contributing genes to PCA from RNA-Seq
   percentVar <- round(100 * attr(pcaData, "percentVar"))
   pcaBiplot <- fviz_pca_biplot(res.pca,
                                select.var = list(contrib = 6),
@@ -367,11 +372,11 @@ library(survival)
 #########################################################
 ## 10. Hierarchical Clustering on Principal Components ##
 #########################################################
-## Compute hierarchical clustering: Hierarchical clustering is performed 
-## using the Ward’s criterion on the selected principal components.
-## Ward criterion is used in the hierarchical clustering 
-## because it is based on the multidimensional variance 
-## like principal component analysis.
+### Compute hierarchical clustering: Hierarchical clustering is performed
+### using the Ward’s criterion on the selected principal components.
+### Ward criterion is used in the hierarchical clustering
+### because it is based on the multidimensional variance
+### like principal component analysis.
 .makeHierarchicalCluster <- function(res.pca, pcaData) {
   res.hcpc <- HCPC(res.pca, graph = FALSE)
   plot1 <-
@@ -393,14 +398,14 @@ library(survival)
     )
   print(plot1)
   print(plot2)
-  # Hierarchical Clustering
-  # compute dissimilarity matrix for all data
+  ### Hierarchical Clustering
+  ### compute dissimilarity matrix for all data
   eu.d <- dist(pcaData, method  = "euclidean")
-  # Hierarchical clustering using Ward's method
+  ### Hierarchical clustering using Ward's method
   res.hc <- hclust(eu.d, method = "ward.D2" )
-  # Cut tree into 4 groups
+  ### Cut tree into 4 groups
   grp <- cutree(res.hc, k = 2)
-  # Visualize
+  ### Visualize
   plot(res.hc, cex = 0.6) # plot tree
   rect.hclust(res.hc, k = 2, border = c("yellow","blue")) # add rectangle
 }
@@ -409,14 +414,14 @@ library(survival)
 ## 11. Top contributing gene variables to PC1 and PC2 ##
 ########################################################
 .findTopPrincipalComponentContributors <- function(res.pca) {
-  ## Contributions of variables to PCs
+  ### Contributions of variables to PCs
   head(res.pca$var$contrib, 10)
   head(res.pca$var$cos2, 10)
   var <- get_pca_var(res.pca)
   var
-  ## library("corrplot")
-  ## corrplot(var$contrib, is.corr=FALSE)
-  ## Contributions of gene variables to PC1
+  ### library("corrplot")
+  ### corrplot(var$contrib, is.corr=FALSE)
+  ### Contributions of gene variables to PC1
   pc1Plot <- fviz_contrib(res.pca,
                           choice = "var",
                           axes   = 1,
@@ -425,7 +430,7 @@ library(survival)
                           color  = "black") +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 45))
-  ## Contributions of gene variables to PC2
+  ### Contributions of gene variables to PC2
   pc2Plot <- fviz_contrib(res.pca,
                           choice = "var",
                           axes   = 2,
@@ -436,17 +441,17 @@ library(survival)
     theme(axis.text.x = element_text(angle = 45))
   print(pc1Plot)
   print(pc2Plot)
-  ## Identify the most correlated variables with a given principal component
+  ### Identify the most correlated variables with a given principal component
   res.desc <- dimdesc(res.pca, axes = c(1,2), proba = 0.05)
-  ## Description of dimension 1
+  ### Description of dimension 1
   head(res.desc, 10)
   res.desc$Dim.1
   dim1 <- data.frame(res.desc$Dim.1)
   columns(org.Hs.eg.db)
-  ## TODO(dlroxe): Figure out why it is necessary to comment out
-  ## gene identifier assignment, here and for Dim.2 below.
-  ## head(dim1,10)
-  ## dim1 <- .addGeneIdentifiers(dim1)
+  ### TODO(dlroxe): Figure out why it is necessary to comment out
+  ### gene identifier assignment, here and for Dim.2 below.
+  ### head(dim1,10)
+  ### dim1 <- .addGeneIdentifiers(dim1)
   summary(dim1)
   head(dim1,10)
   quanti.correlation.dim1        = dim1$quanti.correlation
@@ -455,7 +460,7 @@ library(survival)
   res.desc$Dim.2
   dim2 <- data.frame(res.desc$Dim.2)
   columns(org.Hs.eg.db)
-  ## dim1 <- .addGeneIdentifiers(dim1)
+  ### dim1 <- .addGeneIdentifiers(dim1)
   summary(dim2)
   head(dim2,10)
 }
@@ -463,14 +468,14 @@ library(survival)
 ######################################################
 ## 12. Plot of normalized counts for a single gene  ##
 ######################################################
-# plotcount: "normalized" whether the counts should be normalized
-# by size factor (default is TRUE)
-# plotcount: "transform" whether to present log2 counts (TRUE)
-# or to present the counts on the log scale (FALSE, default)
-# re-arrange x-ase according to the following order:
-# "Mock","siNeg","siBF1","ASO-neg","ASO-1","ASO-4"
-# theme_bw() removes background color in the graph,
-# guides(fill=FALSE) removes legends
+### plotcount: "normalized" whether the counts should be normalized
+### by size factor (default is TRUE)
+### plotcount: "transform" whether to present log2 counts (TRUE)
+### or to present the counts on the log scale (FALSE, default)
+### re-arrange x-ase according to the following order:
+### "Mock","siNeg","siBF1","ASO-neg","ASO-1","ASO-4"
+### theme_bw() removes background color in the graph,
+### guides(fill=FALSE) removes legends
 
 .getCountsAndConditions <- function(dds, ensgID) {
   geneCounts <- plotCounts(
@@ -535,10 +540,10 @@ analyze_aso_specificity <- function() {
   .findTopPrincipalComponentContributors(res.pca)
 
 
-  # TODO(dlroxe): Use a function to derive "ENSG.." from
-  # gene name.  Then the following repeated calls can be
-  # collapsed into a single function that iterates over
-  # a list of SREBF1, SCD, etc.
+  ### TODO(dlroxe): Use a function to derive "ENSG.." from
+  ### gene name.  Then the following repeated calls can be
+  ### collapsed into a single function that iterates over
+  ### a list of SREBF1, SCD, etc.
   SREBF1 <- .getCountsAndConditions(dds, "ENSG00000072310")
   .makeGeneCountPlot(SREBF1, "SREBF1", 8, 10.5)
 
