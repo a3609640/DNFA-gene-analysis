@@ -18,19 +18,19 @@ library(survMisc)
 library(survminer)
 library(tidyr)
 
-
-# Create CGDS object
-# mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
-mycgds = CGDS("http://www.cbioportal.org/")
+  ### Create CGDS object
+  ### mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
+mycgds <- CGDS("http://www.cbioportal.org/")
 test(mycgds)
-# Get list of cancer studies at server
+  ### Get list of cancer studies at server
 getCancerStudies(mycgds)
-# Get cases from TCGA provisional studies only
+  ### Get cases from TCGA provisional studies only
 #####################################################################
 ## Get DNFA gene expression data from all TCGA cancer study groups ##
 #####################################################################
 DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1",
-               "HMGCS1", "HMGCR", "MVK", "PMVK")
+               "HMGCS1", "HMGCR", "MVK", "PMVK", "SREBF1", "SREBF2",
+               "MITF", "BRAF", "NRAS", "PTEN", "TP53")
 names(DNFA.gene ) <- DNFA.gene
 
 ##################################################################
@@ -261,23 +261,21 @@ sapply(DNFA.gene, plot.DNFA.pan.tcga)
 ##############################################
 ## Get DNFA gene expression from SKCM group ##
 ##############################################
-# skcm_case <- getCaseLists(mycgds, "skcm_tcga")
-# skcm_tcga_all <- getCaseLists(mycgds, "skcm_tcga")[2, 1]
-# Get available genetic profiles
-# SKCMgeneticprofile <- getGeneticProfiles(mycgds, "skcm_tcga")
-# getProfileData(mycgds,"genename","genetic profile IDs","A case list ID")
+  ### skcm_case <- getCaseLists(mycgds, "skcm_tcga")
+  ### skcm_tcga_all <- getCaseLists(mycgds, "skcm_tcga")[2, 1]
+  ### Get available genetic profiles
+  ### SKCMgeneticprofile <- getGeneticProfiles(mycgds, "skcm_tcga")
+  ### getProfileData(mycgds,"genename","genetic profile IDs","A case list ID")
 DNFA.RNAseq.data <- getProfileData(mycgds,
-                                   c("ACACA", "FASN", "SCD", "ACLY", "ACSS2",
-                                     "HMGCS1", "HMGCR", "SREBF1", "SREBF2",
-                                     "MITF", "BRAF", "NRAS", "PTEN"),
+                                   DNFA.gene,
                                    "skcm_tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
                                    "skcm_tcga_pan_can_atlas_2018_all")
 
 ################################################
 ## Get oncogene mutation data from SKCM group ##
 ################################################
-# note there may be some internal bugs for the data labeled as NaN
-# https://github.com/cBioPortal/cgdsr/issues/2
+  ### note there may be some internal bugs for the data labeled as NaN
+  ### https://github.com/cBioPortal/cgdsr/issues/2
 getmutations <- function() {
   mutations <- getProfileData(mycgds,
                               c("BRAF", "NRAS", "AKT", "TP53"),
@@ -285,26 +283,26 @@ getmutations <- function() {
                               "skcm_tcga_pan_can_atlas_2018_all")
   colnames(mutations) <- paste0(colnames(mutations), '.mutations')
   v <- rownames(mutations)
-  # each mutation column contains three types of data:
-  # mutation (V600E), NAN (wildtype), NA (not sequenced).
+  ### each mutation column contains three types of data:
+  ### mutation (V600E), NAN (wildtype), NA (not sequenced).
   relabel.mutations <- function(gene) {
     mutations[, gene] <- ifelse(
       mutations[, gene] == "NaN", "Wildtype", "Mutated")
   }
-  # use sapply , input as a matrix, and output as a matrix too.
+  ### use sapply , input as a matrix, and output as a matrix too.
   mutations <- sapply(colnames(mutations), relabel.mutations)
   mutations <- as.data.frame(mutations)
-  # the sapply function return a new matrix lacking row names.
-  # add row names back with the following two lines
+  ### the sapply function return a new matrix lacking row names.
+  ### add row names back with the following two lines
   mutations2 <- cbind(Row.Names = v, mutations)
-  # mutations <- mutations2[ , -1]
+  ### mutations <- mutations2[ , -1]
   rownames(mutations) <- mutations2[ , 1]
   return(mutations)
 }
 
-# mutations.data <- getmutations("BRAF")
+  ### mutations.data <- getmutations("BRAF")
 mutations.data <- getmutations()
-# mutations.list <- c("BRAF", "NRAS", "AKT", "TP53")
+  ### mutations.list <- c("BRAF", "NRAS", "AKT", "TP53")
 
 ###########################################
 ## Get oncogene CNV data from SKCM group ##
@@ -329,7 +327,7 @@ getCNV <- function(x) {
   return(CNV)
 }
 
-# CNV.data <- getCNV("BRAF")
+  ### CNV.data <- getCNV("BRAF")
 CNV.data <- getCNV(c("BRAF", "NRAS", "PTEN"))
 
 ###############################################################################
@@ -375,7 +373,7 @@ sapply(c("BRAF.mutations", "NRAS.mutations",
        function(x) mapply(plot.mutations.RNAseq,
                           x,
                           c("BRAF", "NRAS", "SCD")))
-# or
+   ### or
 sapply(c("BRAF", "NRAS", "SCD"),
        function(y) mapply(plot.mutations.RNAseq,
                           c("BRAF.mutations", "NRAS.mutations",
@@ -434,7 +432,7 @@ sapply(c("SCD", "FASN"),
                   "NRAS.mutations",
                   "AKT1.mutations",
                   "TP53.mutations")))
-# or
+   ### or
 sapply(c("BRAF.mutations",
          "NRAS.mutations",
          "AKT1.mutations",
@@ -444,10 +442,10 @@ sapply(c("BRAF.mutations",
                 c("SCD", "FASN"),
                 y))
 
-#############################################################################
-## compare the correlation between oncogene CNV and DNFA gene RNA-seq data ##
-#############################################################################
-# make a large function to plot all genes
+########################################################################
+## compare the correlation between oncogene CNV and DNFA RNA-seq data ##
+########################################################################
+### make a large function to plot all genes
 plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
   CNV.DNFA.RNAseq <- cbind(CNV.data, DNFA.RNAseq.data)
   # na.omit cannot eleminate NaN here!
@@ -491,17 +489,17 @@ plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
   print(b)
   print(a)
 }
-# use all combinations of geneCNV and RNAseq
+### use all combinations of geneCNV and RNAseq
 sapply(c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"),
        function(x)
          mapply(plot.CNV.RNAseq, x, c("BRAF", "NRAS", "PTEN", "SCD", "FASN")))
-# or
+### or
 sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
        function(y)
          mapply(plot.CNV.RNAseq, c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"), y))
-# statistic comparision of SCD expression
-# between PTEN heterdeletion and diploid
-# (pten loss correlates with scd decrease?)
+### statistic comparision of SCD expression
+### between PTEN heterdeletion and diploid
+### (pten loss correlates with scd decrease?)
 
 ##################################################################
 ##  plot OS curve with clinic and mutation data from SKCM group ##
@@ -570,13 +568,13 @@ sapply(mutation.list, plot.mutation.SKCM.OS)
 #########################################################################
 ##  plot OS curve with clinic and DNFA expression data from SKCM group ##
 #########################################################################
-## PANCAN dataset from cBioportal does not offer clinical results for OS
-## need to the following script uses OS data from TCGA provisional data
-## and combine OS data with the expression data from pancan study
+### PANCAN dataset from cBioportal does not offer clinical results for OS
+### need to the following script uses OS data from TCGA provisional data
+### and combine OS data with the expression data from pancan study
 plot.DNFA.OS <- function(DNFA) {
   mycancerstudy <- getCancerStudies(mycgds)[
     grep("^skcm_tcga$", getCancerStudies(mycgds)$cancer_study_id), 1]
-  mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1] # "All tumor samples (448 samples)"
+  mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1] ### "skcm_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
   skcm.RNAseq.data <- getProfileData(mycgds,
