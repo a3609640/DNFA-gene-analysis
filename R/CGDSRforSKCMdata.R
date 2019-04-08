@@ -26,10 +26,13 @@ test(mycgds)
 getCancerStudies(mycgds)
 
 DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1",
-               "HMGCS1", "HMGCR", "MVK", "PMVK", "MITF", 
-               "BRAF", "NRAS", "AKT1", "PTEN", "TP53")
+               "HMGCS1", "HMGCR", "MVK", "PMVK", "MITF") 
+Onco.gene <- c("BRAF", "NRAS", "AKT1", "PTEN", "TP53")
+DNFA.Onco <- c(DNFA.gene, Onco.gene)
 names(DNFA.gene ) <- DNFA.gene
-
+names(Onco.gene ) <- Onco.gene
+Onco.mutations <- paste0(Onco.gene,".mutations")
+Onco.CNV <- paste0(Onco.gene,".CNV")
 ##############################################
 ## Get DNFA gene expression from SKCM group ##
 ##############################################
@@ -39,7 +42,7 @@ names(DNFA.gene ) <- DNFA.gene
   ### SKCMgeneticprofile <- getGeneticProfiles(mycgds, "skcm_tcga")
   ### getProfileData(mycgds,"genename","genetic profile IDs","A case list ID")
 DNFA.RNAseq.data <- getProfileData(mycgds,
-                                   DNFA.gene,
+                                   DNFA.Onco,
                                    "skcm_tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
                                    "skcm_tcga_pan_can_atlas_2018_all")
 
@@ -73,7 +76,7 @@ getmutations <- function(x) {
 }
 
   ### mutations.data <- getmutations("BRAF")
-mutations.data <- getmutations(DNFA.gene)
+mutations.data <- getmutations(Onco.gene)
   ### mutations.list <- c("BRAF", "NRAS", "AKT", "TP53")
 
 ###########################################
@@ -100,7 +103,7 @@ getCNV <- function(x) {
 }
 
   ### CNV.data <- getCNV("BRAF")
-CNV.data <- getCNV(DNFA.gene)
+CNV.data <- getCNV(Onco.gene)
 
 ###############################################################################
 ## examine the correlation between mutation status and DNFA expression level ##
@@ -140,16 +143,14 @@ plot.mutations.RNAseq <- function(mutations, RNAseq) {
 }
 
 plot.mutations.RNAseq("NRAS.mutations", "SCD")
-sapply(c("BRAF.mutations", "NRAS.mutations",
-         "AKT1.mutations", "TP53.mutations"),
-       function(x) mapply(plot.mutations.RNAseq,
-                          x,
+sapply(Onco.mutations, 
+       function(x) mapply(plot.mutations.RNAseq, 
+                          x, 
                           c("BRAF", "NRAS", "SCD")))
    ### or
 sapply(c("BRAF", "NRAS", "SCD"),
        function(y) mapply(plot.mutations.RNAseq,
-                          c("BRAF.mutations", "NRAS.mutations",
-                            "AKT1.mutations", "TP53.mutations"),
+                          Onco.mutations,
                           y))
 
 
@@ -197,22 +198,10 @@ stats <- function(RNAseq, mutations) {
 
 stats("SCD", "BRAF.mutations")
 sapply(c("SCD", "FASN"),
-       function(x)
-         mapply(stats,
-                x,
-                c("BRAF.mutations",
-                  "NRAS.mutations",
-                  "AKT1.mutations",
-                  "TP53.mutations")))
+       function(x) mapply(stats, x, Onco.mutations))
    ### or
-sapply(c("BRAF.mutations",
-         "NRAS.mutations",
-         "AKT1.mutations",
-         "TP53.mutations"),
-       function(y)
-         mapply(stats,
-                c("SCD", "FASN"),
-                y))
+sapply(Onco.mutations,
+       function(y) mapply(stats, c("SCD", "FASN"), y))
 
 ########################################################################
 ## compare the correlation between oncogene CNV and DNFA RNA-seq data ##
@@ -262,13 +251,13 @@ plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
   print(a)
 }
 ### use all combinations of geneCNV and RNAseq
-sapply(c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"),
+sapply(Onco.CNV,
        function(x)
          mapply(plot.CNV.RNAseq, x, c("BRAF", "NRAS", "PTEN", "SCD", "FASN")))
 ### or
 sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
        function(y)
-         mapply(plot.CNV.RNAseq, c("BRAF.CNV","NRAS.CNV", "PTEN.CNV"), y))
+         mapply(plot.CNV.RNAseq, Onco.CNV, y))
 ### statistic comparision of SCD expression
 ### between PTEN heterdeletion and diploid
 ### (pten loss correlates with scd decrease?)
@@ -330,12 +319,7 @@ plot.mutation.SKCM.OS <- function(ge) {
 }
 
 plot.mutation.SKCM.OS("BRAF.mutations")
-mutation.list <- c("BRAF.mutations",
-                   "NRAS.mutations",
-                   "AKT1.mutations",
-                   "TP53.mutations")
-names(mutation.list) <- mutation.list
-sapply(mutation.list, plot.mutation.SKCM.OS)
+sapply(Onco.mutations, plot.mutation.SKCM.OS)
 
 #########################################################################
 ##  plot OS curve with clinic and DNFA expression data from SKCM group ##
