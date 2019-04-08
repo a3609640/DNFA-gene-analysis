@@ -10,10 +10,17 @@ library(survival)
 library(survMisc)
 library(survminer)
 
+
+
+####################################################
+## Boxplots of relative levels of DNFA expression ## 
+####################################################
 ## read.csv will transform characters into factors  
 get.DNFA.TCGA.GTEX.RNAseq.long <- function () {
-  DNFA.TCGA.GTEX <- read.csv(file.path("project-data", "DNFASKCMandGTEX.csv"), 
-                            header = TRUE, sep = ",")
+  DNFA.TCGA.GTEX <- read.csv(file.path("project-data", 
+                                       "DNFASKCMandGTEX.csv"), 
+                                        header = TRUE, 
+                                        sep = ",")
   DNFA.TCGA.GTEX.RNAseq.long <- melt(DNFA.TCGA.GTEX[, 1:14])
   colnames(DNFA.TCGA.GTEX.RNAseq.long) <- c("sample", "study", 
                                             "sample.type","primary.disease", 
@@ -32,15 +39,15 @@ get.DNFA.TCGA.GTEX.RNAseq.long <- function () {
   return(DNFA.TCGA.GTEX.RNAseq.long)
 }
 
-##
 get.DNFA.TCGA.RNAseq.long <- function () {
   DNFA.TCGA.GTEX <- read.csv(file.path("project-data", 
-                                      "DNFASKCMandGTEX.csv"), 
-                            header = TRUE, sep = ",")
+                                       "DNFASKCMandGTEX.csv"), 
+                                        header = TRUE, 
+                                        sep = ",")
   DNFA.TCGA.GTEX.RNAseq.long <- melt(DNFA.TCGA.GTEX[, 1:14])
   colnames(DNFA.TCGA.GTEX.RNAseq.long) <- c("sample", "study", 
-                                           "sample.type", "primary.disease", 
-                                           "variable", "value")
+                                            "sample.type", "primary.disease", 
+                                            "variable", "value")
   DNFA.TCGA.RNAseq.long <- DNFA.TCGA.GTEX.RNAseq.long[
     DNFA.TCGA.GTEX.RNAseq.long$study == 'TCGA',]
   DNFA.TCGA.RNAseq.long <- DNFA.TCGA.RNAseq.long[
@@ -54,15 +61,15 @@ get.DNFA.TCGA.RNAseq.long <- function () {
   return(DNFA.TCGA.RNAseq.long)
 }
 
-##
 get.DNFA.GTEX.RNAseq.long <- function () {
   DNFA.TCGA.GTEX <- read.csv(file.path("project-data", 
-                                      "DNFASKCMandGTEX.csv"), 
-                            header = TRUE, sep = ",")
+                                       "DNFASKCMandGTEX.csv"), 
+                                        header = TRUE, 
+                                        sep = ",")
   DNFA.TCGA.GTEX.RNAseq.long <- melt(DNFA.TCGA.GTEX[, 1:14])
   colnames(DNFA.TCGA.GTEX.RNAseq.long) <- c("sample", "study", 
-                                           "sample.type", "primary.disease", 
-                                           "variable", "value")
+                                            "sample.type", "primary.disease", 
+                                            "variable", "value")
   DNFA.GTEX.RNAseq.long <- DNFA.TCGA.GTEX.RNAseq.long[
     DNFA.TCGA.GTEX.RNAseq.long$study == 'GTEX',]
   DNFA.GTEX.RNAseq.long <- DNFA.GTEX.RNAseq.long[
@@ -73,7 +80,7 @@ get.DNFA.GTEX.RNAseq.long <- function () {
   return(DNFA.GTEX.RNAseq.long)
 }
 
-##
+### plot function for get.DNFA.TCGA.GTEX.RNAseq.long()
 plot.DNFA.TCGA.GTEX <-  function (x) {
   name <- deparse(substitute(x))
   metastatic.number <- nrow(x[x$sample.type == "Metastatic",])
@@ -161,7 +168,7 @@ plot.DNFA.TCGA.GTEX <-  function (x) {
   print(p2)
 }
 
-##
+### plot function for get.DNFA.TCGA.RNAseq.long()
 plot.DNFA.TCGA <-  function (x) {
   name <- deparse(substitute(x))
   metastatic.number <- nrow(x[x$sample.type == "Metastatic",])
@@ -254,7 +261,7 @@ plot.DNFA.TCGA <-  function (x) {
   print(p2)
 }
 
-##
+### plot function for get.DNFA.GTEX.RNAseq.long()
 plot.DNFA.GTEX <-  function (x) {
   name <- deparse(substitute(x))
   cell.line.number <- nrow(x[x$sample.type == "Cell Line",])
@@ -301,7 +308,8 @@ plot.DNFA.GTEX <-  function (x) {
     stat_compare_means(method = "anova")
 }
 
-##
+### plot function for get.DNFA.TCGA.RNAseq.long(),
+### allow selection of individual tumor group
 plot.DNFA.TCGA.each.tumor <- function(x, y){
   m <- x[x$primary.disease == y,]
   my_comparison <- list(c("Metastatic", "Solid Tissue Normal"), 
@@ -314,19 +322,20 @@ plot.DNFA.TCGA.each.tumor <- function(x, y){
     stat_compare_means(method = "anova")
 } 
 
-##
 get.disease.list <- function () {
   x <- get.DNFA.TCGA.RNAseq.long()
   disease.list <- levels(x$primary.disease)
   names(disease.list)<- disease.list
   return(disease.list)}
 
-##
-plot.DNFA.PCA <- function (){
+###########################################################################
+## PCA with DNFA or DNCS gene expression on SKCM and normal skin tissues ##
+###########################################################################
+plot.DNFA.PCA <- function (x){
   DNFA.TCGA.GTEX <- read.csv(file.path("project-data", 
                                        "DNFATCGAandGTEX.csv"), 
-                             header = TRUE, 
-                             sep = ",")
+                                        header = TRUE, 
+                                        sep = ",")
   DNFA.TCGA.GTEX <- as.data.frame(DNFA.TCGA.GTEX)
   DNFA.TCGA.GTEX$sample_type <- as.factor(DNFA.TCGA.GTEX$sample_type)
   DNFA.TCGA.GTEX$sample_type <- factor(DNFA.TCGA.GTEX$sample_type, 
@@ -338,19 +347,19 @@ plot.DNFA.PCA <- function (){
   DNFA.TCGA.GTEX.skin <- DNFA.TCGA.GTEX[
     DNFA.TCGA.GTEX$primary.disease.or.tissue %in% sample.type, ]
   DNFA.TCGA.GTEX.skin <- na.omit(DNFA.TCGA.GTEX.skin)
-  df <- DNFA.TCGA.GTEX.skin[c(3,4,5,6,7,9)]
+  df <- DNFA.TCGA.GTEX.skin[x]
   df <- na.omit(df)
   ggplot2::autoplot(prcomp(df))
   # autoplot(prcomp(df), data = DNFASKCMandTGEX, colour = 'sample_type')
   
-  ggplot2::autoplot(prcomp(df), 
-                    data                 = DNFA.TCGA.GTEX.skin, 
-                    colour               = 'sample_type',
-                    loadings             = TRUE, 
-                    loadings.colour      = 'black',
-                    loadings.label.vjust = 0,
-                    loadings.label       = TRUE, 
-                    loadings.label.size  = 6) +
+  p <- ggplot2::autoplot(prcomp(df), 
+                          data                 = DNFA.TCGA.GTEX.skin, 
+                          colour               = 'sample_type',
+                          loadings             = TRUE, 
+                          loadings.colour      = 'black',
+                          loadings.label.vjust = 0,
+                          loadings.label       = TRUE, 
+                          loadings.label.size  = 6) +
     theme(plot.background  = element_blank(),
           panel.background = 
             element_rect(fill  = 'transparent',
@@ -370,6 +379,7 @@ plot.DNFA.PCA <- function (){
                                       face    = "bold",
                                       hjust   = 1),
           legend.key   = element_blank())
+  print(p)
 }
 
 ####################################################################
@@ -384,10 +394,10 @@ plot.km.DNFA.all.tumors <- function(DNFA) {
   df <- na.omit(DNFA.TCGA)
   number <- nrow(df)
   sub <- round(number/5, digits = 0)
-  bottom.label <- paste("Bottom 10%, n = ", sub)
-  top.label <- paste("Top 10%, n = ", sub)
-  df$Group[df[[DNFA]] < quantile(df[[DNFA]], prob = 0.1)] = "Bottom"
-  df$Group[df[[DNFA]] > quantile(df[[DNFA]], prob = 0.9)] = "Top"
+  bottom.label <- paste("Bottom 20%, n = ", sub)
+  top.label <- paste("Top 20%, n = ", sub)
+  df$Group[df[[DNFA]] < quantile(df[[DNFA]], prob = 0.2)] = "Bottom"
+  df$Group[df[[DNFA]] > quantile(df[[DNFA]], prob = 0.8)] = "Top"
   df$SurvObj <- with(df, Surv(OS.time, OS == 1))
   df <- na.omit(df)
   km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
@@ -442,7 +452,8 @@ plot.km.DNFA.all.tumors <- function(DNFA) {
 ##  Kaplan-Meier curve with clinic and DNFA RNASeq data in each tumor group ##
 ##############################################################################
 plot.km.DNFA.each.tumor <- function(DNFA, tumor) {
-  DNFA.TCGA.GTEX <- read.csv(file.path("project-data", "DNFASKCMandGTEX.csv"), 
+  DNFA.TCGA.GTEX <- read.csv(file.path("project-data", 
+                  "DNFASKCMandGTEX.csv"), 
                             header = TRUE, sep = ",")
   DNFA.TCGA <- DNFA.TCGA.GTEX[DNFA.TCGA.GTEX$study == 'TCGA',]
   DNFA.TCGA <- DNFA.TCGA[DNFA.TCGA$primary.disease.or.tissue == tumor,]
@@ -454,10 +465,10 @@ plot.km.DNFA.each.tumor <- function(DNFA, tumor) {
   df <- na.omit(DNFA.TCGA)
   number <- nrow(df)
   sub <- round(number/5, digits = 0)
-  bottom.label <- paste("Bottom 30%, n = ", sub)
-  top.label <- paste("Top 30%, n = ", sub)
-  df$Group[df[[DNFA]] < quantile(df[[DNFA]], prob = 0.3)] = "Bottom 20%"
-  df$Group[df[[DNFA]] > quantile(df[[DNFA]], prob = 0.7)] = "Top 20%"
+  bottom.label <- paste("Bottom 20%, n = ", sub)
+  top.label <- paste("Top 20%, n = ", sub)
+  df$Group[df[[DNFA]] < quantile(df[[DNFA]], prob = 0.2)] = "Bottom 20%"
+  df$Group[df[[DNFA]] > quantile(df[[DNFA]], prob = 0.8)] = "Top 20%"
   df$SurvObj <- with(df, Surv(OS.time, OS == 1))
   df <- na.omit(df)
   km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
@@ -525,24 +536,33 @@ lapply(get.disease.list(),
        plot.DNFA.TCGA.each.tumor, 
        x = get.DNFA.TCGA.RNAseq.long())
 
+###########################################################################
+## PCA with DNFA or DNCS gene expression on SKCM and normal skin tissues ##
+###########################################################################
 
-####################################################
-####################################################
-plot.km.DNFA.all.tumors("HMGCR")
+DNFA.list <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "SREBF1")
+DNFA.list1 <- c(DNFA.list,"ACSL1")
+DNCS.list <- c("HMGCS1", "HMGCR", "MVK", "PMVK", "MVD", "SREBF2")
+three.list <- list(DNFA.list, DNFA.list1, DNCS.list)
+
+lapply(three.list, plot.DNFA.PCA)
+
+#############################################################################
+##  Kaplan-Meier curve with clinic and DNFA RNASeq data in all tumor group ##
+#############################################################################
+plot.km.DNFA.all.tumors("SCD")
 DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1", 
                "HMGCS1", "HMGCR", "MVK", "PMVK")
 names(DNFA.gene ) <- DNFA.gene
-sapply(DNFA.gene, plot.km.DNFA.all.tumors)
-
-
-lapply(get.disease.list(), 
-  plot.km.DNFA.each.tumor, 
-  DNFA = "SCD")
+lapply(DNFA.gene, plot.km.DNFA.all.tumors)
 
 ##############################################################################
 ##  Kaplan-Meier curve with clinic and DNFA RNASeq data in each tumor group ##
 ##############################################################################
-plot.km.DNFA.each.tumor("HMGCR", "Skin Cutaneous Melanoma")
+lapply(get.disease.list(), 
+       plot.km.DNFA.each.tumor, 
+       DNFA = "SCD")
+
 lapply(DNFA.gene, 
        plot.km.DNFA.each.tumor, 
        tumor = "Bladder Urothelial Carcinoma")
@@ -553,11 +573,7 @@ lapply(DNFA.gene,
 
 lapply(DNFA.gene, 
        plot.km.DNFA.each.tumor, 
-       tumor = "Cervical & Endocervical Cancer")
-
-
-
-
+       tumor = "Skin Cutaneous Melanoma")
 
 
 
