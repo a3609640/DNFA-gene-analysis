@@ -18,17 +18,14 @@ library(survMisc)
 library(survminer)
 library(tidyr)
 
-  ### Create CGDS object
-  ### mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
+########################
+## Create CGDS object ##
+########################
+### mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
 mycgds <- CGDS("http://www.cbioportal.org/")
-  ### Get list of cancer studies at server
+### Get list of cancer studies at server
 test(mycgds)
 getCancerStudies(mycgds)
-
-DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1",
-               "HMGCS1", "HMGCR", "MVK", "PMVK", "MITF", 
-               "BRAF", "NRAS", "AKT1", "PTEN", "TP53")
-names(DNFA.gene ) <- DNFA.gene
 
 ##################################################################
 ## plot DNFA gene expression across all TCGA provisional groups ##
@@ -143,9 +140,6 @@ plot.DNFA.provisional.tcga <- function(DNFA) {
             legend.position = "none"))
 }
 
-plot.DNFA.provisional.tcga("SCD")
-lapply(DNFA.gene, plot.DNFA.provisional.tcga)
-
 ################################################################
 ## plot DNFA gene expression across all TCGA pancancer groups ##
 ################################################################
@@ -253,9 +247,6 @@ plot.DNFA.pan.tcga <- function(DNFA){
                                        color  = "black"),
             legend.position = "none"))
 }
-
-plot.DNFA.pan.tcga("HMGCR")
-sapply(DNFA.gene, plot.DNFA.pan.tcga)
 
 ##############################################################################
 ## Kaplan-Meier curve with clinic and DNFA RNAseq data from all TCGA groups ##
@@ -419,8 +410,18 @@ plot.km.all.tcga <- function(DNFA) {
   print(stats)
 }
 
-plot.km.all.tcga("SCD")
-sapply(DNFA.gene, plot.km.all.tcga)
+
+
+DNFA.gene <- c("ACLY", "ACSS2","ACACA", "SCD", "FASN", "ACSL1",
+               "HMGCS1", "HMGCR", "MVK", "PMVK", "MITF", 
+               "BRAF", "NRAS", "AKT1", "PTEN", "TP53")
+names(DNFA.gene ) <- DNFA.gene
+
+lapply(DNFA.gene, plot.DNFA.provisional.tcga)
+
+lapply(DNFA.gene, plot.DNFA.pan.tcga)
+
+lapply(DNFA.gene, plot.km.all.tcga)
 
 
 
