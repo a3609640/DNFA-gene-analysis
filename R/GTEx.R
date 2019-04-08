@@ -3,7 +3,6 @@ library(ggplot2)
 library(ggpubr)
 library(gridExtra)
 
-# TODO(dlroxe): unify this with identical function in data prep .R file.
 # Return the value of the DNFA_generatedDataRoot environment variable.  If
 # that variable isn't set, return "/usr/local/DNFA-genfiles/data".
 .getDataDir3 <- function() {
@@ -124,12 +123,7 @@ library(gridExtra)
 }
 
 
-##################################################################
-### TO DO: organize the following scripts , (they worked)
 
-
-# plotGOI_DNFA(gene, gene_annotations)
-# plotGOI_EIF(gene, gene_annotations)
 ## important to keep gene and gene_annotations as global variable. They are too big in size.
 ## make sure read them once and avoid to construc functions over them.
 gene <- .get_gene()
