@@ -16,7 +16,7 @@ library(ReactomePA)
 library(RColorBrewer)
 library(Rcpp)
 library(RcppArmadillo)
-library(RODBC)
+# library(RODBC)
 library(S4Vectors)
 library(SummarizedExperiment)
 library(ashr)
@@ -46,15 +46,14 @@ data(kegg.gs)
 #################################
 ## 1. Preparing count matrices ##
 #################################
-# TODO(dlroxe): This function is copied from the FactoMineR file.
-# Find a single place to define it in common for all callers.
 .des_gage_read_gene_counts <- function() {
-  # obtain the count table of the experiment directly from a pre-saved file: gene-counts.csv.
-  # The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
-  # read processed RNA-seq read data from file testseq.csv.
+  ### obtain the count table of the experiment directly from a pre-saved file: 
+  ### gene-counts.csv.
+  ### The RNA-seq was aligned to human reference genome Hg38 by STAR aligner
+  ### read processed RNA-seq read data from file testseq.csv.
   testseq <- read.csv(file.path("project-data", 
                                 "gene-counts-from-Makefile.csv"))
-  # Use the column one (Ensemble names) as columnn names.
+  ### Use the column one (Ensemble names) as columnn names.
   testseq <- data.frame(testseq[,-1], row.names = testseq[,1])
   # Remove the first four rows (N_unmapped,N_multimapping,N_noFeature and N_ambiguous)
   testseq <- data.frame(testseq[c(-1,-2,-3,-4), ])
@@ -82,7 +81,7 @@ data(kegg.gs)
   return(guideData)
   }
 
-# TODO(dlroxe): again, same function as other file
+
 .getDDS <- function(guideData, guideDesign, condition) {
   ## Construct DESeqDataSet with the count matrix, countData, 
   ## and the sample information, colData
@@ -132,20 +131,20 @@ data(kegg.gs)
   ## which remove the noise associated with log2 fold changes 
   ## from low count genes without requiring arbitrary filtering thresholds.
   resultsNames(ddsDEsiRNA)
-  # normal is the the original DESeq2 shrinkage estimator, 
-  # an adaptive normal prior
+  ## normal is the the original DESeq2 shrinkage estimator, 
+  ## an adaptive normal prior
   resLFC <- lfcShrink(ddsDEsiRNA, coef = 2, type="normal")
   # par(mfrow=c(1,3), mar=c(4,4,2,1))
-  xlim <- c(1,1e5); ylim <- c(-2.5,2.5)
+  xlim <- c(1, 1e5); ylim <- c(-2.5, 2.5)
   plotMA(resLFC,
-         xlab = "mean of normalized counts", ylab = expression(log[2]~fold~change),
+         xlab = "mean of normalized counts", 
+         ylab = expression(log[2]~fold~change),
          ylim = ylim,
          main = "normal",
          cex  = .8)
   return(ressiRNA)
 }
 
-# TODO(dlroxe): again, mostly the same as the other file
 ############################################################
 ## 3.2. Add Entrez IDs, gene symbols, and full gene names ##
 ############################################################
@@ -301,7 +300,7 @@ data(kegg.gs)
 
 des_gage_do_all <- function() {
   testseq <- .des_gage_read_gene_counts()
-  guideDatasiRNA <- .getGuideData(data.frame(testseq[ ,c(13,14,15,16,17,18,19,20)]))
+  guideDatasiRNA <- .getGuideData(data.frame(testseq[ ,c(5,6,7,8,9,10,11,12)]))
   condition <- c(rep("siNeg",4),rep("siBF1",4))
   guideDesignsiRNA <- data.frame(row.names = colnames(guideDatasiRNA),
                                  condition = condition)
