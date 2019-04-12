@@ -423,7 +423,8 @@ lapply(DNFA.gene, plot.DNFA.pan.tcga)
 
 lapply(DNFA.gene, plot.km.all.tcga)
 
-
+plot.DNFA.provisional.tcga("SCD")
+plot.DNFA.pan.tcga ("SCD")
 
 
 
