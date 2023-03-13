@@ -225,21 +225,6 @@ For the time being, R scripts must be manually invoked to generate plots
 from the downloaded and processed data.
 
 
-# Software Engineering Discussion for Biologists
-
-As a friend of one of the authors who was a member of the US Marine Corps
-once related, there is a saying in the military:  "Amateurs talk tactics;
-professionals talk logistics."  In a way, the same is true for software
-engineering.  If you have managed to coax R into producing a
-publication-quality graph, congratulations... but from a software engineering
-standpoint, you are far from done.  Is your code correct?  If you adjust it,
-how can you be sure that it remains correct?  Can your software run in a fully
-automated fashion with no manual steps?  What recipe must others follow to see
-your code work in their own environments?  These and related questions touch
-upon the logistical considerations for well-engineered software.  This section
-will consider them from the standpoint of build automation, unit testing, and
-documentation.
-
 ## Build Automation
 
 One aspect of this project is a file named `Makefile`.  To a non-initiate,
